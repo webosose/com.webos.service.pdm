@@ -1,0 +1,17 @@
+{
+"devices": [
+    "com.webos.service.pdm/eject",
+    "com.webos.service.pdm/format",
+    "com.webos.service.pdm/fsck",
+    "com.webos.service.pdm/getAttachedDeviceStatus",
+    "com.webos.service.pdm/getAttachedNonStorageDeviceList",
+    "com.webos.service.pdm/getAttachedStorageDeviceList",
+    "com.webos.service.pdm/getExample",
+    "com.webos.service.pdm/getIoPerformance",
+    "com.webos.service.pdm/getSpaceInfo",
+    "com.webos.service.pdm/isWritableDrive",
+    "com.webos.service.pdm/setVolumeLabel",
+    "com.webos.service.pdm/umountAllDrive",
+    "com.webos.service.pdm/mountandFullFsck"
+]
+}

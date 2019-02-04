@@ -1,0 +1,12 @@
+{
+    "exeName": "/usr/sbin/physical-device-manager",
+    "type": "regular",
+    "allowedNames": ["com.webos.service.pdm"],
+    "permissions": [
+            {
+                "service":"com.webos.service.pdm",
+                "outbound":["*"]
+            }
+      ]
+}
+

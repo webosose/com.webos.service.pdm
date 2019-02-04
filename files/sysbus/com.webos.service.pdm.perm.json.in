@@ -1,0 +1,6 @@
+{
+   "com.webos.service.pdm":[
+      "notifications",
+      "settings.read"
+   ]
+}
