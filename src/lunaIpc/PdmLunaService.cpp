@@ -325,6 +325,8 @@ bool PdmLunaService::cbGetSpaceInfo(LSHandle *sh, LSMessage *message)
 
     if(!payloadMsg) {
          PDM_LOG_ERROR("PdmLunaService:%s line: %d payloadMsg is empty ", __FUNCTION__, __LINE__);
+         delete spaceCmd;
+         spaceCmd = nullptr;
          return true;
     }
 

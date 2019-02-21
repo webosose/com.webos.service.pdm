@@ -22,6 +22,8 @@ extern "C" {
 #include <unistd.h>
 }
 #include <cstring>
+#include <climits>
+#include <random>
 
 #define    PDM_T_REPEAT_WRITE    50
 #define    PDM_T_REPEAT_READ     50
@@ -129,6 +131,7 @@ PdmDevStatus PdmIoPerf::readWriteIOTest(TestMode mode)
         if (m_fileSize == 0) {
             PDM_LOG_DEBUG("PdmIoPerf:%s line: %d Storage read test(%d) - Zero file size => Skip Test\n", __FUNCTION__, __LINE__, mode);
             close(m_fd);
+            m_fd = -1;
             return result;
         }
 
@@ -137,7 +140,11 @@ PdmDevStatus PdmIoPerf::readWriteIOTest(TestMode mode)
         else
             result = ranReadTest();
     }
-    close(m_fd);
+    if(m_fd > 0) {
+        close(m_fd);
+        m_fd = -1;
+    }
+
     return result;
 }
 
@@ -162,6 +169,7 @@ PdmDevStatus PdmIoPerf::seqWriteTest()
     {
         PDM_LOG_DEBUG("PdmIoPerf:%s line: %d Storage SeqWriteTask- Memory Alloc Fail!\n", __FUNCTION__, __LINE__);
         close(m_fd);
+        m_fd = -1;
         return result;
     }
     fsync(m_fd);
@@ -182,6 +190,7 @@ PdmDevStatus PdmIoPerf::seqWriteTest()
             PDM_LOG_DEBUG("PdmIoPerf:%s line: %d StorageRWTest_SeqWrite-Write fail1(%d) => Skip Test(%d)\n", __FUNCTION__, __LINE__, cntRepeat, writeResult);
             free(pCurBuf);
             close(m_fd);
+            m_fd = -1;
             return result;
         }
 
@@ -229,6 +238,7 @@ PdmDevStatus PdmIoPerf::seqReadTest()
     if(pCurBuf == NULL) {
         PDM_LOG_DEBUG("PdmIoPerf:%s line: %d Storage SeqReadTask- Memory Alloc Fail!\n", __FUNCTION__, __LINE__);
         close(m_fd);
+        m_fd = -1;
         return result;
     }
 
@@ -247,6 +257,7 @@ PdmDevStatus PdmIoPerf::seqReadTest()
         if (readresult != readSize)    {
             PDM_LOG_DEBUG("PdmIoPerf:%s line: %d StorageRWTest_SeqRead - Read fail => Skip Test (readsult : %d, readSize: %d)\n", __FUNCTION__, __LINE__, readresult, readSize);
             close(m_fd);
+            m_fd = -1;
             free(pCurBuf);
             return result;
         }
@@ -303,6 +314,7 @@ PdmDevStatus PdmIoPerf::ranReadTest()
     {
         PDM_LOG_DEBUG("PdmIoPerf:%s line: %d malloc fail!\n", __FUNCTION__, __LINE__);
         close(m_fd);
+        m_fd = -1;
         return result;
     }
     if ( getRanReadOffset(pRandomReadOffset, numRandom) ==  PdmDevStatus::PDM_DEV_ERROR)
@@ -310,6 +322,7 @@ PdmDevStatus PdmIoPerf::ranReadTest()
         PDM_LOG_DEBUG("PdmIoPerf:%s line: %d generate ramdom offset Fail!\n", __FUNCTION__, __LINE__);
         free(pRandomReadOffset);
         close(m_fd);
+        m_fd = -1;
         return result;
     }
 
@@ -318,6 +331,7 @@ PdmDevStatus PdmIoPerf::ranReadTest()
         PDM_LOG_DEBUG("PdmIoPerf:%s line: %d Storage RanReadTask- Memory Alloc Fail!\n", __FUNCTION__, __LINE__);
         free(pRandomReadOffset);
         close(m_fd);
+        m_fd = -1;
         return result;
     }
 
@@ -339,6 +353,7 @@ PdmDevStatus PdmIoPerf::ranReadTest()
         if (readresult < 0)    {
             PDM_LOG_DEBUG("PdmIoPerf:%s line: %d StorageRWTest_RanRead - Read fail => Skip Test\n", __FUNCTION__, __LINE__);
             close(m_fd);
+            m_fd = -1;
             free(pCurBuf);
             free(pRandomReadOffset);
             return result;
@@ -366,6 +381,7 @@ PdmDevStatus PdmIoPerf::ranReadTest()
     free(pCurBuf);
     free(pRandomReadOffset);
     close(m_fd);
+    m_fd = -1;
 
     return PdmDevStatus::PDM_DEV_SUCCESS;
 }
@@ -376,13 +392,16 @@ PdmDevStatus PdmIoPerf::getRanReadOffset(unsigned long long *pRandomReadOffset, 
     PdmDevStatus result = PdmDevStatus::PDM_DEV_ERROR;
     unsigned long long tRand, tmp;
     unsigned int i;
+    std::random_device rd;
+    std::mt19937 eng(rd());
+    std::uniform_int_distribution<> urandnumber(0, ULONG_MAX);
 
     if (pRandomReadOffset){
         for(i = 0; i < numRandom; i++){
             pRandomReadOffset[i] = i;
         }
         for(i = 0; i < numRandom; i++) {
-            tRand = lrand48();
+            tRand = urandnumber(eng);
             tRand = tRand%numRandom;
             tmp = pRandomReadOffset[i];
             pRandomReadOffset[i] = pRandomReadOffset[tRand];
