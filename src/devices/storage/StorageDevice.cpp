@@ -46,7 +46,13 @@ StorageDevice::StorageDevice(PdmConfig* const pConfObj, PluginAdapter* const plu
 }
 
 StorageDevice::~StorageDevice() {
-    deletePartitionData();
+
+    try {
+        deletePartitionData();
+    }
+    catch (std::exception &e) {
+        PDM_LOG_ERROR("StorageDevice:%s line: %d Caught exception: %s", __FUNCTION__, __LINE__, e.what());
+    }
 }
 
 /*

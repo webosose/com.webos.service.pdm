@@ -183,10 +183,12 @@ PdmDevStatus PdmFs::setVolumeLabel(DiskPartitionInfo *partition, const std::stri
 
     if (ret == -1 || ret == 127 ) {
         PDM_LOG_ERROR("PdmFs:%s line: %d Setting volume Label:%s failed", __FUNCTION__, __LINE__, volLabel.c_str());
+        partition->partitionUnLock();
         return PdmDevStatus::PDM_DEV_SET_VOLUME_LABEL_FAIL;
     } else {
         partition->setVolumeLabel(volLabel);
         PDM_LOG_DEBUG("PdmFs:%s line: %d Setting volume Label:%s success", __FUNCTION__, __LINE__, volLabel.c_str());
+        partition->partitionUnLock();
         return PdmDevStatus::PDM_DEV_SUCCESS;
     }
 }

@@ -160,10 +160,13 @@ bool Notification::createAlertCallback(LSHandle * sh, LSMessage * message, void*
     }
     std::string internalIdString = "";
 
-    if(root["alertId"].isString()) {
-        root["alertId"].asString(internalIdString);
-        PDM_LOG_DEBUG("Notification: %s line: %d internalIdString: %s", __FUNCTION__, __LINE__,internalIdString.c_str());
-        alerts[internalId] = internalIdString;
+    if (root["alertId"].isString()) {
+        if (root["alertId"].asString(internalIdString) == CONV_OK) {
+            PDM_LOG_DEBUG("Notification: %s line: %d internalIdString: %s", __FUNCTION__, __LINE__,internalIdString.c_str());
+            alerts[internalId] = internalIdString;
+        }
+        else
+            PDM_LOG_ERROR("Notification: %s line : %d asString error",__FUNCTION__, __LINE__);
     }
 
     if(root["returnValue"].isBoolean()) {

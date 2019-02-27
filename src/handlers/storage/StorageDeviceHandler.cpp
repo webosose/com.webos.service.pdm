@@ -52,7 +52,12 @@ StorageDeviceHandler::~StorageDeviceHandler() {
     mNotifyCv.notify_one();
     if(mSpaceInfoThread.joinable())
     {
-        mSpaceInfoThread.join();
+        try {
+            mSpaceInfoThread.join();
+        }
+        catch (std::system_error &e) {
+            PDM_LOG_ERROR("StorageDeviceHandler:%s line: %d Caught system_error: %s", __FUNCTION__,__LINE__, e.what());
+        }
     }
     if(!mStorageList.empty())
     {

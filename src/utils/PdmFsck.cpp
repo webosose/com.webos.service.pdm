@@ -69,7 +69,7 @@ PdmDevStatus PdmFsck::fsck(const std::string& fsckMode,const std::string driveTy
     else
         sysCommand = fsckbin + " " + Mode + " " + fsckOption + " /dev/" + partitionName;
 
-    PDM_LOG_INFO("PdmFsck:",0,"%s line: %d] %s FSCK Mode, %s FSCK fsckOption, %s FSCK sysCommand ", __FUNCTION__,__LINE__,Mode, fsckOption.c_str(), sysCommand.c_str());
+    PDM_LOG_INFO("PdmFsck:",0,"%s line: %d] %s FSCK Mode, %s FSCK fsckOption, %s FSCK sysCommand ", __FUNCTION__,__LINE__,Mode.c_str(), fsckOption.c_str(), sysCommand.c_str());
     int32_t result = system(sysCommand.c_str());
     if (result == 1 || result == 2)
     {

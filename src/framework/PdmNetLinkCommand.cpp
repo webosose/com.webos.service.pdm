@@ -32,8 +32,10 @@ PdmNetLinkCommand::~PdmNetLinkCommand()
 
 void PdmNetLinkCommand::execute()
 {
-    DeviceManager::getInstance()->HandlePdmDevice(m_netLinkEvent);
-    if(m_netLinkEvent)
-        delete m_netLinkEvent;
-    m_netLinkEvent = nullptr;
+    if (m_netLinkEvent) {
+        DeviceManager::getInstance()->HandlePdmDevice(m_netLinkEvent);
+        if(m_netLinkEvent)
+            delete m_netLinkEvent;
+        m_netLinkEvent = nullptr;
+    }
 }

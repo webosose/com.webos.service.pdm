@@ -81,15 +81,17 @@ void SoundDeviceHandler::ProcessSoundDevice(PdmNetlinkEvent* pNE){
         case DeviceActions::USB_DEV_ADD:
             PDM_LOG_DEBUG("SoundDeviceHandler:%s line: %d  Add Sound device",__FUNCTION__, __LINE__);
             soundDevice = getDeviceWithPath< SoundDevice >(sList,pNE->getDevAttribute(DEVPATH));
-            if((!soundDevice ) && (pNE->getDevAttribute(DEVTYPE) == USB_DEVICE)){
-
-                soundDevice = new (std::nothrow) SoundDevice(m_pConfObj, m_pluginAdapter);
-                if(soundDevice) {
-                    soundDevice->setDeviceInfo(pNE);
-                    sList.push_back(soundDevice);
-                } else {
-                    PDM_LOG_CRITICAL("SoundDeviceHandler:%s line: %d Unable to create new Sound device", __FUNCTION__, __LINE__);
-                }
+            if (!soundDevice) {
+                if(pNE->getDevAttribute(DEVTYPE) == USB_DEVICE) {
+                    soundDevice = new (std::nothrow) SoundDevice(m_pConfObj, m_pluginAdapter);
+                    if(soundDevice) {
+                        soundDevice->setDeviceInfo(pNE);
+                        sList.push_back(soundDevice);
+                    } else {
+                        PDM_LOG_CRITICAL("SoundDeviceHandler:%s line: %d Unable to create new Sound device", __FUNCTION__, __LINE__);
+                    }
+                } else
+                    PDM_LOG_DEBUG("SoundDeviceHandler:%s line: %d  DEVTYPE is not USB_DEVICE",__FUNCTION__, __LINE__);
             }else
                 soundDevice->updateDeviceInfo(pNE);
         break;

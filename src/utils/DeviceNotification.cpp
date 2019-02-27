@@ -23,7 +23,7 @@ DeviceNotification *DeviceNotification::getInstance() {
     return &_instance;
 }
 
-DeviceNotification::DeviceNotification()
+DeviceNotification::DeviceNotification():mPdmNotificationInterface(nullptr)
 {
 
 }

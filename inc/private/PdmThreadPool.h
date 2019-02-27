@@ -26,6 +26,7 @@
 #include <future>
 #include <functional>
 #include <stdexcept>
+#include "PdmLogUtils.h"
 
 class PdmThreadPool {
 
@@ -104,8 +105,16 @@ inline PdmThreadPool::~PdmThreadPool()
         terminate = true;
     }
     condition.notify_all();
-    for(std::thread &worker: workers)
-        worker.join();
+    for(std::thread &worker: workers) {
+        if (worker.joinable()) {
+            try {
+                worker.join();
+            }
+            catch (std::exception &e) {
+                PDM_LOG_ERROR("Exception occurred : %s", e.what());
+            }
+        }
+    }
 }
 
 #endif  //PDM_THREAD_POOL_H

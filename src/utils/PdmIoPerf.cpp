@@ -345,7 +345,16 @@ PdmDevStatus PdmIoPerf::ranReadTest()
 
         offset = pRandomReadOffset[loopi] * readSize;
 
-        lseek(m_fd, offset, SEEK_SET);
+        if (lseek(m_fd, offset, SEEK_SET) < 0) {
+            PDM_LOG_DEBUG("PdmIoPerf:%s line: %d lseek error\n", __FUNCTION__, __LINE__);
+            close(m_fd);
+            m_fd = -1;
+            free(pCurBuf);
+            pCurBuf = nullptr;
+            free(pRandomReadOffset);
+            pRandomReadOffset = nullptr;
+            return result;
+        }
         clock_gettime(CLOCK_REALTIME, &start_time);
         readresult = read(m_fd, pCurBuf, readSize);
         clock_gettime(CLOCK_REALTIME, &end_time);

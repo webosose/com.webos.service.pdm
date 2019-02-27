@@ -38,7 +38,14 @@ PdmNetlinkListener::PdmNetlinkListener(){
 
 PdmNetlinkListener::~PdmNetlinkListener(){
     udev_unref(udev);
-    m_listenerThread.join();
+    if (m_listenerThread.joinable()) {
+        try {
+            m_listenerThread.join();
+        }
+        catch (std::exception &e) {
+            PDM_LOG_ERROR("PdmNetlinkListener: %s line: %d caught system_error: %s", __FUNCTION__, __LINE__, e.what());
+        }
+    }
 }
 
 
