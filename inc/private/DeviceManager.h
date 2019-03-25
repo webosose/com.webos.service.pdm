@@ -24,7 +24,6 @@
 
 #include "CommandManager.h"
 #include "CommandTypes.h"
-#include "PdmLocaleHandler.h"
 #include "PluginAdapter.h"
 
 class DeviceHandler;
@@ -34,11 +33,8 @@ class PdmConfig;
 class DeviceManager {
 
 private:
-    int m_UsbDeviceCount;
-    int m_maxUsbDevices;
     PdmConfig* m_pConfObj;
     PluginAdapter* m_pluginAdapter;
-    PdmLocaleHandler *m_pLocHandler;
     std::list<DeviceHandler*> mHandlerList;
 
 public:
@@ -49,19 +45,12 @@ public:
     bool HandlePdmDevice(PdmNetlinkEvent *evn);
     bool HandlePdmCommand(CommandType *cmdtypes, CommandResponse *cmdResponse);
     bool HandlePluginEvent(int eventType);
-    void updateDeviceCount(int eventID);
     std::list<DeviceHandler*> getDeviceHandlerList();
     static DeviceManager *getInstance();
-    int getDeviceCount() { return m_UsbDeviceCount; }
-    int getStorageDevCount();
 
 private:
 
-    void createAlertForMaxUsbDevices(const std::string &alertId);
-    bool maxUsbDevicesExceeded();
     bool createPdmdeviceList();
-    int readMaxUsbDevices();
-
 };
 
 #endif //_DEVICEMANAGER_H

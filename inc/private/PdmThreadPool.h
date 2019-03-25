@@ -101,8 +101,13 @@ auto PdmThreadPool::enqueue(F&& f, Args&&... args)
 inline PdmThreadPool::~PdmThreadPool()
 {
     {
-        std::unique_lock<std::mutex> lock(queue_mutex);
-        terminate = true;
+        try {
+            std::unique_lock<std::mutex> lock(queue_mutex);
+            terminate = true;
+        }
+        catch(const std::system_error& e) {
+            PDM_LOG_ERROR("Exception occured : %s", e.what());
+        }
     }
     condition.notify_all();
     for(std::thread &worker: workers) {

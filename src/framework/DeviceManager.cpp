@@ -117,17 +117,3 @@ bool DeviceManager::HandlePluginEvent(int eventType) {
     }
     return result;
 }
-
-int DeviceManager::getStorageDevCount()
-{
-    int result = -1;
-    for(auto handler : mHandlerList) {
-        if(handler->getHandlerName() ==  "StorageHandler" )
-        {
-            StorageDeviceHandler*  pStorageDevHandler = dynamic_cast<StorageDeviceHandler*>(handler);
-            result = pStorageDevHandler->getStorageDevCount();
-            break;
-        }
-    }
-    return result;
-}

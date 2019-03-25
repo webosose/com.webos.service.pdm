@@ -234,6 +234,10 @@ void StorageDeviceHandler::deleteStorageDevice(PdmNetlinkEvent* pNE)
     } else if(pNE->getDevAttribute(DEVTYPE) == DISK) {
         PDM_LOG_DEBUG("StorageDeviceHandler:%s line: %d with DISK list size: %d", __FUNCTION__, __LINE__, mStorageList.size());
         storageDev = getDeviceWithName < StorageDevice > (mStorageList, pNE->getDevAttribute(DEVNAME));
+        if(nullptr == storageDev){
+            PDM_LOG_DEBUG("StorageDeviceHandler:%s line: %d with storageDev is null for DEVNAME: %s", __FUNCTION__, __LINE__, pNE->getDevAttribute(DEVNAME).c_str());
+            return;
+        }
         if(!storageDev->getIsExtraSdCard())
             return;
     }
