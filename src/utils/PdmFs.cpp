@@ -36,7 +36,7 @@ using namespace PdmDevAttributes;
 
 std::unordered_map<std::string,std::string> mountData = {
         { PDM_DRV_TYPE_NOFS,  ""},
-        { PDM_DRV_TYPE_NTFS,  "nls=utf8,uid=0,gid=5000,umask=0002"},
+        { PDM_DRV_TYPE_NTFS,  "uid=0,gid=5000,umask=0002"},
         { PDM_DRV_TYPE_TNTFS, "nls=utf8,max_prealloc_size=64m,uid=0,gid=5000,umask=0002"},
         { PDM_DRV_TYPE_FAT,   "shortname=mixed,uid=0,gid=5000,umask=0002"},
         { PDM_DRV_TYPE_TFAT,  "iocharset=utf8,fastmount=1,max_prealloc_size=32m,uid=0,gid=5000,umask=0002"},
@@ -110,7 +110,7 @@ bool PdmFs::mountPartition(DiskPartitionInfo &partition, const bool &readOnly)
                         mountFlag,(void*)data);
 
     if(ret){
-        PDM_LOG_WARNING("PdmFs:%s line: %d Partition %s mount failed retry with readonly ", __FUNCTION__, __LINE__,driveName.c_str());
+        PDM_LOG_WARNING("PdmFs:%s line: %d Partition %s mount failed retry with readonly. errno: %d strerror: %s", __FUNCTION__, __LINE__,driveName.c_str(),errno, strerror(errno));
         if( (errno == EACCES) || (errno == EROFS) ) {
             mountFlag |= MS_RDONLY;
             ret = mount(driveName.c_str(), partition.getMountName().c_str() ,fsType.c_str(),mountFlag,(void*)data);
