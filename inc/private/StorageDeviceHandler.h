@@ -50,7 +50,7 @@ private:
                                               &StorageDeviceHandler::CreateObject));
     }
     void removeDevice(StorageDevice *storageDevice);
-    void deleteStorageDevice(PdmNetlinkEvent* pNE);
+    bool deleteStorageDevice(PdmNetlinkEvent* pNE);
     void ProcessStorageDevice(PdmNetlinkEvent* pNE);
     void checkStorageDevice(PdmNetlinkEvent* pNE);
     void createStorageDevice(PdmNetlinkEvent* pNE, IDevice *device);

@@ -67,38 +67,42 @@ void VideoDeviceHandler::removeDevice(VideoDevice* videoDevice)
 void VideoDeviceHandler::ProcessVideoDevice(PdmNetlinkEvent* pNE){
     VideoDevice *videoDevice;
     PDM_LOG_INFO("VideoDeviceHandler:",0,"%s line: %d DEVTYPE: %s ACTION: %s", __FUNCTION__,__LINE__,pNE->getDevAttribute(DEVTYPE).c_str(),pNE->getDevAttribute(ACTION).c_str());
-    switch(sMapUsbDeviceType[pNE->getDevAttribute(DEVTYPE)])
-    {
-        case UsbDeviceTypes::TYPE_DEV_USB:
-            if(sMapDeviceActions[pNE->getDevAttribute(ACTION)] == DeviceActions::USB_DEV_ADD ) {
-                videoDevice = getDeviceWithPath< VideoDevice >(sList,pNE->getDevAttribute(DEVPATH));
-                if(!videoDevice ){
-                    PDM_LOG_INFO("VideoDeviceHandler",0," Created New device.");
-                    videoDevice = new (std::nothrow) VideoDevice(m_pConfObj, m_pluginAdapter);
-                    if(!videoDevice){
-                         PDM_LOG_CRITICAL("VideoDeviceHandler:%s line: %d Unable to create new Video device", __FUNCTION__, __LINE__);
-                         return;
-                    }
+    try {
+            switch(sMapDeviceActions.at(pNE->getDevAttribute(ACTION)))
+            {
+                case DeviceActions::USB_DEV_ADD:
+                    PDM_LOG_DEBUG("VideoDeviceHandler:%s line: %d action : %s", __FUNCTION__, __LINE__,pNE->getDevAttribute(ACTION).c_str());
+                    videoDevice = getDeviceWithPath< VideoDevice >(sList,pNE->getDevAttribute(DEVPATH));
+                    if(!videoDevice ){
+                        PDM_LOG_INFO("VideoDeviceHandler",0," Created New device.");
+                        videoDevice = new (std::nothrow) VideoDevice(m_pConfObj, m_pluginAdapter);
+                        if(!videoDevice){
+                            PDM_LOG_CRITICAL("VideoDeviceHandler:%s line: %d Unable to create new Video device", __FUNCTION__, __LINE__);
+                            return;
+                        }
                     videoDevice->setDeviceInfo(pNE, mIsCameraReady);
                     sList.push_back(videoDevice);
-                }else{
-                    videoDevice->updateDeviceInfo(pNE);
-                    if(!mIsCameraReady)
-                        Notify(UNKNOWN_DEVICE,ADD);
-                    else
-                        Notify(VIDEO_DEVICE,ADD);
-                }
+                    } else {
+                        videoDevice->updateDeviceInfo(pNE);
+                        if(!mIsCameraReady)
+                            Notify(UNKNOWN_DEVICE,ADD);
+                        else
+                            Notify(VIDEO_DEVICE,ADD);
+                    }
+                    break;
+                case DeviceActions::USB_DEV_REMOVE:
+                   PDM_LOG_DEBUG("VideoDeviceHandler:%s line: %d action : %s", __FUNCTION__, __LINE__,pNE->getDevAttribute(ACTION).c_str());
+                   videoDevice = getDeviceWithPath< VideoDevice >(sList,pNE->getDevAttribute(DEVPATH));
+                   if(videoDevice)
+                       removeDevice(videoDevice);
+                    break;
+                default:
+                 //Do nothing
+                break;
             }
-            else if(sMapDeviceActions[pNE->getDevAttribute(ACTION)] == DeviceActions::USB_DEV_REMOVE ) {
-                videoDevice = getDeviceWithPath< VideoDevice >(sList,pNE->getDevAttribute(DEVPATH));
-                if(videoDevice)
-                    removeDevice(videoDevice);
-
-            }
-        break;
-        default:
-            //Do nothing
-            break;
+        }
+        catch (const std::out_of_range& err) {
+        PDM_LOG_INFO("VideoDeviceHandler:",0,"%s line: %d out of range : %s", __FUNCTION__,__LINE__,err.what());
     }
 }
 

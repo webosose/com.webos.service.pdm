@@ -76,42 +76,47 @@ void SoundDeviceHandler::removeDevice(SoundDevice* soundDevice)
 void SoundDeviceHandler::ProcessSoundDevice(PdmNetlinkEvent* pNE){
     SoundDevice *soundDevice;
     PDM_LOG_DEBUG("SoundDeviceHandler:%s line: %d SoundDeviceHandler: DEVTYPE: %s ACTION: %s", __FUNCTION__, __LINE__,pNE->getDevAttribute(DEVTYPE).c_str(),pNE->getDevAttribute(ACTION).c_str());
-    switch(sMapDeviceActions[pNE->getDevAttribute(ACTION)])
-    {
-        case DeviceActions::USB_DEV_ADD:
-            PDM_LOG_DEBUG("SoundDeviceHandler:%s line: %d  Add Sound device",__FUNCTION__, __LINE__);
-            soundDevice = getDeviceWithPath< SoundDevice >(sList,pNE->getDevAttribute(DEVPATH));
-            if (!soundDevice) {
-                if(pNE->getDevAttribute(DEVTYPE) == USB_DEVICE) {
-                    soundDevice = new (std::nothrow) SoundDevice(m_pConfObj, m_pluginAdapter);
-                    if(soundDevice) {
-                        soundDevice->setDeviceInfo(pNE);
-                        sList.push_back(soundDevice);
-                    } else {
-                        PDM_LOG_CRITICAL("SoundDeviceHandler:%s line: %d Unable to create new Sound device", __FUNCTION__, __LINE__);
-                    }
-                } else
-                    PDM_LOG_DEBUG("SoundDeviceHandler:%s line: %d  DEVTYPE is not USB_DEVICE",__FUNCTION__, __LINE__);
-            }else
-                soundDevice->updateDeviceInfo(pNE);
-        break;
-        case DeviceActions::USB_DEV_REMOVE:
-            PDM_LOG_DEBUG("SoundDeviceHandler:%s line: %d  Remove Sound device", __FUNCTION__, __LINE__);
-            soundDevice = getDeviceWithPath< SoundDevice >(sList,pNE->getDevAttribute(DEVPATH));
-            if(soundDevice)
-                removeDevice(soundDevice);
-        break;
-        case DeviceActions::USB_DEV_CHANGE:
-            soundDevice = getDeviceWithPath< SoundDevice >(sList,pNE->getDevAttribute(DEVPATH));
-            if(soundDevice){
-                PDM_LOG_DEBUG("SoundDeviceHandlerif:%s line: %d USB_DEV_CHANGE ", __FUNCTION__, __LINE__);
-                soundDevice->updateDeviceInfo(pNE);
-                Notify(SOUND_DEVICE,ADD);
+    try {
+            switch(sMapDeviceActions.at(pNE->getDevAttribute(ACTION)))
+            {
+                case DeviceActions::USB_DEV_ADD:
+                PDM_LOG_DEBUG("SoundDeviceHandler:%s line: %d  Add Sound device",__FUNCTION__, __LINE__);
+                soundDevice = getDeviceWithPath< SoundDevice >(sList,pNE->getDevAttribute(DEVPATH));
+                if (!soundDevice) {
+                   if(pNE->getDevAttribute(DEVTYPE) == USB_DEVICE) {
+                      soundDevice = new (std::nothrow) SoundDevice(m_pConfObj, m_pluginAdapter);
+                      if(soundDevice) {
+                         soundDevice->setDeviceInfo(pNE);
+                         sList.push_back(soundDevice);
+                      } else {
+                         PDM_LOG_CRITICAL("SoundDeviceHandler:%s line: %d Unable to create new Sound device", __FUNCTION__, __LINE__);
+                      }
+                   } else
+                  PDM_LOG_DEBUG("SoundDeviceHandler:%s line: %d  DEVTYPE is not USB_DEVICE",__FUNCTION__, __LINE__);
+                }else
+                  soundDevice->updateDeviceInfo(pNE);
+                break;
+                case DeviceActions::USB_DEV_REMOVE:
+                    PDM_LOG_DEBUG("SoundDeviceHandler:%s line: %d  Remove Sound device", __FUNCTION__, __LINE__);
+                soundDevice = getDeviceWithPath< SoundDevice >(sList,pNE->getDevAttribute(DEVPATH));
+                if(soundDevice)
+                   removeDevice(soundDevice);
+                break;
+             case DeviceActions::USB_DEV_CHANGE:
+                soundDevice = getDeviceWithPath< SoundDevice >(sList,pNE->getDevAttribute(DEVPATH));
+                if(soundDevice){
+                   PDM_LOG_DEBUG("SoundDeviceHandlerif:%s line: %d USB_DEV_CHANGE ", __FUNCTION__, __LINE__);
+                   soundDevice->updateDeviceInfo(pNE);
+                   Notify(SOUND_DEVICE,ADD);
+                }
+                 break;
+                default:
+                 //Do nothing
+                    break;
             }
-        break;
-        default:
-            //Do nothing
-            break;
+        }
+         catch (const std::out_of_range& err) {
+         PDM_LOG_INFO("StorageDeviceHandler:",0,"%s line: %d out of range : %s", __FUNCTION__,__LINE__,err.what());
     }
 }
 

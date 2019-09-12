@@ -48,18 +48,31 @@ void GamepadDeviceHandler::ProcessGamepadDevice(PdmNetlinkEvent* pNE){
     GamepadDevice *gamepadDevice;
     PDM_LOG_INFO("GamepadDeviceHandler:",0,"%s line: %d DEVTYPE: %s ACTION: %s", __FUNCTION__,__LINE__,pNE->getDevAttribute(DEVTYPE).c_str(),pNE->getDevAttribute(ACTION).c_str());
 
-    if(sMapDeviceActions[pNE->getDevAttribute(ACTION)] == DeviceActions::USB_DEV_ADD ) {
-        gamepadDevice = new (std::nothrow) GamepadDevice(m_pConfObj, m_pluginAdapter);
-        if(gamepadDevice) {
-            gamepadDevice->setDeviceInfo(pNE);
-            sList.push_back(gamepadDevice);
-            Notify(GAMEPAD_DEVICE,ADD);
+    try {
+            switch(sMapDeviceActions.at(pNE->getDevAttribute(ACTION)))
+            {
+                case DeviceActions::USB_DEV_ADD:
+                    PDM_LOG_DEBUG("GamepadDeviceHandler:%s line: %d action : %s", __FUNCTION__, __LINE__,pNE->getDevAttribute(ACTION).c_str());
+                    gamepadDevice = new (std::nothrow) GamepadDevice(m_pConfObj, m_pluginAdapter);
+                    if(gamepadDevice) {
+                        gamepadDevice->setDeviceInfo(pNE);
+                        sList.push_back(gamepadDevice);
+                        Notify(GAMEPAD_DEVICE,ADD);
+                    }
+                    break;
+                case DeviceActions::USB_DEV_REMOVE:
+                   PDM_LOG_DEBUG("GamepadDeviceHandler:%s line: %d action : %s", __FUNCTION__, __LINE__,pNE->getDevAttribute(ACTION).c_str());
+                   gamepadDevice = getDeviceWithPath< GamepadDevice >(sList,pNE->getDevAttribute(DEVPATH));
+                   if(gamepadDevice)
+                      removeDevice(gamepadDevice);
+                     break;
+                default:
+                 //Do nothing
+                 break;
         }
     }
-    else if(sMapDeviceActions[pNE->getDevAttribute(ACTION)] == DeviceActions::USB_DEV_REMOVE ) {
-        gamepadDevice = getDeviceWithPath< GamepadDevice >(sList,pNE->getDevAttribute(DEVPATH));
-        if(gamepadDevice)
-            removeDevice(gamepadDevice);
+      catch (const std::out_of_range& err) {
+         PDM_LOG_INFO("GamepadDeviceHandler:",0,"%s line: %d out of range : %s", __FUNCTION__,__LINE__,err.what());
     }
 }
 

@@ -32,9 +32,12 @@ MTPDeviceHandler::~MTPDeviceHandler() {
 
 bool MTPDeviceHandler::HandlerEvent(PdmNetlinkEvent* pNE){
 
-    PDM_LOG_DEBUG("MTPDeviceHandler::HandlerEvent");
-
-    if( pNE->getDevAttribute(ID_MEDIA_PLAYER) == YES ){
+   PDM_LOG_DEBUG("MTPDeviceHandler::HandlerEvent");
+   if (pNE->getDevAttribute(ACTION) == "remove")
+   {
+      ProcessMTPDevice(pNE);
+      return false;
+   }else if (pNE->getDevAttribute(ID_MEDIA_PLAYER) == YES ){
         ProcessMTPDevice(pNE);
         return true;
     }
@@ -52,41 +55,44 @@ void MTPDeviceHandler::removeDevice(MTPDevice* mtpDevice)
 }
 
 void MTPDeviceHandler::ProcessMTPDevice(PdmNetlinkEvent* pNE) {
+   MTPDevice *mtpDevice;
     PDM_LOG_INFO("MTPDeviceHandler:",0,"%s line: %d DEVTYPE: %s ACTION: %s", __FUNCTION__,__LINE__,pNE->getDevAttribute(DEVTYPE).c_str(),pNE->getDevAttribute(ACTION).c_str());
-    switch(sMapUsbDeviceType[pNE->getDevAttribute(DEVTYPE)])
-    {
-        MTPDevice *mtpDevice;
-        case UsbDeviceTypes::TYPE_DEV_USB:
-            if (sMapDeviceActions[pNE->getDevAttribute(ACTION)] == DeviceActions::USB_DEV_ADD) {
-                if(!pNE->getDevAttribute(DEVLINKS).empty()){
-                    mtpDevice = new (std::nothrow) MTPDevice(m_pConfObj, m_pluginAdapter);
-                    if(!mtpDevice)
-                        break;
-                    mtpDevice->setDeviceInfo(pNE);
-                    mtpDevice->registerCallback(std::bind(&MTPDeviceHandler::commandNotification, this, _1, _2));
-                    if(mtpDevice->mtpMount(pNE->getDevAttribute(DEVLINKS)) == PdmDevStatus::PDM_DEV_SUCCESS){
-                        mMtpList.push_back(mtpDevice);
-                        Notify(MTP_DEVICE,ADD);
-                    }else {
-                        delete mtpDevice;
-                        Notify(UNKNOWN_DEVICE,ADD);
-                        PDM_LOG_DEBUG("MTPDeviceHandler::HandlerEvent -  UNKNOWN_DEVICE added");
+   try {
+            switch(sMapDeviceActions.at(pNE->getDevAttribute(ACTION)))
+            {
+                case DeviceActions::USB_DEV_ADD:
+                    PDM_LOG_DEBUG("MTPDeviceHandler:%s line: %d action : %s", __FUNCTION__, __LINE__,pNE->getDevAttribute(ACTION).c_str());
+                    if(!pNE->getDevAttribute(DEVLINKS).empty()){
+                        mtpDevice = new (std::nothrow) MTPDevice(m_pConfObj, m_pluginAdapter);
+                        if(!mtpDevice)
+                            break;
+                        mtpDevice->setDeviceInfo(pNE);
+                        mtpDevice->registerCallback(std::bind(&MTPDeviceHandler::commandNotification, this, _1, _2));
+                        if(mtpDevice->mtpMount(pNE->getDevAttribute(DEVLINKS)) == PdmDevStatus::PDM_DEV_SUCCESS){
+                            mMtpList.push_back(mtpDevice);
+                            Notify(MTP_DEVICE,ADD);
+                        } else {
+                      PDM_LOG_CRITICAL("MTPDeviceHandler:%s line: %d Unable to mount MTP Device removing", __FUNCTION__, __LINE__);
+                      mtpDevice->onDeviceRemove();
+                            delete mtpDevice;
+                        }
                     }
-                }
-            } else if(sMapDeviceActions[pNE->getDevAttribute(ACTION)] == DeviceActions::USB_DEV_REMOVE) {
-                mtpDevice = getDeviceWithPath<MTPDevice>(mMtpList,pNE->getDevAttribute(DEVPATH));
-                if(mtpDevice) {
-                    mtpDevice->onDeviceRemove();
-                    removeDevice(mtpDevice);
-                }else {
-                        Notify(UNKNOWN_DEVICE,REMOVE);
-                        PDM_LOG_DEBUG("MTPDeviceHandler::HandlerEvent -  UNKNOWN_DEVICE removed");
-               }
+                    break;
+                case DeviceActions::USB_DEV_REMOVE:
+                    PDM_LOG_DEBUG("MTPDeviceHandler:%s line: %d action : %s", __FUNCTION__, __LINE__,pNE->getDevAttribute(ACTION).c_str());
+                    mtpDevice = getDeviceWithPath<MTPDevice>(mMtpList,pNE->getDevAttribute(DEVPATH));
+                    if(mtpDevice) {
+                        mtpDevice->onDeviceRemove();
+                        removeDevice(mtpDevice);
+                    }
+                    break;
+                default:
+                  //Do nothing
+                    break;
             }
-            break;
-        default:
-            //Do nothing
-            break;
+        }
+        catch (const std::out_of_range& err) {
+         PDM_LOG_INFO("MTPDeviceHandler:",0,"%s line: %d out of range : %s", __FUNCTION__,__LINE__,err.what());
     }
 }
 

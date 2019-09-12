@@ -75,37 +75,39 @@ void CdcDeviceHandler::ProcessCdcDevice(PdmNetlinkEvent* pNE)
 {
     CdcDevice *cdcDevice;
     PDM_LOG_DEBUG("CdcDeviceHandler:%s line: %d CdcDeviceHandler: DEVTYPE: %s ACTION: %s", __FUNCTION__, __LINE__,pNE->getDevAttribute(DEVTYPE).c_str(),pNE->getDevAttribute(ACTION).c_str());
-    switch(sMapDeviceActions[pNE->getDevAttribute(ACTION)])
-    {
-        case DeviceActions::USB_DEV_ADD:
-            PDM_LOG_DEBUG("CdcDeviceHandler:%s line: %d  Add CDC device",__FUNCTION__, __LINE__);
-            cdcDevice = getDeviceWithPath< CdcDevice >(sList,pNE->getDevAttribute(DEVPATH));
-            if(!cdcDevice ) {
-                cdcDevice = new (std::nothrow) CdcDevice(m_pConfObj, m_pluginAdapter);
-                if(cdcDevice) {
-                    cdcDevice->setDeviceInfo(pNE);
-                    sList.push_back(cdcDevice);
-                    if(pNE->getDevAttribute(ID_USB_MODEM_DONGLE) == YES) // In case of modem dongle there is only a single event and no update happens later.
-                        Notify(CDC_DEVICE,ADD); // So notify now itself
-                } else {
-                    PDM_LOG_CRITICAL("CdcDeviceHandler:%s line: %d Unable to create new CDC device", __FUNCTION__, __LINE__);
+     try {
+            switch(sMapDeviceActions.at(pNE->getDevAttribute(ACTION)))
+            {
+                case DeviceActions::USB_DEV_ADD:
+                PDM_LOG_DEBUG("CdcDeviceHandler:%s line: %d  Add CDC device",__FUNCTION__, __LINE__);
+                cdcDevice = getDeviceWithPath< CdcDevice >(sList,pNE->getDevAttribute(DEVPATH));
+                if(!cdcDevice ) {
+                   cdcDevice = new (std::nothrow) CdcDevice(m_pConfObj, m_pluginAdapter);
+                   if(cdcDevice) {
+                      cdcDevice->setDeviceInfo(pNE);
+                      sList.push_back(cdcDevice);
+                      if(pNE->getDevAttribute(ID_USB_MODEM_DONGLE) == YES) // In case of modem dongle there is only a single event and no update happens later.
+                            Notify(CDC_DEVICE,ADD); // So notify now itself
+                   } else {
+                      PDM_LOG_CRITICAL("CdcDeviceHandler:%s line: %d Unable to create new CDC device", __FUNCTION__, __LINE__);
+                   }
+                } else{
+                   cdcDevice->updateDeviceInfo(pNE);
+                   Notify(CDC_DEVICE,ADD,cdcDevice);
                 }
+                break;
+                case DeviceActions::USB_DEV_REMOVE:
+                    cdcDevice = getDeviceWithPath< CdcDevice >(sList,pNE->getDevAttribute(DEVPATH));
+                if(cdcDevice)
+                   removeDevice(cdcDevice);
+                    break;
+                default:
+                 //Do nothing
+                    break;
             }
-            else{
-                cdcDevice->updateDeviceInfo(pNE);
-                Notify(CDC_DEVICE,ADD,cdcDevice);
-            }
-        break;
-        case DeviceActions::USB_DEV_REMOVE:
-            cdcDevice = getDeviceWithPath< CdcDevice >(sList,pNE->getDevAttribute(DEVPATH));
-            if(cdcDevice)
-                removeDevice(cdcDevice);
-        break;
-        case DeviceActions::USB_DEV_CHANGE:
-        break;
-        default:
-            //Do nothing
-            break;
+        }
+        catch (const std::out_of_range& err) {
+         PDM_LOG_INFO("StorageDeviceHandler:",0,"%s line: %d out of range : %s", __FUNCTION__,__LINE__,err.what());
     }
 }
 

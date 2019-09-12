@@ -34,6 +34,11 @@ bool PTPDeviceHandler::HandlerEvent(PdmNetlinkEvent* pNE){
 
     PDM_LOG_DEBUG("PTPDeviceHandler::HandlerEvent");
 
+   if (pNE->getDevAttribute(ACTION) == "remove")
+   {
+      ProcessPTPDevice(pNE);
+      return false;
+   }
     std::string interfaceClass = pNE->getInterfaceClass();
     if(interfaceClass.find(iClass) == std::string::npos)
         return false;
@@ -61,38 +66,42 @@ void PTPDeviceHandler::removeDevice(PTPDevice* ptpDevice)
 void PTPDeviceHandler::ProcessPTPDevice(PdmNetlinkEvent* pNE) {
     PTPDevice *ptpDevice;
     PDM_LOG_INFO("PTPDeviceHandler:",0,"%s line: %d DEVTYPE: %s ACTION: %s", __FUNCTION__,__LINE__,pNE->getDevAttribute(DEVTYPE).c_str(),pNE->getDevAttribute(ACTION).c_str());
-    switch(sMapUsbDeviceType[pNE->getDevAttribute(DEVTYPE)])
-    {
-        case UsbDeviceTypes::TYPE_DEV_USB:
-            if (sMapDeviceActions[pNE->getDevAttribute(ACTION)] == DeviceActions::USB_DEV_ADD) {
-               ptpDevice = new (std::nothrow) PTPDevice(m_pConfObj, m_pluginAdapter);
-               if(!ptpDevice) {
-                   PDM_LOG_CRITICAL("PTPDeviceHandler:%s line: %d Unable to create new PTP Device", __FUNCTION__, __LINE__);
-                   return;
-               }
-               ptpDevice->setDeviceInfo(pNE);
-               if(ptpDevice->getIsMounted()){
-                   ptpDevice->registerCallback(std::bind(&PTPDeviceHandler::commandNotification, this, _1, _2));
-                   sList.push_back(ptpDevice);
-                   Notify(PTP_DEVICE, ADD);
-               } else {
-                   PDM_LOG_CRITICAL("PTPDeviceHandler:%s line: %d Unable to mount PTP Device removing", __FUNCTION__, __LINE__);
-                   ptpDevice->onDeviceRemove();
-                   delete ptpDevice;
-                   Notify(UNKNOWN_DEVICE,ADD);
-               }
-
-            }else if(sMapDeviceActions[pNE->getDevAttribute(ACTION)] == DeviceActions::USB_DEV_REMOVE) {
-                ptpDevice = getDeviceWithPath<PTPDevice>(sList,pNE->getDevAttribute(DEVPATH));
-                if(ptpDevice) {
-                    ptpDevice->onDeviceRemove();
-                    removeDevice(ptpDevice);
-                }
+    try {
+            switch(sMapDeviceActions.at(pNE->getDevAttribute(ACTION)))
+            {
+                case DeviceActions::USB_DEV_ADD:
+                    PDM_LOG_DEBUG("PTPDeviceHandler:%s line: %d action : %s", __FUNCTION__, __LINE__,pNE->getDevAttribute(ACTION).c_str());
+                    ptpDevice = new (std::nothrow) PTPDevice(m_pConfObj, m_pluginAdapter);
+                    if(!ptpDevice) {
+                        PDM_LOG_CRITICAL("PTPDeviceHandler:%s line: %d Unable to create new PTP Device", __FUNCTION__, __LINE__);
+                        return;
+                    }
+                    ptpDevice->setDeviceInfo(pNE);
+                    if(ptpDevice->getIsMounted()){
+                        ptpDevice->registerCallback(std::bind(&PTPDeviceHandler::commandNotification, this, _1, _2));
+                        sList.push_back(ptpDevice);
+                        Notify(PTP_DEVICE, ADD);
+                    } else {
+                       PDM_LOG_CRITICAL("PTPDeviceHandler:%s line: %d Unable to mount PTP Device removing", __FUNCTION__, __LINE__);
+                       ptpDevice->onDeviceRemove();
+                       delete ptpDevice;
+                    }
+                    break;
+                case DeviceActions::USB_DEV_REMOVE:
+                    PDM_LOG_DEBUG("PTPDeviceHandler:%s line: %d action : %s", __FUNCTION__, __LINE__,pNE->getDevAttribute(ACTION).c_str());
+                    ptpDevice = getDeviceWithPath<PTPDevice>(sList,pNE->getDevAttribute(DEVPATH));
+                    if(ptpDevice) {
+                        ptpDevice->onDeviceRemove();
+                        removeDevice(ptpDevice);
+                    }
+                    break;
+                default:
+                 //Do nothing
+                    break;
             }
-            break;
-        default:
-            //Do nothing
-            break;
+        }
+        catch (const std::out_of_range& err) {
+         PDM_LOG_INFO("PTPDeviceHandler:",0,"%s line: %d out of range : %s", __FUNCTION__,__LINE__,err.what());
     }
 }
 
