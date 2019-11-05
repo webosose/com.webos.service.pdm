@@ -62,13 +62,13 @@ void MTPDeviceHandler::ProcessMTPDevice(PdmNetlinkEvent* pNE) {
             {
                 case DeviceActions::USB_DEV_ADD:
                     PDM_LOG_DEBUG("MTPDeviceHandler:%s line: %d action : %s", __FUNCTION__, __LINE__,pNE->getDevAttribute(ACTION).c_str());
-                    if(!pNE->getDevAttribute(DEVLINKS).empty()){
+                    if(!pNE->getDevAttribute(DEVNAME).empty()){
                         mtpDevice = new (std::nothrow) MTPDevice(m_pConfObj, m_pluginAdapter);
                         if(!mtpDevice)
                             break;
                         mtpDevice->setDeviceInfo(pNE);
                         mtpDevice->registerCallback(std::bind(&MTPDeviceHandler::commandNotification, this, _1, _2));
-                        if(mtpDevice->mtpMount(pNE->getDevAttribute(DEVLINKS)) == PdmDevStatus::PDM_DEV_SUCCESS){
+                        if(mtpDevice->mtpMount(pNE->getDevAttribute(DEVNAME)) == PdmDevStatus::PDM_DEV_SUCCESS){
                             mMtpList.push_back(mtpDevice);
                             Notify(MTP_DEVICE,ADD);
                         } else {

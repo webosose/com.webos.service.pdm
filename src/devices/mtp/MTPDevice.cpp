@@ -50,12 +50,12 @@ void MTPDevice::setDeviceInfo(PdmNetlinkEvent* pNE)
     Device::setDeviceInfo(pNE);
 }
 
-PdmDevStatus MTPDevice::mtpMount( const std::string &mtpDeviceLink){
+PdmDevStatus MTPDevice::mtpMount( const std::string &mtpDeviceName){
     PdmDevStatus mountStatus = PdmDevStatus::PDM_DEV_UMOUNT_FAIL;
 
-    if(!mtpDeviceLink.empty() && !mountName.empty())
+    if(!mtpDeviceName.empty() && !mountName.empty())
     {
-        if(PdmUtils::createDir(mountName) && mountDevice(mtpDeviceLink)){
+        if(PdmUtils::createDir(mountName) && mountDevice(mtpDeviceName)){
             m_errorReason = PDM_ERR_NOTHING;
             isMounted = true;
             mountStatus = PdmDevStatus::PDM_DEV_SUCCESS;
@@ -114,14 +114,14 @@ bool MTPDevice::unmountDevice() const {
     return true;
 }
 
-bool MTPDevice::mountDevice(const std::string &mtpDeviceLink) {
+bool MTPDevice::mountDevice(const std::string &mtpDeviceName) {
 
-     std::string syscommand = MTP_MOUNT_COMMAND + mtpDeviceLink + " " + mountName;
+     std::string syscommand = MTP_MOUNT_COMMAND +"/dev/"+ mtpDeviceName + " " + mountName;
      PDM_LOG_INFO("MTPDevice:",0,"%s line: %d MTP device mount CMD: %s", __FUNCTION__,__LINE__,syscommand.c_str());
      int32_t res = system(syscommand.c_str());
 
      if(res){
-         PDM_LOG_ERROR("MTPDevice:%s line: %d MTP device mount failed" , __FUNCTION__, __LINE__);
+         PDM_LOG_ERROR("MTPDevice:%s line: %d MTP device mount failed res: %d, str: %s" , __FUNCTION__, __LINE__, res, strerror(res));
          return false;
      }
      return true;

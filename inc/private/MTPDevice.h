@@ -26,7 +26,7 @@ class MTPDevice : public Storage
 private:
     using handlerCb = std::function<void(EventType,MTPDevice*)>;
     handlerCb mMtpDeviceHandlerCb;
-    bool mountDevice(const std::string &mtpDeviceLink);
+    bool mountDevice(const std::string &mtpDeviceName);
     bool unmountDevice() const;
 
 public:
@@ -36,7 +36,7 @@ public:
     void setMountPath(std::string newMountName) {
         mountName = newMountName;
     }
-    PdmDevStatus mtpMount( const std::string &mtpDeviceLink );
+    PdmDevStatus mtpMount( const std::string &mtpDeviceName );
     PdmDevStatus mtpUmount();
     PdmDevStatus eject();
     void onDeviceRemove();
