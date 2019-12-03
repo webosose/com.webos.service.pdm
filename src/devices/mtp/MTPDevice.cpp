@@ -121,7 +121,7 @@ bool MTPDevice::mountDevice(const std::string &mtpDeviceName) {
      int32_t res = system(syscommand.c_str());
 
      if(res){
-         PDM_LOG_ERROR("MTPDevice:%s line: %d MTP device mount failed res: %d, str: %s" , __FUNCTION__, __LINE__, res, strerror(res));
+         PDM_LOG_ERROR("MTPDevice:%s line: %d MTP device mount failed res: %d, str: %s" , __FUNCTION__, __LINE__, res, strerror(errno));
          return false;
      }
      return true;
