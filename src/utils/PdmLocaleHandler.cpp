@@ -56,7 +56,7 @@ bool PdmLocaleHandler::init()
 
 LSHandle * PdmLocaleHandler::getHandle()
 {
-    PDM_LOG_DEBUG("PdmLocaleHandler: %s line: %d m_Handle =%x", __FUNCTION__, __LINE__,m_Handle);
+    PDM_LOG_DEBUG("PdmLocaleHandler: %s line: %d m_Handle =%p", __FUNCTION__, __LINE__,m_Handle);
     return m_Handle;
 }
 
