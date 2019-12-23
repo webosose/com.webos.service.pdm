@@ -26,6 +26,8 @@ private:
      PdmThreadPool *m_cmdPool;
 public:
     CommandManager();
+    CommandManager(const CommandManager&) = delete;
+    CommandManager& operator=(const CommandManager&) = delete;
     ~CommandManager();
     bool sendCommand(Command *cmd);
     static bool executeCommand(Command *cmd);

@@ -44,6 +44,12 @@ DeviceStateObserver::DeviceStateObserver(const DeviceStateObserver& obj) {
     *_observers = *obj._observers;
 }
 
+DeviceStateObserver& DeviceStateObserver::operator=(const DeviceStateObserver& obj) {
+    if ( this != &obj) {
+        *_observers = *obj._observers;
+    }
+    return *this;
+}
 
 DeviceStateObserver::~DeviceStateObserver() {
     _observers->clear();

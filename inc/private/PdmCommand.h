@@ -33,6 +33,8 @@ private:
 
 public:
     PdmCommand(CommandType *cmdType,CommandResponseCallback cmdCallBack, void * message);
+    PdmCommand(const PdmCommand&) = delete;
+    PdmCommand& operator=(const PdmCommand&) = delete;
     ~PdmCommand();
     void execute();
 };

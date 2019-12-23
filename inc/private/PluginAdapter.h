@@ -28,6 +28,8 @@ private:
 
 public:
     PluginAdapter();
+    PluginAdapter(const PluginAdapter&) = delete;
+    PluginAdapter& operator=(const PluginAdapter&) = delete;
     virtual ~PluginAdapter();
     int getDeviceNumber(IDevice &device) const;
     void init();

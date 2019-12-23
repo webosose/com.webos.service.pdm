@@ -26,6 +26,8 @@ private:
     PdmNetlinkEvent *m_netLinkEvent;
 public:
     PdmNetLinkCommand(PdmNetlinkEvent *event);
+    PdmNetLinkCommand(const PdmNetlinkEvent&) = delete;
+    PdmNetLinkCommand& operator=(const PdmNetlinkEvent&) = delete;
     ~PdmNetLinkCommand();
     void execute();
 

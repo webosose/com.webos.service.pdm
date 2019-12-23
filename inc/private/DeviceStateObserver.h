@@ -28,6 +28,7 @@ public:
 protected:
     DeviceStateObserver();
     DeviceStateObserver(const DeviceStateObserver& obj);
+    DeviceStateObserver& operator=(const DeviceStateObserver& obj);
     void Notify(const int &eventDeviceType, const int &eventID, IDevice* device = nullptr);
 private:
     std::list<IObserver*> *_observers;
