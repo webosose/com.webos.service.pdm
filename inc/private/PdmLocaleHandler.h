@@ -34,6 +34,8 @@ private:
 
 public:
     ~PdmLocaleHandler();
+    PdmLocaleHandler(const PdmLocaleHandler& src) = delete;
+    PdmLocaleHandler& operator=(const PdmLocaleHandler& rhs) = delete;
     static PdmLocaleHandler *getInstance();
     static bool onSettingsServiceStateChanged(LSHandle * sh, LSMessage * message,void * user_data);
     static bool onLocaleInfoReceived(LSHandle * sh, LSMessage * message,void * user_data);

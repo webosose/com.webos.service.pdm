@@ -45,7 +45,7 @@ bool LunaIPC::init(GMainLoop *mainLoop,CommandManager *pCommandManager)
     if(retVal)
     {
         mServiceHandle = mPdmService->get_LSHandle();
-        PDM_LOG_DEBUG("LunaIPC: %s line: %d mServiceHandle =%x", __FUNCTION__, __LINE__,mServiceHandle);
+        PDM_LOG_DEBUG("LunaIPC: %s line: %d mServiceHandle =%p", __FUNCTION__, __LINE__,mServiceHandle);
     }
     return retVal;
 }

@@ -443,7 +443,7 @@ PdmDevStatus StorageDevice::fsck(const std::string driveName)
     if(isReadOnly)
         return PdmDevStatus::PDM_DEV_FSCK_FAIL;
 
-    if(!umountPartition(*partition, false))
+    if(umountPartition(*partition, false) != PdmDevStatus::PDM_DEV_SUCCESS)
         return PdmDevStatus::PDM_DEV_UMOUNT_FAIL;
 
     if(fsckPartition(*partition, PDM_FSCK_AUTO) == PdmDevStatus::PDM_DEV_SUCCESS)

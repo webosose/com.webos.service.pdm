@@ -145,7 +145,7 @@ void PdmNetlinkListener::threadStart(){
    ep_udev.events = EPOLLIN;
    ep_udev.data.fd = fd_udev;
    if (epoll_ctl(fd_ep, EPOLL_CTL_ADD, fd_udev, &ep_udev) < 0) {
-        PDM_LOG_ERROR("PdmNetlinkListener: %s line: %d fail to add fd to epoll: %m", __FUNCTION__, __LINE__,fd_ep);
+        PDM_LOG_ERROR("PdmNetlinkListener: %s line: %d fail to add fd to epoll: %s", __FUNCTION__, __LINE__,strerror(errno));
         goto out;
    }
 
