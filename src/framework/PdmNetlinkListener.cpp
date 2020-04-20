@@ -1,4 +1,4 @@
-// Copyright (c) 2019 LG Electronics, Inc.
+// Copyright (c) 2019-2020 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -116,7 +116,7 @@ void PdmNetlinkListener::threadStart(){
 
     fd_ep = epoll_create1(EPOLL_CLOEXEC);
     if (fd_ep < 0) {
-        PDM_LOG_ERROR("PdmNetlinkListener: %s line: %d error creating epoll fd: %m", __FUNCTION__, __LINE__,fd_ep);
+        PDM_LOG_ERROR("PdmNetlinkListener: %s line: %d error creating epoll fd: %d", __FUNCTION__, __LINE__,fd_ep);
         goto out;
     }
     monitor = udev_monitor_new_from_netlink(udev, "udev");
