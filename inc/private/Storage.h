@@ -1,4 +1,4 @@
-// Copyright (c) 2019 LG Electronics, Inc.
+// Copyright (c) 2019-2020 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -74,12 +74,12 @@ public:
     std::string getRootPath(){return rootPath;}
     void setStorageType(StorageInterfaceTypes type){m_storageType = type;}
     void setDriveSize(unsigned long driveSize){ m_driveSize = driveSize; }
-    const unsigned long getDriveSize() { return m_driveSize;}
+    unsigned long getDriveSize() { return m_driveSize;}
     void setUsedSize(unsigned long usedSize) { m_usedSize = usedSize; }
-    const unsigned long getUsedSize() { return m_usedSize;}
+    unsigned long getUsedSize() { return m_usedSize;}
     void setFreeSize(unsigned long freeSize) { m_freeSize = freeSize; }
-    const unsigned long getFreeSize() { return m_freeSize;}
+    unsigned long getFreeSize() { return m_freeSize;}
     void setUsedRate(unsigned long usedRate) { m_usedRate = usedRate; }
-    const unsigned long getUsedRate() { return m_usedRate;}
+    unsigned long getUsedRate() { return m_usedRate;}
 };
 #endif //STORAGE_H
