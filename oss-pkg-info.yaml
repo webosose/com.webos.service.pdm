@@ -1,0 +1,4 @@
+Open Source Software Package:
+- name: webOSOSE-com.webos.service.pdm
+  source: https://github.com/webosose/com.webos.service.pdm
+  license: Apache-2.0
