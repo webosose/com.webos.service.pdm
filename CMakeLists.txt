@@ -1,4 +1,4 @@
-# Copyright (c) 2019 LG Electronics, Inc.
+# Copyright (c) 2019-2020 LG Electronics, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -50,6 +50,10 @@ pkg_check_modules(WEBOSI18N REQUIRED webosi18n)
 include_directories(${WEBOSI18N_INCLUDE_DIRS})
 webos_add_compiler_flags(ALL ${WEBOSI18N_CFLAGS_OTHER})
 
+pkg_check_modules(LIBUSB REQUIRED libusb-1.0)
+include_directories(${LIBUSB_INCLUDE_DIRS})
+webos_add_compiler_flags(ALL ${LIBUSB_CFLAGS_OTHER})
+
 pkg_check_modules(UDEV REQUIRED libudev)
 
 set(BIN_NAME physical-device-manager)
@@ -65,6 +69,7 @@ set(LIB_LIST
     ${LUNASERVICE_LDFLAGS}
     ${PMLOG_LDFLAGS}
     ${WEBOSI18N_LDFLAGS}
+    ${LIBUSB_LDFLAGS}
     pthread
     -lstdc++fs
     dl
