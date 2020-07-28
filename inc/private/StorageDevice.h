@@ -1,4 +1,4 @@
-// Copyright (c) 2019 LG Electronics, Inc.
+// Copyright (c) 2019-2020 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -27,7 +27,6 @@
 #include "DiskPartitionInfo.h"
 #include "PdmFs.h"
 #include "Storage.h"
-#include "PdmIoPerf.h"
 
 class StorageDeviceHandler;
 
@@ -85,7 +84,6 @@ public:
    PdmDevStatus umountAllPartition(const bool lazyUnmount);
    PdmDevStatus mountAllPartition();
    PdmDevStatus fsck(const std::string driveName);
-   PdmDevStatus ioPerf(const std::string& driveName, unsigned int chunkSize, PdmIoPerf* perfIO);
    PdmDevStatus eject();
    PdmDevStatus isWritable(const std::string &driveName, bool &isWritable);
    bool isDevAddNotified() {return m_isDevAddEventNotified;}

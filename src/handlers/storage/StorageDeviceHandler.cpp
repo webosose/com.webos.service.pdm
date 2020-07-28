@@ -1,4 +1,4 @@
-// Copyright (c) 2019 LG Electronics, Inc.
+// Copyright (c) 2019-2020 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -146,9 +146,6 @@ bool StorageDeviceHandler::HandlerCommand(CommandType *cmdtypes, CommandResponse
             break;
         case SPACE_INFO:
             result = getSpaceInfo(cmdtypes, cmdResponse);
-            break;
-        case IO_PERFORMANCE:
-            result = getIoPerf(cmdtypes, cmdResponse);
             break;
         default:
             PDM_LOG_CRITICAL("Command not supported");
@@ -543,98 +540,3 @@ void StorageDeviceHandler::resumeRequest(const int &eventType) {
     Notify(STORAGE_DEVICE, ADD);
 }
 
-bool StorageDeviceHandler::getIoPerf(CommandType *cmdtypes, CommandResponse *cmdResponse){
-    PDM_LOG_DEBUG("StorageDeviceHandler:%s line: %d", __FUNCTION__, __LINE__);
-    bool retVal = true;
-    IoPerformanceCommand *ioPerfCmd = reinterpret_cast<IoPerformanceCommand*>(cmdtypes);
-    PdmDevStatus result = PdmDevStatus::PDM_DEV_ERROR;
-
-    unsigned int chunkSize = ioPerfCmd->chunkSize;
-    if (chunkSize == 0)
-        chunkSize = IOPERF_CHUNKSIZE_DEFAULT;
-    std::string mountName = ioPerfCmd->mountName;
-    std::string driveName = ioPerfCmd->driveName;
-
-    if(driveName.empty() && mountName.empty())
-    {
-        PDM_LOG_DEBUG("StorageDeviceHandler:%s line: %d param error!\n", __FUNCTION__, __LINE__);
-        commandResponse(cmdResponse,result);
-        return retVal;
-    }
-    if(chunkSize < IOPERF_CHUNKSIZE_MIN || chunkSize > IOPERF_CHUNKSIZE_MAX)
-    {
-        PDM_LOG_DEBUG("StorageDeviceHandler:%s line: %d invalid chunk size!\n", __FUNCTION__, __LINE__);
-        commandResponse(cmdResponse,result);
-        return retVal;
-    }
-
-    PdmIoPerf perfIO;
-    if(!driveName.empty())
-    {
-        StorageDevice* storageDev = getDeviceWithName<StorageDevice>(mStorageList,driveName);
-        if(storageDev)
-        {
-            result = storageDev->ioPerf(driveName,chunkSize,&perfIO);
-            if(result == PdmDevStatus::PDM_DEV_SUCCESS)
-                logAndAppendPayloadForIOPerf(cmdResponse,&perfIO);
-            else
-            {
-                result = PdmDevStatus::PDM_DEV_IO_PERF_FAIL;
-                commandResponse(cmdResponse,result);
-            }
-            return retVal;
-        }
-        else
-        {
-            PDM_LOG_DEBUG("StorageDeviceHandler:%s line: %d drive not found\n", __FUNCTION__, __LINE__);
-            result = PdmDevStatus::PDM_DEV_DRIVE_NOT_FOUND;
-            commandResponse(cmdResponse,result);
-            return retVal;
-        }
-    }
-
-    result = perfIO.performIOTest(driveName,mountName,chunkSize);
-    if(result == PdmDevStatus::PDM_DEV_SUCCESS)
-        logAndAppendPayloadForIOPerf(cmdResponse,&perfIO);
-    else
-    {
-        result = PdmDevStatus::PDM_DEV_IO_PERF_FAIL;
-        commandResponse(cmdResponse,result);
-    }
-    return retVal;
-}
-
-void StorageDeviceHandler::logAndAppendPayloadForIOPerf(CommandResponse* cmdResponse, PdmIoPerf* perfIO)
-{
-    double seqAvgWrite = perfIO->getSeqAvgWrite();
-    double seqMinRead = perfIO->getSeqMinRead();
-    double ranMinRead = perfIO->getRanMinRead();
-    double seqAvgRead = perfIO->getSeqAvgRead();
-    double seqMinWrite = perfIO->getSeqMinWrite();
-    double ranAvgRead = perfIO->getRanAvgRead();
-    unsigned int chunkSize = perfIO->getChunkSize();
-    std::string drvName = perfIO->getDrvName();
-    std::string testPath = perfIO->getTestPath();
-
-    pbnjson::JValue ioPerfInfo = pbnjson::Object();
-    ioPerfInfo.put("seqWriteAverage", seqAvgWrite);
-    ioPerfInfo.put("seqReadMinimum", seqMinRead);
-    ioPerfInfo.put("randReadMinimum", ranMinRead);
-    ioPerfInfo.put("seqReadAverage", seqAvgRead);
-    ioPerfInfo.put("seqWriteMinimum", seqMinWrite);
-    ioPerfInfo.put("randReadAverage", ranAvgRead);
-
-    cmdResponse->cmdResponse = pbnjson::Object();
-    cmdResponse->cmdResponse.put("ioPerformance",ioPerfInfo);
-    cmdResponse->cmdResponse.put("returnValue", true);
-
-    PDM_LOG_DEBUG("StorageDeviceHandler:%s line: %d Storage random read test success!\n", __FUNCTION__, __LINE__);
-    PDM_LOG_DEBUG("StorageDeviceHandler:%s line: %d ======== [drive name : %s, testpath : %s, chunk size : %d] IO Test Result \n", __FUNCTION__, __LINE__, drvName.c_str(), testPath.c_str(), chunkSize);
-    PDM_LOG_DEBUG("StorageDeviceHandler:%s line: %d ======== sequencial average write : %lf MByte/s\n", __FUNCTION__, __LINE__, seqAvgWrite);
-    PDM_LOG_DEBUG("StorageDeviceHandler:%s line: %d ======== sequencial min read : %lf MByte/s\n", __FUNCTION__, __LINE__, seqMinRead);
-    PDM_LOG_DEBUG("StorageDeviceHandler:%s line: %d ======== random min read : %lf MByte/s\n", __FUNCTION__, __LINE__, ranMinRead);
-    PDM_LOG_DEBUG("StorageDeviceHandler:%s line: %d ======== sequencial average read : %lf MByte/s\n", __FUNCTION__, __LINE__, seqAvgRead);
-    PDM_LOG_DEBUG("StorageDeviceHandler:%s line: %d ======== sequencial min write : %lf MByte/s\n", __FUNCTION__, __LINE__, seqMinWrite);
-    PDM_LOG_DEBUG("StorageDeviceHandler:%s line: %d ======== random average read : %lf MByte/s\n", __FUNCTION__, __LINE__, ranAvgRead);
-
-}

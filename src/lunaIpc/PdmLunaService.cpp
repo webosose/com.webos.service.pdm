@@ -1,4 +1,4 @@
-// Copyright (c) 2019 LG Electronics, Inc.
+// Copyright (c) 2019-2020 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -47,7 +47,6 @@ LSMethod PdmLunaService::pdm_methods[] = {
     {"format",                            PdmLunaService::_cbformat},
     {"fsck",                            PdmLunaService::_cbfsck},
     {"eject",                            PdmLunaService::_cbeject},
-    {"getIoPerformance",                PdmLunaService::_cbgetIoPerformance},
     {"setVolumeLabel",                    PdmLunaService::_cbsetVolumeLabel},
     {"isWritableDrive",                    PdmLunaService::_cbisWritableDrive},
     {"umountAllDrive",                    PdmLunaService::_cbumountAllDrive},
@@ -417,32 +416,6 @@ bool PdmLunaService::cbEject(LSHandle *sh, LSMessage *message)
     LSMessageRef(message);
     PdmCommand *cmdeject = new PdmCommand(reinterpret_cast<CommandType*>(ejectCmd), std::bind(&PdmLunaService::commandReply, this, _1, _2),(void*)message );
     mCommandManager->sendCommand(cmdeject);
-    return true;
-}
-
-bool PdmLunaService::cbGetIoPerformance(LSHandle *sh, LSMessage *message)
-{
-    PDM_LOG_DEBUG("PdmLunaService:%s line: %d payload:%s", __FUNCTION__, __LINE__, LSMessageGetPayload(message));
-    VALIDATE_SCHEMA_AND_RETURN(sh, message, JSON_SCHEMA_IO_PERFORMANCE_VALIDATE_DRIVE_NAME);
-    const char* payload = LSMessageGetPayload(message);
-
-    if (payload) {
-        pbnjson::JValue list = pbnjson::JDomParser::fromString(payload);
-
-        IoPerformanceCommand *ioPerfCmd = new (std::nothrow) IoPerformanceCommand;
-        if(!ioPerfCmd) {
-            return true;
-        }
-
-        ioPerfCmd->driveName = list["driveName"].asString();
-        ioPerfCmd->mountName = list["mountName"].asString();
-        ioPerfCmd->chunkSize = (unsigned int)list["chunkSize"].asNumber<int>();
-        LSMessageRef(message);
-        PdmCommand *cmdIoPerf = new (std::nothrow) PdmCommand(reinterpret_cast<CommandType*>(ioPerfCmd), std::bind(&PdmLunaService::commandReply, this, _1, _2),(void*)message );
-        if(cmdIoPerf)
-            mCommandManager->sendCommand(cmdIoPerf);
-    }
-
     return true;
 }
 

@@ -1,4 +1,4 @@
-// Copyright (c) 2019 LG Electronics, Inc.
+// Copyright (c) 2019-2020 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -80,13 +80,6 @@ typedef struct SpaceInfoCommand {
     bool directCheck;
     std::string driveName;
 }SpaceInfoCommand;
-
-typedef struct IoPerformanceCommand {
-    const DeviceCommand commandId = IO_PERFORMANCE;
-    std::string driveName;
-    std::string mountName;
-    unsigned int chunkSize;
-}IoPerformanceCommand;
 
 typedef struct CommandResponse {
     pbnjson::JValue cmdResponse;

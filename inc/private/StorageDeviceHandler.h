@@ -1,4 +1,4 @@
-// Copyright (c) 2019 LG Electronics, Inc.
+// Copyright (c) 2019-2020 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -63,14 +63,12 @@ private:
     bool mountFsck(CommandType *cmdtypes, CommandResponse *cmdResponse);
     bool checkUsbPort(CommandType *cmdtypes, CommandResponse *cmdResponse);
     bool fsckAlert(CommandType *cmdtypes, CommandResponse *cmdResponse);
-    bool getIoPerf(CommandType *cmdtypes, CommandResponse *cmdResponse);
     bool getSpaceInfo (CommandType *cmdtypes, CommandResponse *cmdResponse);
     bool isStorageDevice(PdmNetlinkEvent* pNE);
     bool umountAllDrive(bool lazyUnmount);
     void suspendRequest();
     void resumeRequest(const int &eventType);
     int readMaxUsbStorageDevices();
-    void logAndAppendPayloadForIOPerf(CommandResponse* cmdResponse, PdmIoPerf* perfIO);
 
 public:
     ~StorageDeviceHandler();

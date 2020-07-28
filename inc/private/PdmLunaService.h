@@ -1,4 +1,4 @@
-// Copyright (c) 2019 LG Electronics, Inc.
+// Copyright (c) 2019-2020 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -86,9 +86,6 @@ class PdmLunaService
         static bool _cbeject(LSHandle *sh, LSMessage *message , void *data){
             return static_cast<PdmLunaService*>(data)->cbEject(sh, message);
         }
-        static bool _cbgetIoPerformance(LSHandle *sh, LSMessage *message , void *data){
-            return static_cast<PdmLunaService*>(data)->cbGetIoPerformance(sh, message);
-        }
         static bool _cbsetVolumeLabel(LSHandle *sh, LSMessage *message , void *data){
             return static_cast<PdmLunaService*>(data)->cbSetVolumeLabel(sh, message);
         }
@@ -111,7 +108,6 @@ class PdmLunaService
         bool cbFormat(LSHandle *sh, LSMessage *message);
         bool cbFsck(LSHandle *sh, LSMessage *message);
         bool cbEject(LSHandle *sh, LSMessage *message);
-        bool cbGetIoPerformance(LSHandle *sh, LSMessage *message);
         bool cbSetVolumeLabel(LSHandle *sh, LSMessage *message);
         bool cbIsWritableDrive(LSHandle *sh, LSMessage *message);
         bool cbUmountAllDrive(LSHandle *sh, LSMessage *message);

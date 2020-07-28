@@ -1,4 +1,4 @@
-// Copyright (c) 2019 LG Electronics, Inc.
+// Copyright (c) 2019-2020 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -697,28 +697,6 @@ bool StorageDevice::triggerUevent() {
     command.append(m_deviceName);
     PdmUtils::execShellCmd(command);
     return true;
-}
-
-PdmDevStatus StorageDevice::ioPerf(const std::string& driveName, unsigned int chunkSize, PdmIoPerf* perfIO)
-{
-    DiskPartitionInfo* partition = findPartition(driveName);
-    if( !partition )
-        return PdmDevStatus::PDM_DEV_PARTITION_NOT_FOUND;
-
-    if(isReadOnly)
-        return PdmDevStatus::PDM_DEV_READ_ONLY;
-
-    if (partition->isMounted())
-    {
-        if(perfIO->performIOTest(driveName,partition->getMountName(),chunkSize) == PdmDevStatus::PDM_DEV_SUCCESS)
-            return PdmDevStatus::PDM_DEV_SUCCESS;
-    }
-    else
-        return PdmDevStatus::PDM_DEV_DRIVE_NOT_MOUNTED;
-
-    PDM_LOG_ERROR("StorageDevice: %s line: %d io performance test failed, partition name: %s ", __FUNCTION__, __LINE__, driveName.c_str());
-
-    return PdmDevStatus::PDM_DEV_IO_PERF_FAIL;
 }
 
 void StorageDevice::setExtraSdCardDetails(IDevice &device) {
