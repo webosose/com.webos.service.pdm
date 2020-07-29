@@ -1,4 +1,4 @@
-// Copyright (c) 2019 LG Electronics, Inc.
+// Copyright (c) 2019-2020 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ using namespace PdmDevAttributes;
 bool SoundDeviceHandler::mIsObjRegistered = SoundDeviceHandler::RegisterObject();
 
 SoundDeviceHandler::SoundDeviceHandler(PdmConfig* const pConfObj, PluginAdapter* const pluginAdapter)
-    : DeviceHandler(pConfObj, pluginAdapter)
+    : DeviceHandler(pConfObj, pluginAdapter), m_deviceRemoved(false)
 {
     lunaHandler->registerLunaCallback(std::bind(&SoundDeviceHandler::GetAttachedDeviceStatus, this, _1, _2),
                                                                           GET_DEVICESTATUS);
@@ -47,6 +47,16 @@ SoundDeviceHandler::~SoundDeviceHandler() {
 bool SoundDeviceHandler::HandlerEvent(PdmNetlinkEvent* pNE){
 
     PDM_LOG_DEBUG("SoundDeviceHandler:%s line: %d ", __FUNCTION__, __LINE__);
+
+    if (pNE->getDevAttribute(ACTION) == "remove")
+    {
+        m_deviceRemoved = false;
+        ProcessSoundDevice(pNE);
+        if(m_deviceRemoved) {
+            PDM_LOG_DEBUG("StorageDeviceHandler:%s line: %d  DEVTYPE=usb_device removed", __FUNCTION__, __LINE__);
+            return true;
+        }
+    }
 
     if(!isSoundDevice(pNE))
         return false;
@@ -101,6 +111,7 @@ void SoundDeviceHandler::ProcessSoundDevice(PdmNetlinkEvent* pNE){
                 soundDevice = getDeviceWithPath< SoundDevice >(sList,pNE->getDevAttribute(DEVPATH));
                 if(soundDevice)
                    removeDevice(soundDevice);
+                   m_deviceRemoved = true;
                 break;
              case DeviceActions::USB_DEV_CHANGE:
                 soundDevice = getDeviceWithPath< SoundDevice >(sList,pNE->getDevAttribute(DEVPATH));

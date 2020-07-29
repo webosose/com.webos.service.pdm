@@ -1,4 +1,4 @@
-// Copyright (c) 2019 LG Electronics, Inc.
+// Copyright (c) 2019-2020 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ class SoundDeviceHandler : public DeviceHandler
 private:
     const std::string iClass = ":01";
     std::list<SoundDevice*> sList;
+    bool m_deviceRemoved;
 
     SoundDeviceHandler(PdmConfig* const pConfObj, PluginAdapter* const pluginAdapter);
     static bool mIsObjRegistered;
