@@ -1,4 +1,4 @@
-// Copyright (c) 2019 LG Electronics, Inc.
+// Copyright (c) 2019-2020 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ using namespace PdmDevAttributes;
 bool VideoDeviceHandler::mIsObjRegistered = VideoDeviceHandler::RegisterObject();
 
 VideoDeviceHandler::VideoDeviceHandler(PdmConfig* const pConfObj, PluginAdapter* const pluginAdapter) :
-                       DeviceHandler(pConfObj, pluginAdapter), mIsCameraReady(true){
+                       DeviceHandler(pConfObj, pluginAdapter),mIsCameraReady(true),mdeviceRemoved(false){
     lunaHandler->registerLunaCallback(std::bind(&VideoDeviceHandler::GetAttachedDeviceStatus, this, _1, _2),
                                                                           GET_DEVICESTATUS);
     lunaHandler->registerLunaCallback(std::bind(&VideoDeviceHandler::GetAttachedNonStorageDeviceList, this, _1, _2),
@@ -37,8 +37,17 @@ VideoDeviceHandler::~VideoDeviceHandler() {
 bool VideoDeviceHandler::HandlerEvent(PdmNetlinkEvent* pNE){
 
     PDM_LOG_DEBUG("VideoDeviceHandler::HandlerEvent");
+    if (pNE->getDevAttribute(ACTION) == "remove")
+    {
+        mdeviceRemoved = false;
+        ProcessVideoDevice(pNE);
+        if(mdeviceRemoved) {
+            PDM_LOG_DEBUG("VideoDeviceHandler:%s line: %d  DEVTYPE=usb_device removed", __FUNCTION__, __LINE__);
+            return true;
+        }
+    }
     std::string interfaceClass = pNE->getInterfaceClass();
-    if(interfaceClass.find(iClass) == std::string::npos)
+    if((interfaceClass.find(iClass) == std::string::npos) && (pNE->getDevAttribute(SUBSYSTEM) !=  "video4linux"))
         return false;
     if(pNE->getDevAttribute(DEVTYPE) ==  USB_DEVICE) {
         ProcessVideoDevice(pNE);
@@ -93,8 +102,10 @@ void VideoDeviceHandler::ProcessVideoDevice(PdmNetlinkEvent* pNE){
                 case DeviceActions::USB_DEV_REMOVE:
                    PDM_LOG_DEBUG("VideoDeviceHandler:%s line: %d action : %s", __FUNCTION__, __LINE__,pNE->getDevAttribute(ACTION).c_str());
                    videoDevice = getDeviceWithPath< VideoDevice >(sList,pNE->getDevAttribute(DEVPATH));
-                   if(videoDevice)
+                   if(videoDevice) {
                        removeDevice(videoDevice);
+                       mdeviceRemoved = true;
+                    }
                     break;
                 default:
                  //Do nothing
