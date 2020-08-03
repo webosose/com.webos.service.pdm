@@ -1,4 +1,4 @@
-// Copyright (c) 2019 LG Electronics, Inc.
+// Copyright (c) 2019-2020 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -24,7 +24,8 @@ bool CdcDeviceHandler::mIsObjRegistered = CdcDeviceHandler::RegisterObject();
 
 CdcDeviceHandler::CdcDeviceHandler(PdmConfig* const pConfObj, PluginAdapter* const pluginAdapter) :
                                                               DeviceHandler(pConfObj, pluginAdapter)
-                                                     , m_is3g4gDongleSupported(true) {
+                                                     , m_is3g4gDongleSupported(true)
+                                                     , m_deviceRemoved(false) {
     lunaHandler->registerLunaCallback(std::bind(&CdcDeviceHandler::GetAttachedDeviceStatus, this, _1, _2),
                                                                           GET_DEVICESTATUS);
     lunaHandler->registerLunaCallback(std::bind(&CdcDeviceHandler::GetAttachedNonStorageDeviceList, this, _1, _2),
@@ -48,6 +49,15 @@ bool CdcDeviceHandler::HandlerEvent(PdmNetlinkEvent* pNE)
 {
     PDM_LOG_DEBUG("CdcDeviceHandler:%s line: %d ", __FUNCTION__, __LINE__);
 
+    if (pNE->getDevAttribute(ACTION) == "remove")
+    {
+        m_deviceRemoved = false;
+        ProcessCdcDevice(pNE);
+        if(m_deviceRemoved) {
+            PDM_LOG_DEBUG("CdcDeviceHandler:%s line: %d  DEVTYPE=usb_device removed", __FUNCTION__, __LINE__);
+            return true;
+         }
+    }
     if(!identifyCdcDevice(pNE))
         return false;
     if(pNE->getDevAttribute(DEVTYPE) ==  USB_DEVICE) {
@@ -98,8 +108,10 @@ void CdcDeviceHandler::ProcessCdcDevice(PdmNetlinkEvent* pNE)
                 break;
                 case DeviceActions::USB_DEV_REMOVE:
                     cdcDevice = getDeviceWithPath< CdcDevice >(sList,pNE->getDevAttribute(DEVPATH));
-                if(cdcDevice)
+                if(cdcDevice) {
                    removeDevice(cdcDevice);
+                   m_deviceRemoved = true;
+                }
                     break;
                 default:
                  //Do nothing
