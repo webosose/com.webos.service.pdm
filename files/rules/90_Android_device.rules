@@ -18,4 +18,4 @@
 
 # android Auto
 
-SUBSYSTEM=="usb", ENV{ID_PRODUCT_ID}="$attr{idProduct}"
+SUBSYSTEM=="usb", ENV{ID_PRODUCT_ID}="$attr{idProduct}", MODE="0666"
