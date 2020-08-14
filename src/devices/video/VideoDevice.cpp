@@ -1,4 +1,4 @@
-// Copyright (c) 2019 LG Electronics, Inc.
+// Copyright (c) 2019-2020 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -32,10 +32,12 @@ void VideoDevice::setDeviceInfo(PdmNetlinkEvent* pNE, bool isCameraReady)
     if(pNE->getDevAttribute(ACTION) == DEVICE_ADD ) {
         PDM_LOG_DEBUG("VideoDevice:%s line: %d setDeviceInfo: DEVICE_ADD", __FUNCTION__, __LINE__);
         m_devSpeed = getDeviceSpeed(stoi(pNE->getDevAttribute(SPEED),nullptr));
-        if(!isCameraReady)
+        if(!isCameraReady) {
             m_deviceType = DEV_TYPE_UNKNOWN;
+        }
         Device::setDeviceInfo(pNE);
         m_deviceSubType = pNE->getDevAttribute(ID_MODEL);
+        m_productName = "Camera";
     }
 }
 
