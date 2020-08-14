@@ -28,10 +28,11 @@
 
 #define PDM_SERVICE_NAME                  "com.webos.service.pdm"
 
-#define PDM_EVENT_STORAGE_DEVICES         "getAttachedStorageDevicesList"
-#define PDM_EVENT_NON_STORAGE_DEVICES     "getAttachedNonStorageDevicesList"
-#define PDM_EVENT_ALL_ATTACHED_DEVICES    "getAllAttachedDevicesList"
-#define PDM_EVENT_AUDIO_DEVICES           "getAttachedAudioDeviceList"
+#define PDM_EVENT_STORAGE_DEVICES            "getAttachedStorageDevicesList"
+#define PDM_EVENT_NON_STORAGE_DEVICES        "getAttachedNonStorageDevicesList"
+#define PDM_EVENT_ALL_ATTACHED_DEVICES       "getAllAttachedDevicesList"
+#define PDM_EVENT_AUDIO_DEVICES              "getAttachedAudioDeviceList"
+#define PDM_EVENT_ALL_ATTACHED_DEVICE_LIST   "getAttachedAllDeviceList"
 
 #define LSERROR_CHECK_AND_PRINT(ret, lsError)\
      do {                          \
@@ -55,6 +56,7 @@ class PdmLunaService
         pbnjson::JValue createJsonGetAttachedNonStorageDeviceList(LSMessage *message);
         pbnjson::JValue createJsonGetAttachedStorageDeviceList(LSMessage *message);
         pbnjson::JValue createJsonGetAttachedAudioDeviceList(LSMessage *message);
+        pbnjson::JValue createJsonGetAttachedAllDeviceList(LSMessage *message );
     public:
         PdmLunaService(CommandManager *cmdManager);
         ~PdmLunaService();
@@ -98,8 +100,11 @@ class PdmLunaService
         static bool _cbmountandFullFsck(LSHandle *sh, LSMessage *message , void *data){
             return static_cast<PdmLunaService*>(data)->cbmountandFullFsck(sh, message);
         }
+        static bool _cbgetAttachedAllDeviceList(LSHandle *sh, LSMessage *message , void *data){
+             return static_cast<PdmLunaService*>(data)->cbgetAttachedAllDeviceList(sh, message);
+         }
         bool notifySubscribers(int eventDeviceType);
-
+        bool cbgetAttachedAllDeviceList(LSHandle *sh, LSMessage *message);
         bool cbGetExample(LSHandle *sh, LSMessage *message);
         bool cbGetAttachedStorageDeviceList(LSHandle *sh, LSMessage *message);
         bool cbGetAttachedNonStorageDeviceList(LSHandle *sh, LSMessage *message);

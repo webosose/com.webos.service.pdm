@@ -18,7 +18,7 @@ cmake_minimum_required(VERSION 2.8.7)
 project(physical-device-manager)
 include(webOS/webOS)
 webos_modules_init(1 0 0 QUALIFIER RC4)
-webos_component(1 0 0)
+webos_component(1 0 1)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -Wall")
 
@@ -53,6 +53,12 @@ webos_add_compiler_flags(ALL ${WEBOSI18N_CFLAGS_OTHER})
 pkg_check_modules(LIBUSB REQUIRED libusb-1.0)
 include_directories(${LIBUSB_INCLUDE_DIRS})
 webos_add_compiler_flags(ALL ${LIBUSB_CFLAGS_OTHER})
+
+if(WEBOS_TARGET_DISTRO STREQUAL "webos-auto")
+    if(WEBOS_TARGET_MACHINE STREQUAL "sa8155" )
+        add_definitions(-DWEBOS_SESSION)
+    endif()
+endif()
 
 pkg_check_modules(UDEV REQUIRED libudev)
 
