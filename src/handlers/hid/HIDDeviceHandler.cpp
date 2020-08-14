@@ -1,4 +1,4 @@
-// Copyright (c) 2019 LG Electronics, Inc.
+// Copyright (c) 2019-2020 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,7 +21,8 @@ using namespace PdmDevAttributes;
 
 bool HIDDeviceHandler::mIsObjRegistered = HIDDeviceHandler::RegisterObject();
 
-HIDDeviceHandler::HIDDeviceHandler(PdmConfig* const pConfObj, PluginAdapter* const pluginAdapter) : DeviceHandler(pConfObj, pluginAdapter){
+HIDDeviceHandler::HIDDeviceHandler(PdmConfig* const pConfObj, PluginAdapter* const pluginAdapter) 
+                 : DeviceHandler(pConfObj, pluginAdapter), m_deviceRemoved(false){
     lunaHandler->registerLunaCallback(std::bind(&HIDDeviceHandler::GetAttachedDeviceStatus, this, _1, _2),
                                                                           GET_DEVICESTATUS);
     lunaHandler->registerLunaCallback(std::bind(&HIDDeviceHandler::GetAttachedNonStorageDeviceList, this, _1, _2),
@@ -34,6 +35,15 @@ HIDDeviceHandler::~HIDDeviceHandler() {
 bool HIDDeviceHandler::HandlerEvent(PdmNetlinkEvent* pNE){
 
     PDM_LOG_DEBUG("HIDDeviceHandler::HandlerEvent");
+    if (pNE->getDevAttribute(ACTION) == "remove")
+    {
+        m_deviceRemoved = false;
+        ProcessHIDDevice(pNE);
+        if(m_deviceRemoved) {
+            PDM_LOG_DEBUG("HIDDeviceHandler:%s line: %d  DEVTYPE=usb_device removed", __FUNCTION__, __LINE__);
+            return true;
+        }
+    }
 
     std::string interfaceClass = pNE->getInterfaceClass();
     if(interfaceClass.find(iClass) == std::string::npos)
@@ -87,6 +97,7 @@ void HIDDeviceHandler::ProcessHIDDevice(PdmNetlinkEvent* pNE){
                     hidDevice = getDeviceWithPath< HIDDevice >(sList,pNE->getDevAttribute(DEVPATH));
                     if(hidDevice) {
                        removeDevice(hidDevice);
+                       m_deviceRemoved = true;
                     }
                     break;
                 default:
