@@ -1,4 +1,4 @@
-// Copyright (c) 2019 LG Electronics, Inc.
+// Copyright (c) 2019-2020 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,7 +21,8 @@ using namespace PdmDevAttributes;
 
 bool GamepadDeviceHandler::mIsObjRegistered = GamepadDeviceHandler::RegisterObject();
 
-GamepadDeviceHandler::GamepadDeviceHandler(PdmConfig* const pConfObj, PluginAdapter* const pluginAdapter) : DeviceHandler(pConfObj, pluginAdapter) {
+GamepadDeviceHandler::GamepadDeviceHandler(PdmConfig* const pConfObj, PluginAdapter* const pluginAdapter)
+                     : DeviceHandler(pConfObj, pluginAdapter), m_deviceRemoved(false) {
     lunaHandler->registerLunaCallback(std::bind(&GamepadDeviceHandler::GetAttachedDeviceStatus, this, _1, _2),
                                       GET_DEVICESTATUS);
     lunaHandler->registerLunaCallback(std::bind(&GamepadDeviceHandler::GetAttachedNonStorageDeviceList, this, _1, _2),
@@ -29,6 +30,16 @@ GamepadDeviceHandler::GamepadDeviceHandler(PdmConfig* const pConfObj, PluginAdap
 }
 
 bool GamepadDeviceHandler::HandlerEvent(PdmNetlinkEvent* pNE){
+
+    if (pNE->getDevAttribute(ACTION) == "remove")
+    {
+      m_deviceRemoved = false;
+      ProcessGamepadDevice(pNE);
+      if(m_deviceRemoved) {
+          PDM_LOG_DEBUG("GamepadDeviceHandler:%s line: %d  DEVTYPE=usb_device removed", __FUNCTION__, __LINE__);
+          return true;
+      }
+    }
     if(pNE->getDevAttribute(ID_GAMEPAD) == "1"){
         ProcessGamepadDevice(pNE);
         return true;
@@ -63,8 +74,10 @@ void GamepadDeviceHandler::ProcessGamepadDevice(PdmNetlinkEvent* pNE){
                 case DeviceActions::USB_DEV_REMOVE:
                    PDM_LOG_DEBUG("GamepadDeviceHandler:%s line: %d action : %s", __FUNCTION__, __LINE__,pNE->getDevAttribute(ACTION).c_str());
                    gamepadDevice = getDeviceWithPath< GamepadDevice >(sList,pNE->getDevAttribute(DEVPATH));
-                   if(gamepadDevice)
+                   if(gamepadDevice) {
                       removeDevice(gamepadDevice);
+                      m_deviceRemoved = true;
+                   }
                      break;
                 default:
                  //Do nothing
