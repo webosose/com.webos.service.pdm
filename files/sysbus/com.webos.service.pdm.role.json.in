@@ -5,7 +5,9 @@
     "permissions": [
             {
                 "service":"com.webos.service.pdm",
-                "outbound":["*"]
+                "outbound":["com.palm.db",
+                            "com.webos.service.db",
+                            "*"]
             }
       ]
 }

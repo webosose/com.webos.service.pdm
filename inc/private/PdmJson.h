@@ -1,4 +1,4 @@
-// Copyright (c) 2019 LG Electronics, Inc.
+// Copyright (c) 2019-2020 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@
 
 #include <list>
 #include "PdmLunaHandler.h"
+#include "CdcDevice.h"
 
 template < class T > bool getAttachedDeviceStatus(std::list<T*>& sList, pbnjson::JValue &payload)
 {
@@ -87,6 +88,13 @@ template < class T > bool getAttachedNonStorageDeviceList(std::list<T*>& sList, 
 
     for(auto device: sList)
     {
+#ifdef WEBOS_SESSION
+       //device->setDeviceSetId(device->getHubPortNumber());
+       CdcDevice *cdcDevice = reinterpret_cast<CdcDevice*> (device);
+       if((cdcDevice && ("USB2SERIAL" == cdcDevice->getDeviceType()) /*&& (cdcDevice->getUsb2SerialProcessStatus() == false)*/) || (device ->getProductName().find("eGalaxTouch") != std::string::npos) || (device->getDeviceType().find("SOUND") != std::string::npos))
+       {
+            continue;
+       }
        pbnjson::JValue nonStorageDeviceObj = pbnjson::Object();
        nonStorageDeviceObj.put("deviceNum",(int64_t)device->getDeviceNum());
        nonStorageDeviceObj.put("usbPortNum", (int64_t)device->getUsbPortNumber());
@@ -97,6 +105,26 @@ template < class T > bool getAttachedNonStorageDeviceList(std::list<T*>& sList, 
        nonStorageDeviceObj.put("deviceSubtype", device->getDeviceSubType());
        nonStorageDeviceObj.put("isPowerOnConnect", device->isConnectedToPower());
        nonStorageDeviceObj.put("devSpeed", device->getDevSpeed());
+       //nonStorageDeviceObj.put("devPath", device->getDevPath());
+       //nonStorageDeviceObj.put("hubPortPath", device->getHubPortNumber());
+       //nonStorageDeviceObj.put("vendorId", device->getVendorID());
+       //nonStorageDeviceObj.put("productId", device->getProductID());
+       if(device->getDeviceType() == "BLUETOOTH") {
+            nonStorageDeviceObj.put("deviceName", device->getDeviceName());
+       }
+       //nonStorageDeviceObj.put("deviceSetId", device->getDeviceSetId());
+#else
+       pbnjson::JValue nonStorageDeviceObj = pbnjson::Object();
+       nonStorageDeviceObj.put("deviceNum",(int64_t)device->getDeviceNum());
+       nonStorageDeviceObj.put("usbPortNum", (int64_t)device->getUsbPortNumber());
+       nonStorageDeviceObj.put("vendorName", device->getVendorName());
+       nonStorageDeviceObj.put("productName", device->getProductName());
+       nonStorageDeviceObj.put("serialNumber", device->getSerialNumber());
+       nonStorageDeviceObj.put("deviceType", device->getDeviceType());
+       nonStorageDeviceObj.put("deviceSubtype", device->getDeviceSubType());
+       nonStorageDeviceObj.put("isPowerOnConnect", device->isConnectedToPower());
+       nonStorageDeviceObj.put("devSpeed", device->getDevSpeed());
+#endif
        payload.append(nonStorageDeviceObj);
    }
    return true;
@@ -108,6 +136,40 @@ template < class T > bool getAttachedStorageDeviceList (std::list<T*>& sList, pb
 
     for( auto storageIter : sList )
     {
+#ifdef WEBOS_SESSION
+        if(storageIter->getErrorReason() == "NOMOUNTED")
+            continue;
+
+        pbnjson::JValue storageDevice = pbnjson::Object();
+        pbnjson::JValue storageDriveList = pbnjson::Array();
+        storageDevice.put("deviceNum", (int32_t)storageIter->getDeviceNum());
+        storageDevice.put("usbPortNum", (int32_t)storageIter->getUsbPortNumber());
+        storageDevice.put("vendorName",  storageIter->getVendorName());
+        storageDevice.put("productName", storageIter->getProductName());
+        storageDevice.put("serialNumber", storageIter->getSerialNumber());
+        storageDevice.put("deviceType", storageIter->getDeviceType());
+        storageDevice.put("storageType", storageIter->getStorageTypeString());
+        storageDevice.put("rootPath", storageIter->getRootPath());
+        storageDevice.put("isPowerOnConnect", storageIter->isConnectedToPower());
+        storageDevice.put("devSpeed", storageIter->getDevSpeed());
+        storageDevice.put("errorReason", storageIter->getErrorReason());
+        //storageDevice.put("hubPortPath", storageIter->getHubPortNumber());
+        pbnjson::JValue driveInfo = pbnjson::Object();
+        driveInfo.put("driveName", storageIter->getDriveName());
+        driveInfo.put("mountName", storageIter->getMountName());
+        driveInfo.put("uuid", storageIter->getUuid());
+        driveInfo.put("volumeLabel", storageIter->getVolumeLable());
+        driveInfo.put("fsType", storageIter->getFsType());
+        driveInfo.put("driveSize", (int64_t) storageIter->getDriveSize());
+
+        if(storageIter->getPowerStatus())
+            driveInfo.put("isMounted", storageIter->getIsMounted());
+        else  //in suspend case before umount need to send isMounted as false
+            driveInfo.put("isMounted", false);
+
+        storageDriveList.append(driveInfo);
+        storageDevice.put("storageDriveList", storageDriveList);
+#else
         pbnjson::JValue storageDevice = pbnjson::Object();
         pbnjson::JValue storageDriveList = pbnjson::Array();
         storageDevice.put("deviceNum", (int32_t)storageIter->getDeviceNum());
@@ -136,6 +198,7 @@ template < class T > bool getAttachedStorageDeviceList (std::list<T*>& sList, pb
 
         storageDriveList.append(driveInfo);
         storageDevice.put("storageDriveList", storageDriveList);
+#endif
         payload.append(storageDevice);
     }
     return true;
@@ -148,7 +211,12 @@ template < class T > bool getAttachedUsbStorageDeviceList (std::list<T*>& sList,
 
     for( auto storageIter : sList )
     {
+#ifdef WEBOS_SESSION
+        //storageIter->setDeviceSetId(storageIter->getHubPortNumber());
+        if((storageIter->getDiskPartition().empty())|| (storageIter->getErrorReason() == "NOMOUNTED") || (storageIter->getErrorReason() == "USB30_BLACKDEVICE") || (storageIter->getErrorReason() == "UNSUPPORT_FILESYSTEM"))
+#else
         if(storageIter->getDiskPartition().empty())
+#endif
             continue;
         pbnjson::JValue storageDevice = pbnjson::Object();
         pbnjson::JValue storageDriveList = pbnjson::Array();
@@ -182,6 +250,12 @@ template < class T > bool getAttachedUsbStorageDeviceList (std::list<T*>& sList,
         storageDevice.put("isPowerOnConnect", storageIter->isConnectedToPower());
         storageDevice.put("devSpeed", storageIter->getDevSpeed());
         storageDevice.put("errorReason", storageIter->getErrorReason());
+#ifdef WEBOS_SESSION
+        //storageDevice.put("hubPortPath", storageIter->getHubPortNumber());
+        //storageDevice.put("vendorId", storageIter->getVendorID());
+        //storageDevice.put("productId", storageIter->getProductID());
+        //storageDevice.put("deviceSetId", storageIter->getDeviceSetId());
+#endif
         payload.append(storageDevice);
     }
     return true;
@@ -304,9 +378,3 @@ template < class T > bool getAttachedNetDeviceList(std::list<T*>& sList, pbnjson
    return true;
 }
 #endif //_PDM_JSON_H
-
-
-
-
-
-

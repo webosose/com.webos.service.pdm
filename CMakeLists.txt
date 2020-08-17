@@ -42,6 +42,10 @@ pkg_check_modules(LUNASERVICE REQUIRED luna-service2)
 include_directories(${LUNASERVICE_INCLUDE_DIR})
 webos_add_compiler_flags(ALL ${LUNASERVICE_CFLAGS})
 
+pkg_check_modules(LS2 REQUIRED luna-service2++)
+include_directories(${LS2_INCLUDE_DIRS})
+webos_add_compiler_flags(ALL ${LS2_CFLAGS})
+
 pkg_check_modules(PMLOG REQUIRED PmLogLib)
 include_directories(${PMLOG_INCLUDE_DIRS})
 webos_add_compiler_flags(ALL ${PMLOG_CFLAGS_OTHER})
@@ -76,6 +80,7 @@ set(LIB_LIST
     ${PMLOG_LDFLAGS}
     ${WEBOSI18N_LDFLAGS}
     ${LIBUSB_LDFLAGS}
+    ${LS2_LDFLAGS}
     pthread
     -lstdc++fs
     dl
@@ -85,9 +90,12 @@ target_link_libraries (${BIN_NAME} ${LIB_LIST})
 
 webos_build_system_bus_files()
 webos_include_install_paths()
+webos_build_db8_files()
 webos_build_configured_file(files/systemd/physical-device-manager.service SYSCONFDIR systemd/system)
 
 install(TARGETS ${BIN_NAME} DESTINATION sbin)
+install(FILES @CMAKE_SOURCE_DIR@/files/rules/39-usb-auto-port.rules DESTINATION @WEBOS_INSTALL_SYSCONFDIR@/udev/rules.d/)
 install(DIRECTORY @CMAKE_SOURCE_DIR@/files/rules/ DESTINATION @WEBOS_INSTALL_SYSCONFDIR@/udev/rules.d/ FILES_MATCHING PATTERN "*.rules*" PATTERN ".*" EXCLUDE)
 install(DIRECTORY @CMAKE_SOURCE_DIR@/files/icon/ DESTINATION @WEBOS_INSTALL_DATADIR@/@CMAKE_PROJECT_NAME@ FILES_MATCHING PATTERN "*.png*" PATTERN ".*" EXCLUDE)
 install(DIRECTORY "inc/public/" DESTINATION @WEBOS_INSTALL_INCLUDEDIR@ FILES_MATCHING PATTERN "*.h*" PATTERN ".*" EXCLUDE)
+install(DIRECTORY @CMAKE_SOURCE_DIR@/files/scripts/ DESTINATION @WEBOS_INSTALL_SYSCONFDIR@/pdm/scripts/ FILES_MATCHING PATTERN "*.sh*" PATTERN ".*" EXCLUDE)

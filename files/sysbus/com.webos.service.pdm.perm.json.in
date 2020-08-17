@@ -1,6 +1,8 @@
 {
    "com.webos.service.pdm":[
       "notifications",
-      "settings.read"
+      "settings.read",
+      "database",
+      "session.management"
    ]
 }
