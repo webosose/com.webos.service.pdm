@@ -67,6 +67,8 @@ class PdmLunaService
         void appendErrorResponse(pbnjson::JValue &payload, int errorCode, std::string errorText);
         static LSMethod pdm_methods[];
 #ifdef WEBOS_SESSION
+        static bool isRequestForStorageDevice;
+        static std::string m_sessionId;
         LS::Handle *mServiceCPPHandle;
         static LSMethod pdm_dev_methods[];
         static std::map<std::string, std::string> m_sessionMap;
@@ -125,14 +127,14 @@ class PdmLunaService
         static bool _cbmountandFullFsck(LSHandle *sh, LSMessage *message , void *data){
             return static_cast<PdmLunaService*>(data)->cbmountandFullFsck(sh, message);
         }
-#ifdef WEBOS_SESSION
         static bool _cbgetAttachedDeviceList(LSHandle *sh, LSMessage *message , void *data){
             return static_cast<PdmLunaService*>(data)->cbgetAttachedDeviceList(sh, message);
         }
         static bool _cbgetAttachedAllDeviceList(LSHandle *sh, LSMessage *message , void *data){
              return static_cast<PdmLunaService*>(data)->cbgetAttachedAllDeviceList(sh, message);
         }
-	static bool _cbSetDeviceForSession(LSHandle *sh, LSMessage *message , void *data){
+#ifdef WEBOS_SESSION
+        static bool _cbSetDeviceForSession(LSHandle *sh, LSMessage *message , void *data){
             return static_cast<PdmLunaService*>(data)->cbSetDeviceForSession(sh, message);
         }
         bool cbSetDeviceForSession(LSHandle *sh, LSMessage *message);
@@ -145,11 +147,13 @@ class PdmLunaService
         bool notifyAllDeviceToDisplay(std::string deviceSetId, pbnjson::JValue deviceList);
         pbnjson::JValue getStorageDevicePayload(pbnjson::JValue resultArray);
         pbnjson::JValue getNonStorageDevicePayload(pbnjson::JValue resultArray);
+        static bool cbDb8FindResponse(LSHandle * sh, LSMessage * message, void * user_data);
+        bool getDevicesFromDB(std::string deviceType, std::string sessionId);
+#endif
         bool cbgetAttachedAllDeviceList(LSHandle *sh, LSMessage *message);
         pbnjson::JValue createJsonGetAttachedAllDeviceList(LSMessage *message );
         bool cbgetAttachedDeviceList(LSHandle *sh, LSMessage *message);
         static bool cbDbResponse(LSHandle * sh, LSMessage * message, void * user_data);
-#endif
         bool notifySubscribers(int eventDeviceType);
         bool cbGetExample(LSHandle *sh, LSMessage *message);
         bool cbGetAttachedStorageDeviceList(LSHandle *sh, LSMessage *message);
