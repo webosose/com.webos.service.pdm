@@ -89,7 +89,7 @@ template < class T > bool getAttachedNonStorageDeviceList(std::list<T*>& sList, 
     for(auto device: sList)
     {
 #ifdef WEBOS_SESSION
-       //device->setDeviceSetId(device->getHubPortNumber());
+       device->setDeviceSetId(device->getHubPortNumber());
        CdcDevice *cdcDevice = reinterpret_cast<CdcDevice*> (device);
        if((cdcDevice && ("USB2SERIAL" == cdcDevice->getDeviceType()) /*&& (cdcDevice->getUsb2SerialProcessStatus() == false)*/) || (device ->getProductName().find("eGalaxTouch") != std::string::npos) || (device->getDeviceType().find("SOUND") != std::string::npos))
        {
@@ -105,14 +105,14 @@ template < class T > bool getAttachedNonStorageDeviceList(std::list<T*>& sList, 
        nonStorageDeviceObj.put("deviceSubtype", device->getDeviceSubType());
        nonStorageDeviceObj.put("isPowerOnConnect", device->isConnectedToPower());
        nonStorageDeviceObj.put("devSpeed", device->getDevSpeed());
-       //nonStorageDeviceObj.put("devPath", device->getDevPath());
-       //nonStorageDeviceObj.put("hubPortPath", device->getHubPortNumber());
-       //nonStorageDeviceObj.put("vendorId", device->getVendorID());
-       //nonStorageDeviceObj.put("productId", device->getProductID());
+       nonStorageDeviceObj.put("devPath", device->getDevPath());
+       nonStorageDeviceObj.put("hubPortPath", device->getHubPortNumber());
+       nonStorageDeviceObj.put("vendorId", device->getVendorID());
+       nonStorageDeviceObj.put("productId", device->getProductID());
        if(device->getDeviceType() == "BLUETOOTH") {
             nonStorageDeviceObj.put("deviceName", device->getDeviceName());
        }
-       //nonStorageDeviceObj.put("deviceSetId", device->getDeviceSetId());
+       nonStorageDeviceObj.put("deviceSetId", device->getDeviceSetId());
 #else
        pbnjson::JValue nonStorageDeviceObj = pbnjson::Object();
        nonStorageDeviceObj.put("deviceNum",(int64_t)device->getDeviceNum());
@@ -212,7 +212,7 @@ template < class T > bool getAttachedUsbStorageDeviceList (std::list<T*>& sList,
     for( auto storageIter : sList )
     {
 #ifdef WEBOS_SESSION
-        //storageIter->setDeviceSetId(storageIter->getHubPortNumber());
+        storageIter->setDeviceSetId(storageIter->getHubPortNumber());
         if((storageIter->getDiskPartition().empty())|| (storageIter->getErrorReason() == "NOMOUNTED") || (storageIter->getErrorReason() == "USB30_BLACKDEVICE") || (storageIter->getErrorReason() == "UNSUPPORT_FILESYSTEM"))
 #else
         if(storageIter->getDiskPartition().empty())
@@ -251,10 +251,10 @@ template < class T > bool getAttachedUsbStorageDeviceList (std::list<T*>& sList,
         storageDevice.put("devSpeed", storageIter->getDevSpeed());
         storageDevice.put("errorReason", storageIter->getErrorReason());
 #ifdef WEBOS_SESSION
-        //storageDevice.put("hubPortPath", storageIter->getHubPortNumber());
-        //storageDevice.put("vendorId", storageIter->getVendorID());
-        //storageDevice.put("productId", storageIter->getProductID());
-        //storageDevice.put("deviceSetId", storageIter->getDeviceSetId());
+        storageDevice.put("hubPortPath", storageIter->getHubPortNumber());
+        storageDevice.put("vendorId", storageIter->getVendorID());
+        storageDevice.put("productId", storageIter->getProductID());
+        storageDevice.put("deviceSetId", storageIter->getDeviceSetId());
 #endif
         payload.append(storageDevice);
     }

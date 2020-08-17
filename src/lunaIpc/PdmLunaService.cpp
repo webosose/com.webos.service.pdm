@@ -174,6 +174,13 @@ LSHandle *PdmLunaService::get_LSHandle()
     return mServiceHandle;
 }
 
+#ifdef WEBOS_SESSION
+LS::Handle *PdmLunaService::get_LSCPPHandle()
+{
+    return mServiceCPPHandle;
+}
+#endif
+
 pbnjson::JValue PdmLunaService::createJsonGetAttachedDeviceStatus(LSMessage *message )
 {
     PDM_LOG_DEBUG("PdmLunaService::createJsonGetAttachedDeviceStatus");
@@ -546,12 +553,13 @@ bool PdmLunaService::notifySubscribers(int eventDeviceType)
     bRetVal = LSSubscriptionReply(mServiceHandle, DeviceEventTable[ALL_DEVICE], payload.stringify(NULL).c_str(), &error);
     LSERROR_CHECK_AND_PRINT(bRetVal, error);
 
+#ifdef WEBOS_SESSION
     if((eventDeviceType == NON_STORAGE_DEVICE) || (eventDeviceType == STORAGE_DEVICE)) {
          payload = createJsonGetAttachedAllDeviceList(nullptr);
          bRetVal = LSSubscriptionReply(mServiceHandle,PDM_EVENT_ALL_ATTACHED_DEVICE_LIST, payload.stringify(NULL).c_str(), &error);
          LSERROR_CHECK_AND_PRINT(bRetVal, error);
     }
-
+#endif
     return true;
 }
 
@@ -589,6 +597,19 @@ bool PdmLunaService::cbmountandFullFsck(LSHandle *sh, LSMessage *message)
 }
 
 #ifdef WEBOS_SESSION
+pbnjson::JValue PdmLunaService::createJsonGetAttachedAllDeviceList(LSMessage *message) {
+    PDM_LOG_DEBUG("PdmLunaService:%s line: %d payload:%s", __FUNCTION__, __LINE__, LSMessageGetPayload(message));
+    pbnjson::JValue deviceInfoArray = pbnjson::Array();
+    pbnjson::JValue storageDevicePayload = createJsonGetAttachedStorageDeviceList(message);
+    deviceInfoArray.put(0, storageDevicePayload);
+    pbnjson::JValue nonStorageDevicePayload = createJsonGetAttachedNonStorageDeviceList(message);
+    deviceInfoArray.put(1, nonStorageDevicePayload);
+    pbnjson::JValue json = pbnjson::Object();
+    json.put("returnValue", "true");
+    json.put("deviceListInfo", deviceInfoArray);
+    return json;
+}
+
 bool PdmLunaService::cbgetAttachedAllDeviceList(LSHandle *sh, LSMessage *message) {
     PDM_LOG_DEBUG("PdmLunaService:%s line: %d payload:%s", __FUNCTION__, __LINE__, LSMessageGetPayload(message));
     bool bRetVal;
@@ -602,19 +623,6 @@ bool PdmLunaService::cbgetAttachedAllDeviceList(LSHandle *sh, LSMessage *message
     bRetVal  =  LSMessageReply (sh,  message,  obj.stringify(NULL).c_str() ,  &error);
     LSERROR_CHECK_AND_PRINT(bRetVal, error);
     return true;
-}
-
-pbnjson::JValue PdmLunaService::createJsonGetAttachedAllDeviceList(LSMessage *message) {
-    PDM_LOG_DEBUG("PdmLunaService:%s line: %d payload:%s", __FUNCTION__, __LINE__, LSMessageGetPayload(message));
-    pbnjson::JValue deviceInfoArray = pbnjson::Array();
-    pbnjson::JValue storageDevicePayload = createJsonGetAttachedStorageDeviceList(message);
-    deviceInfoArray.put(0, storageDevicePayload);
-    pbnjson::JValue nonStorageDevicePayload = createJsonGetAttachedNonStorageDeviceList(message);
-    deviceInfoArray.put(1, nonStorageDevicePayload);
-    pbnjson::JValue json = pbnjson::Object();
-    json.put("returnValue", "true");
-    json.put("deviceListInfo", deviceInfoArray);
-    return json;
 }
 
 bool PdmLunaService::cbSetDeviceForSession(LSHandle *sh, LSMessage *message)

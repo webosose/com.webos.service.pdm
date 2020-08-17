@@ -1,4 +1,4 @@
-// Copyright (c) 2019 LG Electronics, Inc.
+// Copyright (c) 2019-2020 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -67,6 +67,13 @@ protected:
     std::string m_productName;
     std::string m_devSpeed;
     std::string m_deviceSubType;
+#ifdef WEBOS_SESSION
+    std::string m_devPath;
+    std::string m_vendorID;
+    std::string m_productID;
+    std::string m_hubPortNumber;
+    std::string m_deviceSetId;
+#endif
 
 public:
 
@@ -93,5 +100,13 @@ public:
     virtual int getPortSpeed(){return m_usbPortSpeed;}
     virtual void setDeviceType(std::string devType){m_deviceType = devType;}
     virtual int getBusNumber(){return m_busNum;}
+#ifdef WEBOS_SESSION
+    virtual std::string getDevPath(){ return m_devPath;}
+    virtual std::string getVendorID() {return m_vendorID;}
+    virtual std::string getProductID() {return m_productID;}
+    virtual std::string getHubPortNumber() {return m_hubPortNumber;}
+    virtual std::string getDeviceSetId() {return m_deviceSetId;}
+    void setDeviceSetId(std::string hubPortPath);
+#endif
 };
 #endif //_DEVICE_H

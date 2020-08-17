@@ -1,4 +1,4 @@
-// Copyright (c) 2019 LG Electronics, Inc.
+// Copyright (c) 2019-2020 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -45,6 +45,9 @@ bool LunaIPC::init(GMainLoop *mainLoop,CommandManager *pCommandManager)
     if(retVal)
     {
         mServiceHandle = mPdmService->get_LSHandle();
+#ifdef WEBOS_SESSION
+        mServiceCPPHandle = mPdmService->get_LSCPPHandle();
+#endif
         PDM_LOG_DEBUG("LunaIPC: %s line: %d mServiceHandle =%p", __FUNCTION__, __LINE__,mServiceHandle);
     }
     return retVal;
@@ -67,6 +70,13 @@ LSHandle *LunaIPC::getLSHandle()
 {
     return mServiceHandle;
 }
+
+#ifdef WEBOS_SESSION
+LS::Handle *LunaIPC::getLSCPPHandle()
+{
+    return mServiceCPPHandle;
+}
+#endif
 
 void LunaIPC::notifyDeviceChange(int eventType) {
     mPdmService->notifySubscribers(eventType);

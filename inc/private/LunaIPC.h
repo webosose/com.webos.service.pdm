@@ -1,4 +1,4 @@
-// Copyright (c) 2019 LG Electronics, Inc.
+// Copyright (c) 2019-2020 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -28,6 +28,9 @@ private:
     LunaIPC(const LunaIPC& src) = delete;
     LunaIPC& operator=(const LunaIPC& rhs) = delete;
     LSHandle *mServiceHandle;
+#ifdef WEBOS_SESSION
+    LS::Handle *mServiceCPPHandle;
+#endif
     PdmLunaService *mPdmService;
 public:
     ~LunaIPC();
@@ -35,6 +38,9 @@ public:
     bool deInit();
     static LunaIPC *getInstance();
     LSHandle *getLSHandle(void);
+#ifdef WEBOS_SESSION
+    LS::Handle *getLSCPPHandle(void);
+#endif
     void notifyDeviceChange(int eventType);
 };
 

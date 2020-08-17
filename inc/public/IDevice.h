@@ -1,4 +1,4 @@
-// Copyright (c) 2019 LG Electronics, Inc.
+// Copyright (c) 2019-2020 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -42,6 +42,13 @@ public:
     virtual int getPortSpeed() = 0;
     virtual void setDeviceType(std::string devType) = 0;
     virtual int getBusNumber() = 0;
+#ifdef WEBOS_SESSION
+    virtual std::string getDevPath() = 0;
+    virtual std::string getHubPortNumber() = 0;
+    virtual std::string getVendorID() = 0;
+    virtual std::string getProductID() = 0;
+    virtual std::string getDeviceSetId() = 0;
+#endif
 };
 
 

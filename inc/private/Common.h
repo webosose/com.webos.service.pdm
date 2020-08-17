@@ -205,6 +205,14 @@ enum DeviceEventType { STORAGE_DEVICE = 0,
 //Sound device
     const std::string CARD_ID = "CARD_ID";
     const std::string CARD_NUMBER = "CARD_NUMBER";
+
+#ifdef WEBOS_SESSION
+// For port-device mapping
+    const std::string USB_PORT = "USB_PORT";
+
+// Bluetooth Dongle
+    const std::string RFKILL_NAME = "RFKILL_NAME";
+#endif
 };
 
 #endif /* COMMON_H_ */
