@@ -58,9 +58,10 @@ LSMethod PdmLunaService::pdm_methods[] = {
     {"isWritableDrive",                    PdmLunaService::_cbisWritableDrive},
     {"umountAllDrive",                    PdmLunaService::_cbumountAllDrive},
     {"mountandFullFsck",                PdmLunaService::_cbmountandFullFsck},
-//#ifdef WEBOS_SESSION
+#ifdef WEBOS_SESSION
     {"getAttachedAllDeviceList",        PdmLunaService::_cbgetAttachedAllDeviceList},
-//#endif
+    {"getAttachedDeviceList",           PdmLunaService::_cbgetAttachedDeviceList},
+#endif
     {NULL, NULL}
     };
 
@@ -587,7 +588,7 @@ bool PdmLunaService::cbmountandFullFsck(LSHandle *sh, LSMessage *message)
     return true;
 }
 
-//#ifdef WEBOS_SESSION
+#ifdef WEBOS_SESSION
 bool PdmLunaService::cbgetAttachedAllDeviceList(LSHandle *sh, LSMessage *message) {
     PDM_LOG_DEBUG("PdmLunaService:%s line: %d payload:%s", __FUNCTION__, __LINE__, LSMessageGetPayload(message));
     bool bRetVal;
@@ -616,7 +617,6 @@ pbnjson::JValue PdmLunaService::createJsonGetAttachedAllDeviceList(LSMessage *me
     return json;
 }
 
-#ifdef WEBOS_SESSION
 bool PdmLunaService::cbSetDeviceForSession(LSHandle *sh, LSMessage *message)
 {
     PDM_LOG_DEBUG("PdmLunaService:%s line: %d payload:%s", __FUNCTION__, __LINE__, LSMessageGetPayload(message));
@@ -1244,5 +1244,105 @@ bool PdmLunaService::notifyAllDeviceToDisplay(std::string deviceSetId, pbnjson::
     }
     LSERROR_CHECK_AND_PRINT(bRetVal, error);
     return bRetVal;
+}
+
+bool PdmLunaService::cbgetAttachedDeviceList(LSHandle *sh, LSMessage *message) {
+    PDM_LOG_DEBUG("PdmLunaService:%s line: %d payload:%s", __FUNCTION__, __LINE__, LSMessageGetPayload(message));
+    LSError lserror;
+    LSErrorInit(&lserror);
+    LSMessageRef(message);
+    bool subscribed = true;
+    std::string errText;
+    replyMsg = message;
+    std::string session_id = LSMessageGetSessionId(message);
+    std::string deviceSetId = "";
+    if (session_id != "host")
+    {
+        auto sessionPair = std::find_if(std::begin(m_sessionMap), std::end(m_sessionMap), [&](const std::pair<std::string, std::string> &pair)
+        {
+            return (pair.second == session_id);
+        });
+
+        if (sessionPair != std::end(m_sessionMap))
+        {
+            deviceSetId = sessionPair->first;
+        }
+    }
+    PDM_LOG_INFO("PdmLunaService:",0,"%s line: %d deviceSetId:%s", __FUNCTION__,__LINE__,deviceSetId.c_str());
+    if (LSMessageIsSubscription(message)) {
+        if (deviceSetId == "AVN") {
+            subscribed = subscriptionAdd(sh, PDM_EVENT_AUTO_ATTACHED_ALL_DEVICES_AVN, message);
+        }
+        if (deviceSetId == "RSE-L") {
+            subscribed = subscriptionAdd(sh, PDM_EVENT_AUTO_ATTACHED_ALL_DEVICES_RSE_L, message);
+        }
+        else if (deviceSetId == "RSE-R") {
+            subscribed = subscriptionAdd(sh, PDM_EVENT_AUTO_ATTACHED_ALL_DEVICES_RSE_R, message);
+        }
+    }
+
+    pbnjson::JValue find_query = pbnjson::Object();
+    pbnjson::JValue request;
+
+    request = pbnjson::JObject{{"from", "com.webos.service.pdmhistory:1"},
+                              {"where", pbnjson::JArray{{{"prop", "deviceSetId"}, {"op", "="}, {"val", deviceSetId.c_str()}}}}};
+    find_query.put("query", request);
+    if (LSCallOneReply(sh,"luna://com.webos.service.db/find",
+                      find_query.stringify().c_str(), cbDbResponse, this, NULL, &lserror) == false) {
+        PDM_LOG_DEBUG("finding to the db failed in %s", __PRETTY_FUNCTION__ );
+        LSErrorPrint(&lserror, stderr);
+        LSErrorFree(&lserror);
+        LSMessageUnref(message);
+    }
+    return true;
+}
+
+bool PdmLunaService::cbDbResponse(LSHandle * sh, LSMessage * message, void * user_data)
+{
+    PDM_LOG_DEBUG("PdmLunaService:%s line: %d", __FUNCTION__, __LINE__);
+    LSError lserror;
+    LSErrorInit(&lserror);
+    const char* payload = LSMessageGetPayload(message);
+    if(!payload) {
+        PDM_LOG_ERROR("PdmLunaService:%s line: %d payload is empty ", __FUNCTION__, __LINE__);
+        return false;
+    }
+    pbnjson::JValue request = pbnjson::JDomParser::fromString(payload);
+    if(request.isNull() || (!request["returnValue"].asBool()))
+    {
+        PDM_LOG_ERROR("PdmLunaService:%s line: %d Db8Response is empty ", __FUNCTION__, __LINE__);
+        return false;
+    }
+    PdmLunaService* object = (PdmLunaService*)user_data;
+    if (!object) {
+        PDM_LOG_ERROR("PdmLunaService:%s line: %d object is empty ", __FUNCTION__, __LINE__);
+    return false;
+    }
+    LSMessage* getToastReplyMsg = object->getReplyMsg();
+    if (!getToastReplyMsg) {
+        PDM_LOG_ERROR("PdmLunaService:%s line: %d getToastReplyMsg is empty ", __FUNCTION__, __LINE__);
+        return false;
+    }
+    pbnjson::JValue deviceInfoArray = pbnjson::Array();
+    pbnjson::JValue resultArray = request["results"];
+    if(resultArray.isArray()) {
+        if(resultArray.arraySize() == 0) {
+            PDM_LOG_ERROR("PdmLunaService:%s line: %d No device Info in DB ", __FUNCTION__, __LINE__);
+        }
+    }
+    pbnjson::JValue storageDeviceList =object->getStorageDevicePayload(resultArray);
+    deviceInfoArray.put(0, storageDeviceList);
+    pbnjson::JValue nonStorageDeviceList =object->getNonStorageDevicePayload(resultArray);
+    deviceInfoArray.put(1, nonStorageDeviceList);
+    pbnjson::JValue json = pbnjson::Object();
+    json.put("returnValue", true);
+    json.put("deviceListInfo", deviceInfoArray);
+    if(!LSMessageReply( sh, getToastReplyMsg, json.stringify(NULL).c_str(), &lserror))
+    {
+        LSErrorPrint(&lserror, stderr);
+        LSErrorFree(&lserror);
+        LSMessageUnref(message);
+    }
+    return true;
 }
 #endif

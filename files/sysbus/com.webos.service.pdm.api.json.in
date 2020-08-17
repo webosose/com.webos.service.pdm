@@ -13,6 +13,7 @@
     "com.webos.service.pdm/umountAllDrive",
     "com.webos.service.pdm/mountandFullFsck",
     "com.webos.service.pdm/getAttachedAllDeviceList",
-    "com.webos.service.pdm/dev/setDeviceForSession"
+    "com.webos.service.pdm/dev/setDeviceForSession",
+    "com.webos.service.pdm/dev/getAttachedDeviceList"
 ]
 }

@@ -72,6 +72,8 @@ class PdmLunaService
         static std::map<std::string, std::string> m_sessionMap;
 #endif
         CommandManager *mCommandManager;
+        LSMessage* replyMsg;
+        LSMessage* getReplyMsg() { return replyMsg;}
         bool subscriptionAdd(LSHandle *a_sh, const char *a_key, LSMessage *a_message);
         pbnjson::JValue createJsonGetAttachedDeviceStatus(LSMessage *message);
         pbnjson::JValue createJsonGetAttachedNonStorageDeviceList(LSMessage *message);
@@ -84,6 +86,10 @@ class PdmLunaService
         bool PdmLunaServiceRegister(const char *srvcname, GMainLoop *mainLoop, LSHandle **mServiceHandle);
         LSHandle *get_LSHandle(void);
         //callbacks
+        static bool _cbgetAttachedDeviceList(LSHandle *sh, LSMessage *message , void *data){
+            return static_cast<PdmLunaService*>(data)->cbgetAttachedDeviceList(sh, message);
+        }
+        static bool cbDbResponse(LSHandle * sh, LSMessage * message, void * user_data);
         static bool _cbgetExample(LSHandle *sh, LSMessage *message , void *data) {
             return static_cast<PdmLunaService*>(data)->cbGetExample(sh, message);
         }
@@ -155,6 +161,7 @@ class PdmLunaService
         bool cbUmountAllDrive(LSHandle *sh, LSMessage *message);
         bool commandReply(CommandResponse *cmdRes, void *msg);
         bool cbmountandFullFsck(LSHandle *sh, LSMessage *message);
+        bool cbgetAttachedDeviceList(LSHandle *sh, LSMessage *message);
 
         bool deinit();
 
