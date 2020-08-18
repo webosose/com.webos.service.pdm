@@ -364,6 +364,76 @@ bool PdmLunaService::cbGetAttachedNonStorageDeviceList(LSHandle *sh, LSMessage *
     LSError error;
     LSErrorInit(&error);
     bool subscribed = false;
+#ifdef WEBOS_SESSION
+    replyMsg = message;
+
+    std::string sessionId = LSMessageGetSessionId(message);
+    m_sessionId = sessionId;
+    std::string deviceSetId = "";
+    queryForSession();
+    PDM_LOG_DEBUG("PdmLunaService::%s line:%d sessionId: %s", __FUNCTION__, __LINE__, sessionId.c_str());
+
+    if (sessionId == "host")
+        VALIDATE_SCHEMA_AND_RETURN(sh, message, JSON_SCHEMA_VALIDATE_NON_STORAGE_ATTACH_DEVICE_LIST);
+
+    const char* payloadMsg = LSMessageGetPayload(message);
+    pbnjson::JValue payload = pbnjson::Object();
+    std::string category;
+    if (payloadMsg) {
+        pbnjson::JValue list = pbnjson::JDomParser::fromString(payloadMsg);
+        category = list["category"].asString();
+    }
+    PDM_LOG_DEBUG("PdmLunaService::createJsonGetAttachedNonStorageDeviceList category as %s",category.c_str());
+    if(!category.empty() && (category.compare("Net") != 0) &&
+       (category.compare("Audio") != 0) && (category.compare("Video") != 0)) {
+        appendErrorResponse(payload, PdmPayload::PDM_RESPOSE_CATEGORY_MISMATCH, PdmErrors::mPdmErrorTextTable[PdmPayload::PDM_RESPOSE_CATEGORY_MISMATCH]);
+        bRetVal  =  LSMessageReply (sh,  message,  payload.stringify(NULL).c_str() ,  &error);
+        LSERROR_CHECK_AND_PRINT(bRetVal, error);
+        return true;
+    }
+
+    if (sessionId != "host")
+    {
+        auto sessionPair = std::find_if(std::begin(m_sessionMap), std::end(m_sessionMap), [&](const std::pair<std::string, std::string> &pair)
+        {
+            return (pair.second == sessionId);
+        });
+
+        if (sessionPair != std::end(m_sessionMap))
+        {
+            deviceSetId = sessionPair->first;
+        }
+    }
+    bRetVal = getDevicesFromDB("USB_NONSTORAGE", sessionId);
+
+    PDM_LOG_DEBUG("PdmLunaService::%s line:%d payload: %s", __FUNCTION__, __LINE__, payload.stringify().c_str());
+    if (LSMessageIsSubscription(message))
+    {
+        if (sessionId != "host")
+        {
+            if (deviceSetId == "AVN")
+            {
+                PDM_LOG_DEBUG("PdmLunaService::%s line:%d subscriptionKey: %s", __FUNCTION__, __LINE__, PDM_EVENT_AUTO_NON_STORAGE_DEVICES_AVN);
+                subscribed = subscriptionAdd(sh, PDM_EVENT_AUTO_NON_STORAGE_DEVICES_AVN, message);
+            }
+            else if (deviceSetId == "RSE-L")
+            {
+                PDM_LOG_DEBUG("PdmLunaService::%s line:%d subscriptionKey: %s", __FUNCTION__, __LINE__, PDM_EVENT_AUTO_NON_STORAGE_DEVICES_RSE_L);
+                subscribed = subscriptionAdd(sh, PDM_EVENT_AUTO_NON_STORAGE_DEVICES_RSE_L, message);
+            }
+            else if (deviceSetId == "RSE-R")
+            {
+                PDM_LOG_DEBUG("PdmLunaService::%s line:%d subscriptionKey: %s", __FUNCTION__, __LINE__, PDM_EVENT_AUTO_NON_STORAGE_DEVICES_RSE_R);
+                subscribed = subscriptionAdd(sh, PDM_EVENT_AUTO_NON_STORAGE_DEVICES_RSE_R, message);
+            }
+        }
+        else
+        {
+            PDM_LOG_DEBUG("PdmLunaService::%s line:%d subscriptionKey: %s", __FUNCTION__, __LINE__, PDM_EVENT_AUTO_NON_STORAGE_DEVICES);
+            subscribed = subscriptionAdd(sh, PDM_EVENT_AUTO_NON_STORAGE_DEVICES, message);
+        }
+    }
+#else
     VALIDATE_SCHEMA_AND_RETURN(sh, message, JSON_SCHEMA_VALIDATE_NON_STORAGE_ATTACH_DEVICE_LIST);
     pbnjson::JValue payload = createJsonGetAttachedNonStorageDeviceList(message);
     PDM_LOG_DEBUG("PdmLunaService::cbgetAttachedNonStorageDeviceList");
@@ -375,6 +445,7 @@ bool PdmLunaService::cbGetAttachedNonStorageDeviceList(LSHandle *sh, LSMessage *
     payload.put("returnValue", subscribed);
 
     bRetVal  =  LSMessageReply (sh,  message,  payload.stringify(NULL).c_str() ,  &error);
+#endif
     LSERROR_CHECK_AND_PRINT(bRetVal, error);
     return true;
 }
@@ -1384,7 +1455,7 @@ bool PdmLunaService::cbDbResponse(LSHandle * sh, LSMessage * message, void * use
     LSMessage* getToastReplyMsg = object->getReplyMsg();
     if (!getToastReplyMsg) {
         PDM_LOG_ERROR("PdmLunaService:%s line: %d getToastReplyMsg is empty ", __FUNCTION__, __LINE__);
-        return false;
+    return false;
     }
     pbnjson::JValue deviceInfoArray = pbnjson::Array();
     pbnjson::JValue resultArray = request["results"];
