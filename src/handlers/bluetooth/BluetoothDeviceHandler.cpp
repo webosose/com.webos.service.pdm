@@ -1,4 +1,4 @@
-// Copyright (c) 2019 LG Electronics, Inc.
+// Copyright (c) 2019-2020 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -46,7 +46,12 @@ bool BluetoothDeviceHandler::HandlerEvent(PdmNetlinkEvent* pNE){
       ProcessBluetoothDevice(pNE);
       return btDeviceProcessed;
     }
-    if(pNE->getDevAttribute(ID_BLUETOOTH) == "1"){
+#ifdef WEBOS_SESSION
+    if((pNE->getDevAttribute(ID_BLUETOOTH) == "1") || ((pNE->getDevAttribute(SUBSYSTEM) == "rfkill") && (pNE->getDevAttribute(RFKILL_NAME).find("hci") != std::string::npos)))
+#else
+    if(pNE->getDevAttribute(ID_BLUETOOTH) == "1")
+#endif
+    {
       ProcessBluetoothDevice(pNE);
       btDeviceProcessed = true;
     }
@@ -73,14 +78,23 @@ void BluetoothDeviceHandler::ProcessBluetoothDevice(PdmNetlinkEvent* pNE){
             case DeviceActions::USB_DEV_ADD:
             bluetoothDevice = getDeviceWithPath< BluetoothDevice >(sList,devicePath);
             if(bluetoothDevice){
+#ifdef WEBOS_SESSION
+                PDM_LOG_DEBUG("BluetoothDeviceHandler:%s line: %d ACTION: DEVICE_ADD. Already present SUBSYSTEM: %s", __FUNCTION__, __LINE__, pNE->getDevAttribute(SUBSYSTEM).c_str());
+                if (pNE->getDevAttribute(SUBSYSTEM) == "rfkill")
+                    bluetoothDevice->updateDeviceInfo(pNE);
+                Notify(BLUETOOTH_DEVICE,ADD, bluetoothDevice);
+#else
                 PDM_LOG_DEBUG("BluetoothDeviceHandler:%s line: %d ACTION: DEVICE_ADD. Already present", __FUNCTION__, __LINE__);
                 bluetoothDevice->setDeviceInfo(pNE);
+#endif
             } else {
                 bluetoothDevice = new(std::nothrow) BluetoothDevice(m_pConfObj, m_pluginAdapter);
                 if(bluetoothDevice){
                     bluetoothDevice->setDeviceInfo(pNE);
                     sList.push_back(bluetoothDevice);
+#ifndef WEBOS_SESSION
                     Notify(BLUETOOTH_DEVICE,ADD);
+#endif
             } else {
                 PDM_LOG_ERROR("BluetoothDeviceHandler:%s line: %d Unable to instantiate the BluetoothDevice", __FUNCTION__, __LINE__);
             }
@@ -97,7 +111,7 @@ void BluetoothDeviceHandler::ProcessBluetoothDevice(PdmNetlinkEvent* pNE){
         }
     }
     catch (const std::out_of_range& err) {
-         PDM_LOG_INFO("StorageDeviceHandler:",0,"%s line: %d out of range : %s", __FUNCTION__,__LINE__,err.what());
+         PDM_LOG_INFO("BluetoothDeviceHandler:",0,"%s line: %d out of range : %s", __FUNCTION__,__LINE__,err.what());
     }
 
 }
