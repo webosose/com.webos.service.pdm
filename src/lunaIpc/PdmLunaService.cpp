@@ -1763,6 +1763,7 @@ bool PdmLunaService::updatePayload(std::string deviceSetId, std::string deviceTy
         LSErrorFree(&lserror);
         return false;
     }
+    updateHostPayload(deviceType); // This is for host on removal of device
     return true;
 }
 
@@ -1823,6 +1824,93 @@ bool PdmLunaService::cbPayloadResponse(LSHandle * sh, LSMessage * message, void 
                 deviceInfoArray.put(0,devicePayload);
                 json.put("deviceListInfo", deviceInfoArray);
                 std::string deviceSetId = m_deviceSetId;
+                object->notifyToDisplay(json, deviceSetId,"NON_STORAGE");
+            }
+        }
+    }
+    return true;
+}
+
+void PdmLunaService::updateHostPayload(std::string deviceType) {
+    PDM_LOG_DEBUG("PdmLunaService:%s line: %d", __FUNCTION__, __LINE__);
+    LSError lserror;
+    LSErrorInit(&lserror);
+    pbnjson::JValue find_query = pbnjson::Object();
+    pbnjson::JValue request;
+    PDM_LOG_DEBUG("PdmLunaService::%s line:%d deviceType: %s", __FUNCTION__, __LINE__, deviceType.c_str());
+    if (deviceType == "USB_STORAGE") {
+        request = pbnjson::JObject{{"from", "com.webos.service.pdmhistory:1"},
+                                       {"where", pbnjson::JArray{{{"prop", "deviceType"}, {"op", "="}, {"val", "USB_STORAGE"}}}}};
+    }else {
+        request = pbnjson::JObject{{"from", "com.webos.service.pdmhistory:1"},
+                                    {"where", pbnjson::JArray{{{"prop", "deviceType"}, {"op", "!="}, {"val", "USB_STORAGE"}}}}};
+    }
+    find_query.put("query", request);
+    if (LSCallOneReply(mServiceHandle,"luna://com.webos.service.db/find",
+                             find_query.stringify().c_str(), cbHostPayloadResponse, this, NULL, &lserror) == false) {
+        PDM_LOG_DEBUG("finding to the db failed in %s", __PRETTY_FUNCTION__ );
+        LSErrorPrint(&lserror, stderr);
+        LSErrorFree(&lserror);
+    }
+}
+
+bool PdmLunaService::cbHostPayloadResponse(LSHandle * sh, LSMessage * message, void * user_data) {
+
+    PDM_LOG_DEBUG("PdmLunaService:%s line: %d", __FUNCTION__, __LINE__);
+    const char* payload = LSMessageGetPayload(message);
+
+    if(!payload) {
+        PDM_LOG_ERROR("PdmLunaService:%s line: %d payload is empty ", __FUNCTION__, __LINE__);
+        return false;
+    }
+    pbnjson::JValue request = pbnjson::JDomParser::fromString(payload);
+    if(request.isNull() || (!request["returnValue"].asBool()))
+    {
+        PDM_LOG_ERROR("PdmLunaService:%s line: %d Db8Response is empty ", __FUNCTION__, __LINE__);
+        return false;
+    }
+    PdmLunaService* object = (PdmLunaService*)user_data;
+    if (!object) {
+        PDM_LOG_ERROR("PdmLunaService:%s line: %d object is empty ", __FUNCTION__, __LINE__);
+        return false;
+    }
+    pbnjson::JValue deviceInfoArray = pbnjson::Array();
+    pbnjson::JValue devicePayload = pbnjson::Object();
+    pbnjson::JValue resultArray = request["results"];
+    if(resultArray.isArray()) {
+        if(resultArray.arraySize() == 0) {
+            PDM_LOG_ERROR("PdmLunaService:%s line: %d No device Info in DB ", __FUNCTION__, __LINE__);
+            pbnjson::JValue json = pbnjson::Object();
+            if(m_deviceType == "USB_STORAGE") {
+                devicePayload = object->getStorageDevicePayload(resultArray);
+                deviceInfoArray.put(0,devicePayload);
+                json.put("deviceListInfo", deviceInfoArray);
+                std::string deviceSetId = "HOST";
+                object->notifyToDisplay(json, deviceSetId,"USB_STORAGE" );
+            } else {
+                devicePayload = object->getNonStorageDevicePayload(resultArray);
+                deviceInfoArray.put(0,devicePayload);
+                json.put("deviceListInfo", deviceInfoArray);
+                std::string deviceSetId = "HOST";
+                object->notifyToDisplay(json, deviceSetId,"NON_STORAGE");
+            }
+        }
+        else {
+            if (resultArray[0]["deviceType"] == "USB_STORAGE") {
+                PDM_LOG_DEBUG("PdmLunaService:%s line: %d", __FUNCTION__, __LINE__);
+                devicePayload = object->getStorageDevicePayload(resultArray);
+                pbnjson::JValue json = pbnjson::Object();
+                deviceInfoArray.put(0,devicePayload);
+                json.put("deviceListInfo", deviceInfoArray);
+                std::string deviceSetId = "HOST";
+                object->notifyToDisplay(json, deviceSetId,"USB_STORAGE" );
+            } else {
+                PDM_LOG_DEBUG("PdmLunaService:%s line: %d", __FUNCTION__, __LINE__);
+                devicePayload =object->getNonStorageDevicePayload(resultArray);
+                pbnjson::JValue json = pbnjson::Object();
+                deviceInfoArray.put(0,devicePayload);
+                json.put("deviceListInfo", deviceInfoArray);
+                std::string deviceSetId = "HOST";
                 object->notifyToDisplay(json, deviceSetId,"NON_STORAGE");
             }
         }

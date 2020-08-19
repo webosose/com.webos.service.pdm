@@ -139,6 +139,7 @@ class PdmLunaService
         static bool _cbSetDeviceForSession(LSHandle *sh, LSMessage *message , void *data){
             return static_cast<PdmLunaService*>(data)->cbSetDeviceForSession(sh, message);
         }
+        void updateHostPayload(std::string deviceType);
         bool deleteAndUpdatePayload(pbnjson::JValue resultArray);
         bool updatePayload(std::string deviceSetId, std::string deviceType);
         bool queryDevice(std::string hubPortPath);
@@ -152,6 +153,7 @@ class PdmLunaService
         bool notifyAllDeviceToDisplay(std::string deviceSetId, pbnjson::JValue deviceList);
         pbnjson::JValue getStorageDevicePayload(pbnjson::JValue resultArray);
         pbnjson::JValue getNonStorageDevicePayload(pbnjson::JValue resultArray);
+        static bool cbHostPayloadResponse (LSHandle * sh, LSMessage * message, void * user_data);
         static bool cbPayloadResponse(LSHandle * sh, LSMessage * message, void * user_data);
         static bool cbQueryResponse(LSHandle* lshandle, LSMessage *message, void *user_data);
         static bool cbDb8FindResponse(LSHandle * sh, LSMessage * message, void * user_data);
