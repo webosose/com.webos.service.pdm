@@ -1,4 +1,4 @@
-// Copyright (c) 2019 LG Electronics, Inc.
+// Copyright (c) 2019-2020 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -52,10 +52,17 @@ void DeviceTracker::attachObservers()
 void DeviceTracker::update(const int &eventDeviceType, const int &eventID, IDevice* device)
 {
     int eventType = UNKNOWN_DEVICE;
+    std::string hubPortPath;
     PDM_LOG_DEBUG("DeviceTracker::update -  Event: %d eventID: %d", eventDeviceType, eventID);
 
     m_pluginAdapter->notifyChange(PdmEvent, eventID, device);
-
+#ifdef WEBOS_SESSION
+    if(device) {
+        if (!device->getHubPortNumber().empty()) {
+            hubPortPath = device->getHubPortNumber();
+        }
+    }
+#endif
     switch(eventID)
     {
         case ADD:
@@ -75,6 +82,6 @@ void DeviceTracker::update(const int &eventDeviceType, const int &eventID, IDevi
                 eventType = NON_STORAGE_DEVICE;
     }
     if(eventType != UNKNOWN_DEVICE)
-        LunaIPC::getInstance()->notifyDeviceChange(eventType);
+        LunaIPC::getInstance()->notifyDeviceChange(eventType, eventID, hubPortPath);
 
 }

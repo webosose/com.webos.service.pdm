@@ -41,7 +41,7 @@ public:
 #ifdef WEBOS_SESSION
     LS::Handle *getLSCPPHandle(void);
 #endif
-    void notifyDeviceChange(int eventType);
+    void notifyDeviceChange(int eventType,const int &eventID, std::string hubPortPath);
 };
 
 

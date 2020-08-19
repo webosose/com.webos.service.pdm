@@ -78,6 +78,6 @@ LS::Handle *LunaIPC::getLSCPPHandle()
 }
 #endif
 
-void LunaIPC::notifyDeviceChange(int eventType) {
-    mPdmService->notifySubscribers(eventType);
+void LunaIPC::notifyDeviceChange(int eventType, const int &eventID, std::string hubPortPath) {
+    mPdmService->notifySubscribers(eventType,eventID,hubPortPath);
 }

@@ -69,13 +69,15 @@ class PdmLunaService
 #ifdef WEBOS_SESSION
         static bool isRequestForStorageDevice;
         static std::string m_sessionId;
+        static std::string m_deviceSetId;
+        static std::string m_deviceType;
         LS::Handle *mServiceCPPHandle;
         static LSMethod pdm_dev_methods[];
         static std::map<std::string, std::string> m_sessionMap;
-#endif
-        CommandManager *mCommandManager;
         LSMessage* replyMsg;
         LSMessage* getReplyMsg() { return replyMsg;}
+#endif
+        CommandManager *mCommandManager;
         bool subscriptionAdd(LSHandle *a_sh, const char *a_key, LSMessage *a_message);
         pbnjson::JValue createJsonGetAttachedDeviceStatus(LSMessage *message);
         pbnjson::JValue createJsonGetAttachedNonStorageDeviceList(LSMessage *message);
@@ -127,16 +129,19 @@ class PdmLunaService
         static bool _cbmountandFullFsck(LSHandle *sh, LSMessage *message , void *data){
             return static_cast<PdmLunaService*>(data)->cbmountandFullFsck(sh, message);
         }
+#ifdef WEBOS_SESSION
         static bool _cbgetAttachedDeviceList(LSHandle *sh, LSMessage *message , void *data){
             return static_cast<PdmLunaService*>(data)->cbgetAttachedDeviceList(sh, message);
         }
         static bool _cbgetAttachedAllDeviceList(LSHandle *sh, LSMessage *message , void *data){
              return static_cast<PdmLunaService*>(data)->cbgetAttachedAllDeviceList(sh, message);
         }
-#ifdef WEBOS_SESSION
         static bool _cbSetDeviceForSession(LSHandle *sh, LSMessage *message , void *data){
             return static_cast<PdmLunaService*>(data)->cbSetDeviceForSession(sh, message);
         }
+        bool deleteAndUpdatePayload(pbnjson::JValue resultArray);
+        bool updatePayload(std::string deviceSetId, std::string deviceType);
+        bool queryDevice(std::string hubPortPath);
         bool cbSetDeviceForSession(LSHandle *sh, LSMessage *message);
         static bool cbDb8Response(LSHandle* lshandle, LSMessage *message, void *user_data);
         bool storeDeviceInfo(pbnjson::JValue list);
@@ -147,14 +152,17 @@ class PdmLunaService
         bool notifyAllDeviceToDisplay(std::string deviceSetId, pbnjson::JValue deviceList);
         pbnjson::JValue getStorageDevicePayload(pbnjson::JValue resultArray);
         pbnjson::JValue getNonStorageDevicePayload(pbnjson::JValue resultArray);
+        static bool cbPayloadResponse(LSHandle * sh, LSMessage * message, void * user_data);
+        static bool cbQueryResponse(LSHandle* lshandle, LSMessage *message, void *user_data);
         static bool cbDb8FindResponse(LSHandle * sh, LSMessage * message, void * user_data);
+        static bool cbDeleteResponse (LSHandle * sh, LSMessage * message, void * user_data);
         bool getDevicesFromDB(std::string deviceType, std::string sessionId);
-#endif
         bool cbgetAttachedAllDeviceList(LSHandle *sh, LSMessage *message);
         pbnjson::JValue createJsonGetAttachedAllDeviceList(LSMessage *message );
         bool cbgetAttachedDeviceList(LSHandle *sh, LSMessage *message);
         static bool cbDbResponse(LSHandle * sh, LSMessage * message, void * user_data);
-        bool notifySubscribers(int eventDeviceType);
+#endif
+        bool notifySubscribers(int eventDeviceType, const int &eventID, std::string hubPortPath);
         bool cbGetExample(LSHandle *sh, LSMessage *message);
         bool cbGetAttachedStorageDeviceList(LSHandle *sh, LSMessage *message);
         bool cbGetAttachedNonStorageDeviceList(LSHandle *sh, LSMessage *message);
