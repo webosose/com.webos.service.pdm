@@ -30,6 +30,7 @@
 #ifdef WEBOS_SESSION
 #define DB8_KIND "com.webos.service.pdmhistory:1"
 std::map<std::string, std::string> PdmLunaService::m_sessionMap = {};
+std::map<std::string, std::string> PdmLunaService::m_portDisplayMap = {};
 const std::string DEVICE_CONNECTED_ICON_PATH = "/usr/share/physical-device-manager/usb_connect.png";
 std::string PdmLunaService::m_sessionId = "host";
 std::string PdmLunaService::m_deviceSetId = "";
@@ -677,7 +678,7 @@ bool PdmLunaService::notifySubscribers(int eventDeviceType, const int &eventID, 
         }
     }
 #endif
-    
+
     if(eventDeviceType == STORAGE_DEVICE)
         payload = createJsonGetAttachedStorageDeviceList(nullptr);
     else if(eventDeviceType != STORAGE_DEVICE && eventDeviceType != ALL_DEVICE)
@@ -856,6 +857,38 @@ bool PdmLunaService::cbSetDeviceForSession(LSHandle *sh, LSMessage *message)
                 }
             }
         }
+        auto devicePair = std::find_if(std::begin(m_portDisplayMap), std::end(m_portDisplayMap), [&](const std::pair<std::string, std::string> &pair)
+        {
+            return (pair.first == hubPortPath);
+        });
+
+        std::string lastDeviceSetId = "";
+
+        if (devicePair != std::end(m_portDisplayMap))
+        {
+            lastDeviceSetId = devicePair->second;
+        }
+
+        PDM_LOG_DEBUG("PdmLunaService:%s line: %d lastDeviceSetId: %s, currentDeviceSetId: %s", __FUNCTION__, __LINE__, lastDeviceSetId.c_str(), deviceSetId.c_str());
+        if (lastDeviceSetId != deviceSetId)
+        {
+            m_portDisplayMap[hubPortPath] = deviceSetId;
+            if (lastDeviceSetId == "AVN")
+            {
+                PDM_LOG_DEBUG("PdmLunaService:%s line: %d Device changed from AVN", __FUNCTION__, __LINE__);
+                notifyDisplayChange(lastDeviceSetId, "USB_STORAGE", avnStorageDeviceArray);
+            }
+            else if (lastDeviceSetId == "RSE-L")
+            {
+                PDM_LOG_DEBUG("PdmLunaService:%s line: %d Device changed from RSE-L", __FUNCTION__, __LINE__);
+                notifyDisplayChange(lastDeviceSetId, "USB_STORAGE", rselStorageDeviceArray);
+            }
+            else if (lastDeviceSetId == "RSE-R")
+            {
+                PDM_LOG_DEBUG("PdmLunaService:%s line: %d Device changed from RSE-R", __FUNCTION__, __LINE__);
+                notifyDisplayChange(lastDeviceSetId, "USB_STORAGE", rserStorageDeviceArray);
+            }
+        }
     }
 
     pbnjson::JValue deviceListArray = pbnjson::Array();
@@ -964,6 +997,38 @@ bool PdmLunaService::cbSetDeviceForSession(LSHandle *sh, LSMessage *message)
         else
         {
             createToast("Unknown device is connected", DEVICE_CONNECTED_ICON_PATH, deviceSetId);
+        }
+        auto devicePair = std::find_if(std::begin(m_portDisplayMap), std::end(m_portDisplayMap), [&](const std::pair<std::string, std::string> &pair)
+        {
+            return (pair.first == hubPortPath);
+        });
+
+        std::string lastDeviceSetId = "";
+
+        if (devicePair != std::end(m_portDisplayMap))
+        {
+            lastDeviceSetId = devicePair->second;
+        }
+
+        PDM_LOG_DEBUG("PdmLunaService:%s line: %d lastDeviceSetId: %s, currentDeviceSetId: %s", __FUNCTION__, __LINE__, lastDeviceSetId.c_str(), deviceSetId.c_str());
+        if (lastDeviceSetId != deviceSetId)
+        {
+            m_portDisplayMap[hubPortPath] = deviceSetId;
+            if (lastDeviceSetId == "AVN")
+            {
+                PDM_LOG_DEBUG("PdmLunaService:%s line: %d Device changed from AVN", __FUNCTION__, __LINE__);
+                notifyDisplayChange(lastDeviceSetId, "USB_NONSTORAGE", avnDeviceArray);
+            }
+            else if (lastDeviceSetId == "RSE-L")
+            {
+                PDM_LOG_DEBUG("PdmLunaService:%s line: %d Device changed from RSE-L", __FUNCTION__, __LINE__);
+                notifyDisplayChange(lastDeviceSetId, "USB_NONSTORAGE", rselDeviceArray);
+            }
+            else if (lastDeviceSetId == "RSE-R")
+            {
+                PDM_LOG_DEBUG("PdmLunaService:%s line: %d Device changed from RSE-R", __FUNCTION__, __LINE__);
+                notifyDisplayChange(lastDeviceSetId, "USB_NONSTORAGE", rserDeviceArray);
+            }
         }
     }
 
@@ -1992,6 +2057,7 @@ bool PdmLunaService::cbAllDeviceSessionResponse(LSHandle * sh, LSMessage * messa
     }
     return true;
 }
+
 void PdmLunaService::UpdateDB() {
     PDM_LOG_INFO("PdmLunaService:",0,"%s line: %d ", __FUNCTION__,__LINE__);
     LSError lserror;
@@ -2005,6 +2071,7 @@ void PdmLunaService::UpdateDB() {
         LSErrorFree(&lserror);
     }
 }
+
 bool PdmLunaService::cbUpdateDBResponse(LSHandle * sh, LSMessage * message, void * user_data) {
     PDM_LOG_INFO("PdmLunaService:",0,"%s line: %d ", __FUNCTION__,__LINE__);
     LSError lserror;
@@ -2114,5 +2181,29 @@ bool PdmLunaService::isDeviceExist(pbnjson::JValue request, std::string hubPortP
     }
     PDM_LOG_INFO("PdmLunaService:",0,"%s line: %d device is connected:%d", __FUNCTION__,__LINE__, result);
     return result;
+}
+
+bool PdmLunaService::notifyDisplayChange(std::string deviceSetId, std::string deviceType, pbnjson::JValue deviceArray)
+{
+    pbnjson::JValue deviceListArray = pbnjson::Array();
+    pbnjson::JValue deviceListInfo = pbnjson::Object();
+
+    PDM_LOG_DEBUG("PdmLunaService:%s line: %d Device changed from %s", __FUNCTION__, __LINE__, deviceSetId);
+    pbnjson::JValue payload = pbnjson::Object();
+    if (deviceType == "USB_STORAGE")
+    {
+        payload.put("storageDeviceList", deviceArray);
+    }
+    else if (deviceType == "USB_NONSTORAGE")
+    {
+        payload.put("nonStorageDeviceList", deviceArray);
+    }
+
+    deviceListArray.put(0, payload);
+    deviceListInfo.put("deviceListInfo", deviceListArray);
+    notifyToDisplay(deviceListInfo, deviceSetId, deviceType);
+    notifyAllDeviceToDisplay(deviceSetId, deviceListInfo);
+
+    return true;
 }
 #endif

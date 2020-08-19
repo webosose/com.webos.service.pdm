@@ -74,6 +74,7 @@ class PdmLunaService
         LS::Handle *mServiceCPPHandle;
         static LSMethod pdm_dev_methods[];
         static std::map<std::string, std::string> m_sessionMap;
+        static std::map<std::string, std::string> m_portDisplayMap;
         LSMessage* replyMsg;
         LSMessage* getReplyMsg() { return replyMsg;}
 #endif
@@ -164,6 +165,7 @@ class PdmLunaService
         static bool cbDb8FindResponse(LSHandle * sh, LSMessage * message, void * user_data);
         static bool cbDeleteResponse (LSHandle * sh, LSMessage * message, void * user_data);
         bool getDevicesFromDB(std::string deviceType, std::string sessionId);
+        bool notifyDisplayChange(std::string deviceSetId, std::string deviceType, pbnjson::JValue deviceArray);
         bool cbgetAttachedAllDeviceList(LSHandle *sh, LSMessage *message);
         pbnjson::JValue createJsonGetAttachedAllDeviceList(LSMessage *message );
         bool cbgetAttachedDeviceList(LSHandle *sh, LSMessage *message);

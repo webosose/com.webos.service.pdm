@@ -15,12 +15,15 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include <cstddef>
+#include <fstream>
 #include <luna-service2/lunaservice.hpp>
 #include <luna-service2++/handle.hpp>
 
 #include "Device.h"
 #include "PdmLogUtils.h"
 #include "LunaIPC.h"
+
+#define USB_SYS_USBDEVICE_PATH                        "/sys/bus/usb/devices/"
 
 using namespace PdmDevAttributes;
 
@@ -33,6 +36,33 @@ Device::Device(PdmConfig* const pConfObj, PluginAdapter* const pluginAdapter, st
 #endif
 {
 }
+
+#ifdef WEBOS_SESSION
+bool Device::readFromFile(std::string fileToRead, std::string &usbData)
+{
+    std::ifstream readFile (fileToRead);
+    if (readFile.fail())
+        return false;
+    readFile >> usbData;
+    readFile.close();
+    return true;
+}
+
+void Device::getBasicUsbInfo(std::string devPath)
+{
+    std::string devFullPath = USB_SYS_USBDEVICE_PATH + devPath;
+
+    // Read idVendor
+    std::string vendorIdFile = devFullPath + "/idVendor";
+    if(!readFromFile(vendorIdFile, m_vendorID))
+        return;
+
+    // Read idProduct
+    std::string productIdFile = devFullPath + "/idProduct";
+    if(!readFromFile(productIdFile, m_productID))
+        return;
+}
+#endif
 
 void Device::setDeviceInfo(PdmNetlinkEvent* pNE)
 {
@@ -50,6 +80,11 @@ void Device::setDeviceInfo(PdmNetlinkEvent* pNE)
 
     if(pNE->getDevAttribute(DEVTYPE) == USB_DEVICE){
       m_devicePath = pNE->getDevAttribute(DEVPATH);
+#ifdef WEBOS_SESSION
+      std::string delimeter = "/";
+      std::string usbInfoString = m_devicePath.substr(m_devicePath.rfind(delimeter) + delimeter.size());
+      getBasicUsbInfo(usbInfoString);
+#endif
     }
     if(!pNE->getDevAttribute(ID_VENDOR_FROM_DATABASE).empty()){
         m_vendorName = pNE->getDevAttribute(ID_VENDOR_FROM_DATABASE);

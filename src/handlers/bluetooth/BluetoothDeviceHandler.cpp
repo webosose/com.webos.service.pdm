@@ -81,8 +81,10 @@ void BluetoothDeviceHandler::ProcessBluetoothDevice(PdmNetlinkEvent* pNE){
 #ifdef WEBOS_SESSION
                 PDM_LOG_DEBUG("BluetoothDeviceHandler:%s line: %d ACTION: DEVICE_ADD. Already present SUBSYSTEM: %s", __FUNCTION__, __LINE__, pNE->getDevAttribute(SUBSYSTEM).c_str());
                 if (pNE->getDevAttribute(SUBSYSTEM) == "rfkill")
+                {
                     bluetoothDevice->updateDeviceInfo(pNE);
-                Notify(BLUETOOTH_DEVICE,ADD, bluetoothDevice);
+                    Notify(BLUETOOTH_DEVICE,ADD, bluetoothDevice);
+                }
 #else
                 PDM_LOG_DEBUG("BluetoothDeviceHandler:%s line: %d ACTION: DEVICE_ADD. Already present", __FUNCTION__, __LINE__);
                 bluetoothDevice->setDeviceInfo(pNE);

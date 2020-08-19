@@ -107,6 +107,8 @@ public:
     virtual std::string getHubPortNumber() {return m_hubPortNumber;}
     virtual std::string getDeviceSetId() {return m_deviceSetId;}
     void setDeviceSetId(std::string hubPortPath);
+    bool readFromFile(std::string fileToRead, std::string &usbData);
+    void getBasicUsbInfo(std::string devPath);
 #endif
 };
 #endif //_DEVICE_H

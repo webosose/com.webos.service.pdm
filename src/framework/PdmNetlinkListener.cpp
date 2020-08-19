@@ -87,6 +87,7 @@ void PdmNetlinkListener::enumerate_devices(struct udev* udev)
     udev_enumerate_add_match_subsystem(enumerate, "video4linux");
     udev_enumerate_add_match_subsystem(enumerate, "net");
     udev_enumerate_add_match_subsystem(enumerate, "tty");
+    udev_enumerate_add_match_subsystem(enumerate, "rfkill");
 
     udev_enumerate_scan_devices(enumerate);
 
@@ -131,7 +132,8 @@ void PdmNetlinkListener::threadStart(){
                 udev_monitor_filter_add_match_subsystem_devtype(monitor, "sound", NULL) < 0 ||
                     udev_monitor_filter_add_match_subsystem_devtype(monitor, "video4linux", NULL) < 0 ||
                         udev_monitor_filter_add_match_subsystem_devtype(monitor, "net", NULL) < 0 ||
-                            udev_monitor_filter_add_match_subsystem_devtype(monitor, "tty", NULL) < 0){
+                            udev_monitor_filter_add_match_subsystem_devtype(monitor, "tty", NULL) < 0 ||
+                                udev_monitor_filter_add_match_subsystem_devtype(monitor, "rfkill", NULL) < 0){
         PDM_LOG_ERROR("PdmNetlinkListener: %s line: %d filter failed\n", __FUNCTION__, __LINE__);
         goto out;
     }
