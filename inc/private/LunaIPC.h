@@ -40,6 +40,7 @@ public:
     LSHandle *getLSHandle(void);
 #ifdef WEBOS_SESSION
     LS::Handle *getLSCPPHandle(void);
+    void getResumeDone();
 #endif
     void notifyDeviceChange(int eventType,const int &eventID, std::string hubPortPath);
 };

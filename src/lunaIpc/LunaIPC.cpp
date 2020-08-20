@@ -76,6 +76,9 @@ LS::Handle *LunaIPC::getLSCPPHandle()
 {
     return mServiceCPPHandle;
 }
+void LunaIPC::getResumeDone() {
+    mPdmService->notifyResumeDone();
+}
 #endif
 
 void LunaIPC::notifyDeviceChange(int eventType, const int &eventID, std::string hubPortPath) {

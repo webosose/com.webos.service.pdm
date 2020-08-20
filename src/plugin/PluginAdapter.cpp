@@ -17,6 +17,7 @@
 #include "DeviceManager.h"
 #include "PluginAdapter.h"
 #include "PdmLogUtils.h"
+#include "LunaIPC.h"
 #include <dlfcn.h>
 #include <unistd.h>
 
@@ -96,6 +97,9 @@ bool PluginAdapter::getPowerState() {
 
 void PluginAdapter::resumeDone() {
     m_powerState = true;
+#ifdef WEBOS_SESSION
+    LunaIPC::getInstance()->getResumeDone();
+#endif
 }
 
 bool PluginAdapter::isUmoutBlocked(const std::string &path) {
