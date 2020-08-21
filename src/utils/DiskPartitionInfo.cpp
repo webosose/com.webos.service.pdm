@@ -1,4 +1,4 @@
-// Copyright (c) 2019 LG Electronics, Inc.
+// Copyright (c) 2019-2020 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -33,6 +33,7 @@ DiskPartitionInfo::DiskPartitionInfo(PdmConfig* const pConfObj, PluginAdapter* c
 void DiskPartitionInfo::setPartitionInfo(PdmNetlinkEvent* pNE,const std::string &deviceRootPath)
 {
     driveName = pNE->getDevAttribute(DEVNAME);
+    PDM_LOG_INFO("DiskPartitionInfo:",0,"%s driveName: %s deviceRootPath:%s", __FUNCTION__,driveName.c_str(), deviceRootPath.c_str());
     if(!driveName.empty() && !deviceRootPath.empty())
     {
             rootPath = deviceRootPath;

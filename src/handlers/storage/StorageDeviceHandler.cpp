@@ -196,7 +196,7 @@ void StorageDeviceHandler::checkStorageDevice(PdmNetlinkEvent* pNE) {
         storageDevName->setDeviceInfo(pNE);
         return;
     }
-    if(storageDevName == nullptr) {
+    if(storageDevPath && storageDevName == nullptr) {
         PDM_LOG_DEBUG("StorageDeviceHandler:%s line: %d new device with name DEVNAME: %s", __FUNCTION__, __LINE__,pNE->getDevAttribute(DEVNAME).c_str());
         createStorageDevice(pNE, storageDevPath);
         return;
@@ -206,7 +206,7 @@ void StorageDeviceHandler::checkStorageDevice(PdmNetlinkEvent* pNE) {
 
 void StorageDeviceHandler::createStorageDevice(PdmNetlinkEvent* pNE, IDevice *device)
 {
-    PDM_LOG_DEBUG("StorageDeviceHandler:%s line: %d DEVNAME: %s", __FUNCTION__, __LINE__,pNE->getDevAttribute(DEVNUM).c_str());
+    PDM_LOG_DEBUG("StorageDeviceHandler:%s line: %d DEVNAME: %s", __FUNCTION__, __LINE__,pNE->getDevAttribute(DEVNAME).c_str());
     if(mStorageList.size() >= m_maxStorageDevices) {
         PDM_LOG_CRITICAL("StorageDeviceHandler:%s line: %d Storage Device count: %d has reached max. Dont process", __FUNCTION__, __LINE__, mStorageList.size());
         Notify(STORAGE_DEVICE,MAX_COUNT_REACHED);
@@ -472,7 +472,8 @@ bool StorageDeviceHandler::isStorageDevice(PdmNetlinkEvent* pNE)
 {
     PDM_LOG_DEBUG("StorageDeviceHandler::isStorageDevice");
     std::string interfaceClass = pNE->getInterfaceClass();
-    if(interfaceClass.find(iClass) != std::string::npos)
+    if((interfaceClass.find(iClass) != std::string::npos) || (pNE->getDevAttribute(HARD_DISK) == PDM_HDD_ID_ATA) ||
+                                       (pNE->getDevAttribute(ID_ATA) == PDM_HDD_ID_ATA))
         return true;
 
     return false;

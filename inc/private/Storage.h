@@ -37,9 +37,6 @@ static std::map<StorageInterfaceTypes, std::string> sMapStorageType= {
 // This class is for storage specific varibles and functions
 class Storage : public Device
 {
-private:
-    std::string readRootPath();
-
 protected:
     bool isMounted;
     bool isReadOnly;
@@ -56,6 +53,7 @@ protected:
     std::string mountName;
     std::string rootPath;
     StorageInterfaceTypes m_storageType;
+    std::string readRootPath();
 
 public:
     Storage(PdmConfig* const pConfObj, PluginAdapter* const pluginAdapter, std::string deviceType

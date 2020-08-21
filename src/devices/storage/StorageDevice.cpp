@@ -162,10 +162,13 @@ void StorageDevice::updateDiskInfo(PdmNetlinkEvent* pNE)
                 isReadOnly = true; // disk is read only, FSCK will not be done
 
             setStorageInterfaceType(pNE);
-            if(!rootPath.empty())
+            PDM_LOG_INFO("StorageDevice:",0,"%s line: %d rootPath:%s m_deviceName: %s readRootPath:%s", __FUNCTION__,__LINE__,rootPath.c_str(),m_deviceName.c_str(), readRootPath());
+            if(!rootPath.empty() && readRootPath() == rootPath) {
                 rootPath.append((m_deviceName.substr(m_deviceName.find_last_of("/") + 1)));
+                PDM_LOG_INFO("StorageDevice:",0,"%s line: %d rootPath: %s ", __FUNCTION__,__LINE__,rootPath.c_str());
+            }
             m_partitionCount = countPartitions(m_deviceName);
-           PDM_LOG_DEBUG("StorageDevice:%s line: %d m_deviceName: %s rootPath: %s partition count: %d", __FUNCTION__, __LINE__,m_deviceName.c_str(),rootPath.c_str(), m_partitionCount);
+           PDM_LOG_DEBUG("StorageDevice:%s line: %d rootPath: %s partition count: %d", __FUNCTION__, __LINE__,rootPath.c_str(), m_partitionCount);
             if(m_partitionCount == 0)
             {
                 if(getStorageType() != StorageInterfaceTypes::USB_CARD_READER)
@@ -231,6 +234,7 @@ void StorageDevice::setPartitionInfo(PdmNetlinkEvent* pNE)
        }
     partitionInfo->setStorageType(m_storageType);
     partitionInfo->setProductName(getProductName());
+    PDM_LOG_INFO("DiskPartitionInfo:",0,"%s rootPath:%s", __FUNCTION__,rootPath.c_str());
     partitionInfo->setPartitionInfo(pNE, rootPath);
     m_pdmFileSystemObj.checkFileSystem(*partitionInfo);
     m_diskPartitionList.push_back(partitionInfo);
