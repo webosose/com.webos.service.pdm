@@ -472,8 +472,7 @@ bool StorageDeviceHandler::isStorageDevice(PdmNetlinkEvent* pNE)
 {
     PDM_LOG_DEBUG("StorageDeviceHandler::isStorageDevice");
     std::string interfaceClass = pNE->getInterfaceClass();
-    if((interfaceClass.find(iClass) != std::string::npos) || (pNE->getDevAttribute(HARD_DISK) == PDM_HDD_ID_ATA) ||
-                                       (pNE->getDevAttribute(ID_ATA) == PDM_HDD_ID_ATA))
+    if(interfaceClass.find(iClass) != std::string::npos)
         return true;
 
     return false;

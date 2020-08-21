@@ -53,7 +53,7 @@ bool SoundDeviceHandler::HandlerEvent(PdmNetlinkEvent* pNE){
         m_deviceRemoved = false;
         ProcessSoundDevice(pNE);
         if(m_deviceRemoved) {
-            PDM_LOG_DEBUG("StorageDeviceHandler:%s line: %d  DEVTYPE=usb_device removed", __FUNCTION__, __LINE__);
+            PDM_LOG_DEBUG("SoundDeviceHandler:%s line: %d  DEVTYPE=usb_device removed", __FUNCTION__, __LINE__);
             return true;
         }
     }
@@ -109,9 +109,10 @@ void SoundDeviceHandler::ProcessSoundDevice(PdmNetlinkEvent* pNE){
                 case DeviceActions::USB_DEV_REMOVE:
                     PDM_LOG_DEBUG("SoundDeviceHandler:%s line: %d  Remove Sound device", __FUNCTION__, __LINE__);
                 soundDevice = getDeviceWithPath< SoundDevice >(sList,pNE->getDevAttribute(DEVPATH));
-                if(soundDevice)
+                if(soundDevice) {
                    removeDevice(soundDevice);
                    m_deviceRemoved = true;
+                }
                 break;
              case DeviceActions::USB_DEV_CHANGE:
                 soundDevice = getDeviceWithPath< SoundDevice >(sList,pNE->getDevAttribute(DEVPATH));
