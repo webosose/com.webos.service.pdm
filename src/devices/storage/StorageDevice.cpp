@@ -234,7 +234,7 @@ void StorageDevice::setPartitionInfo(PdmNetlinkEvent* pNE)
        }
     partitionInfo->setStorageType(m_storageType);
     partitionInfo->setProductName(getProductName());
-    PDM_LOG_INFO("DiskPartitionInfo:",0,"%s rootPath:%s", __FUNCTION__,rootPath.c_str());
+    PDM_LOG_INFO("DiskPartitionInfo:",0,"%s line :%d rootPath:%s", __FUNCTION__,__LINE__,rootPath.c_str());
     partitionInfo->setPartitionInfo(pNE, rootPath);
     m_pdmFileSystemObj.checkFileSystem(*partitionInfo);
     m_diskPartitionList.push_back(partitionInfo);

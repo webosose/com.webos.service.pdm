@@ -51,7 +51,6 @@ bool AutoAndroidDeviceHandler::HandlerEvent(PdmNetlinkEvent* pNE){
         ProcessAutoAndroidDevice(pNE);
         return true;
     }
-#ifdef WEBOS_SESSION
     if(isAOAInterface(pNE)) {
         PDM_LOG_INFO("AutoAndroidDeviceHandler:",0,"%s line: %d android interface detected", __FUNCTION__,__LINE__);
         if(openDevice(pNE)) {
@@ -62,7 +61,6 @@ bool AutoAndroidDeviceHandler::HandlerEvent(PdmNetlinkEvent* pNE){
             }
         }
     }
-#endif
     return false;
 }
 
@@ -195,7 +193,7 @@ bool AutoAndroidDeviceHandler::isAOAInterface(PdmNetlinkEvent* pNE)
     bool result = false;
     std::string interfaceClass = pNE->getInterfaceClass();
     PDM_LOG_INFO("AutoAndroidDeviceHandler:",0,"%s line: %d interfaceClass %s devType:%s", __FUNCTION__,__LINE__,interfaceClass.c_str(), pNE->getDevAttribute(DEVTYPE).c_str());
-    if (((interfaceClass.find(":06")!= std::string::npos) || (interfaceClass.find("ff")!= std::string::npos)) && (pNE->getDevAttribute(DEVTYPE) ==  USB_DEVICE) && (pNE->getDevAttribute(ID_BLUETOOTH) != "1")){
+    if (((interfaceClass.find(":06")!= std::string::npos) || (interfaceClass.find(":ff")!= std::string::npos)) && (pNE->getDevAttribute(DEVTYPE) ==  USB_DEVICE) && (pNE->getDevAttribute(ID_BLUETOOTH) != "1")){
         result =  true;
     }
     return result;
