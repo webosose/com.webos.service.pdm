@@ -1,4 +1,4 @@
-# Copyright (c) 2019 LG Electronics, Inc.
+# Copyright (c) 2019-2020 LG Electronics, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,8 +16,8 @@
 
 ACTION=="remove", GOTO="input_exit"
 SUBSYSTEM=="usb", ENV{DEVTYPE}=="usb_device", ENV{SPEED}="$attr{speed}"
-SUBSYSTEM=="usb", ENV{ID_USB_INTERFACES}==":ff5d01:", ENV{ID_GAMEPAD}="1"
-SUBSYSTEM=="input", ENV{ID_USB_INTERFACES}==":ff5d01:", ENV{ID_GAMEPAD}="1"
+SUBSYSTEM=="usb", ENV{ID_USB_INTERFACES}=="*:ff5d01:*", ENV{ID_GAMEPAD}="1"
+SUBSYSTEM=="input", ENV{ID_USB_INTERFACES}=="*:ff5d01:*", ENV{ID_GAMEPAD}="1"
 SUBSYSTEM!="input", GOTO="input_exit"
 SUBSYSTEM=="input", KERNEL=="event[0-9]*", ENV{PROCESSED}="1"
 LABEL="input_exit"

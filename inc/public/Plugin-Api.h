@@ -1,4 +1,4 @@
-// Copyright (c) 2019 LG Electronics, Inc.
+// Copyright (c) 2019-2020 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -48,7 +48,7 @@ enum EventType { UNKNOWN = 0,
                   UMOUNTALL_FAIL
 };
 //Plugin Event for power state
-enum PowerState { POWER_STATE_NORMAL = 0,
+enum PowerState { POWER_STATE_NORMAL =2000,
                   POWER_STATE_SUSPEND,
                   POWER_STATE_REBOOT,
                   POWER_STATE_POWER_OFF,

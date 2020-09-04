@@ -26,7 +26,7 @@ bool AutoAndroidDeviceHandler::mIsObjRegistered = AutoAndroidDeviceHandler::Regi
 AutoAndroidDeviceHandler::AutoAndroidDeviceHandler(PdmConfig* const pConfObj, PluginAdapter* const pluginAdapter)
                         : DeviceHandler(pConfObj, pluginAdapter)
                         , m_deviceRemoved(false)
-	                , m_context(nullptr)
+                        , m_context(nullptr)
 
 {
     lunaHandler->registerLunaCallback(std::bind(&AutoAndroidDeviceHandler::GetAttachedDeviceStatus, this, _1, _2),
@@ -39,7 +39,7 @@ AutoAndroidDeviceHandler::~AutoAndroidDeviceHandler() {
 }
 
 bool AutoAndroidDeviceHandler::HandlerEvent(PdmNetlinkEvent* pNE){
-
+#ifdef WEBOS_SESSION
     if (pNE->getDevAttribute(ACTION) == "remove")
     {
       ProcessAutoAndroidDevice(pNE);
@@ -61,6 +61,9 @@ bool AutoAndroidDeviceHandler::HandlerEvent(PdmNetlinkEvent* pNE){
             }
         }
     }
+#else
+    PDM_LOG_INFO("AutoAndroidDeviceHandler:",0,"%s line: %d Android Auto is applicable only for Auto not for OSE", __FUNCTION__,__LINE__);
+#endif
     return false;
 }
 
@@ -77,11 +80,11 @@ bool AutoAndroidDeviceHandler::openDevice(PdmNetlinkEvent* pNE){
     libusb_device *device = nullptr;
     if(m_context == nullptr) {
         if(int res = libusb_init(&m_context) != LIBUSB_SUCCESS) {
-	    PDM_LOG_ERROR("AutoAndroidDeviceHandler:%s line: %d Fail to init libusb error:%s", __FUNCTION__, __LINE__,libusb_error_name(res));
-	    return false;
+            PDM_LOG_ERROR("AutoAndroidDeviceHandler:%s line: %d Fail to init libusb error:%s", __FUNCTION__, __LINE__,libusb_error_name(res));
+            return false;
         } else {
-	    PDM_LOG_INFO("AutoAndroidDeviceHandler:",0,"%s line: %d libusb_init initialized", __FUNCTION__,__LINE__);
-	}
+            PDM_LOG_INFO("AutoAndroidDeviceHandler:",0,"%s line: %d libusb_init initialized", __FUNCTION__,__LINE__);
+    }
     } else {
         PDM_LOG_INFO("AutoAndroidDeviceHandler:",0,"%s line: %d libusb_init already initialized", __FUNCTION__,__LINE__);
     }
@@ -94,13 +97,13 @@ bool AutoAndroidDeviceHandler::openDevice(PdmNetlinkEvent* pNE){
     dev_handle = libusb_open_device_with_vid_pid(m_context,vendorId,productId); 
     if(dev_handle == nullptr) {
         PDM_LOG_ERROR("AutoAndroidDeviceHandler:%s line: %d Fail to get dev_handle", __FUNCTION__, __LINE__);
-	return false;
+        return false;
     }
 
     device = libusb_get_device (dev_handle);
     if(device ==nullptr){
         PDM_LOG_ERROR("AutoAndroidDeviceHandler:%s line: %d Fail to get device", __FUNCTION__, __LINE__);
-	return false;
+        return false;
     }
     while(int res = libusb_open(device, &mHandle) != LIBUSB_SUCCESS) {
         PDM_LOG_ERROR("AutoAndroidDeviceHandler:%s line: %d Failed to open USB device, error: %s with mHandle : %p", __FUNCTION__, __LINE__, libusb_error_name(res), mHandle);
@@ -129,31 +132,31 @@ int AutoAndroidDeviceHandler::startAccessoryMode() {
 
     ret = sendString(mHandle, ACCESSORY_MANUFACTURER_NAME, ACCESSORY_STRING_MANUFACTURER);
     if(ret != (static_cast<int>(strlen(ACCESSORY_MANUFACTURER_NAME)) + 1)) {
-	PDM_LOG_ERROR("AutoAndroidDeviceHandler:%s line: %d Failed to Send ACCESSORY_MANUFACTURER_NAME (%d)", __FUNCTION__, __LINE__,ret);
+        PDM_LOG_ERROR("AutoAndroidDeviceHandler:%s line: %d Failed to Send ACCESSORY_MANUFACTURER_NAME (%d)", __FUNCTION__, __LINE__,ret);
         return -1;
     }
 
     ret = sendString(mHandle, ACCESSORY_MODEL_NAME, ACCESSORY_STRING_MODEL);
     if(ret != (static_cast<int>(strlen(ACCESSORY_MODEL_NAME)) + 1)) {
-	PDM_LOG_ERROR("AutoAndroidDeviceHandler:%s line: %d Failed to Send ACCESSORY_MODEL_NAME (%d)", __FUNCTION__, __LINE__,ret);
+        PDM_LOG_ERROR("AutoAndroidDeviceHandler:%s line: %d Failed to Send ACCESSORY_MODEL_NAME (%d)", __FUNCTION__, __LINE__,ret);
         return -1;
     }
 
     ret = sendString(mHandle, ACCESSORY_DESCRIPTION, ACCESSORY_STRING_DESCRIPTION);
     if(ret != (static_cast<int>(strlen(ACCESSORY_DESCRIPTION)) + 1)) {
-	PDM_LOG_ERROR("AutoAndroidDeviceHandler:%s line: %d Failed to Send ACCESSORY_DESCRIPTION (%d)", __FUNCTION__, __LINE__,ret);
+        PDM_LOG_ERROR("AutoAndroidDeviceHandler:%s line: %d Failed to Send ACCESSORY_DESCRIPTION (%d)", __FUNCTION__, __LINE__,ret);
         return -1;
     }
 
     ret = sendString(mHandle, ACCESSORY_VERSION, ACCESSORY_STRING_VERSION);
     if(ret != (static_cast<int>(strlen(ACCESSORY_VERSION)) + 1)) {
-	PDM_LOG_ERROR("AutoAndroidDeviceHandler:%s line: %d Failed to Send ACCESSORY_VERSION (%d)", __FUNCTION__, __LINE__,ret);
+        PDM_LOG_ERROR("AutoAndroidDeviceHandler:%s line: %d Failed to Send ACCESSORY_VERSION (%d)", __FUNCTION__, __LINE__,ret);
         return -1;
     }
 
     ret = sendString(mHandle, ACCESSORY_URI, ACCESSORY_STRING_URI);
     if(ret != (static_cast<int>(strlen(ACCESSORY_URI)) + 1)) {
-		PDM_LOG_ERROR("AutoAndroidDeviceHandler:%s line: %d Failed to Send ACCESSORY_URI (%d)", __FUNCTION__, __LINE__,ret);
+        PDM_LOG_ERROR("AutoAndroidDeviceHandler:%s line: %d Failed to Send ACCESSORY_URI (%d)", __FUNCTION__, __LINE__,ret);
         return -1;
     }
 
@@ -165,7 +168,7 @@ int AutoAndroidDeviceHandler::startAccessoryMode() {
 
     ret = libusb_control_transfer(mHandle, DEVICE_TO_HOST_TYPE, ACCESSORY_START, 0U, 0U, NULL, 0U, 3000U);
     if(ret != 0) {
-	PDM_LOG_ERROR("AutoAndroidDeviceHandler:%s line: %d Failed to Send ACCESSORY_START (%d)", __FUNCTION__, __LINE__,ret);
+        PDM_LOG_ERROR("AutoAndroidDeviceHandler:%s line: %d Failed to Send ACCESSORY_START (%d)", __FUNCTION__, __LINE__,ret);
         return -1;
     }
     return ret;
@@ -179,11 +182,11 @@ int AutoAndroidDeviceHandler::getAOAPProtocol() {
                                       (uint8_t*) buffer, 2U, 3000U);
     if(ret == 2) {
         iAOAPProtoVer = static_cast<int>(buffer[0]) + static_cast<int>(buffer[1] << 8);
-	PDM_LOG_INFO("AutoAndroidDeviceHandler:",0,"%s line: %d Succeed to get protocol (ver = %d)", __FUNCTION__,__LINE__,iAOAPProtoVer);
+        PDM_LOG_INFO("AutoAndroidDeviceHandler:",0,"%s line: %d Succeed to get protocol (ver = %d)", __FUNCTION__,__LINE__,iAOAPProtoVer);
         result = iAOAPProtoVer;
     }
     else {
-	PDM_LOG_ERROR("AutoAndroidDeviceHandler:%s line: %d Failed to get protocol with the error: %s", __FUNCTION__, __LINE__,libusb_error_name(ret));
+        PDM_LOG_ERROR("AutoAndroidDeviceHandler:%s line: %d Failed to get protocol with the error: %s", __FUNCTION__, __LINE__,libusb_error_name(ret));
     }
     return result;
 }
@@ -212,7 +215,7 @@ void AutoAndroidDeviceHandler::removeDevice(AutoAndroidDevice* device)
             PDM_LOG_INFO("AutoAndroidDeviceHandler:",0,"%s line: %d list is emplty so stopping the libusb", __FUNCTION__,__LINE__);
             libusb_exit(m_context);
             m_context = nullptr;
-	}
+        }
     }
 
 }
