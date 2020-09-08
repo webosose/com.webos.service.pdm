@@ -1382,25 +1382,26 @@ bool PdmLunaService::mountDeviceToSession(std::string driveName, std::string dev
     std::string driveDir("/dev/");
     driveDir.append(driveName);
 
-    char command[255];
+    std::string mountcommand = "";
 
     if (deviceSetId == "AVN")
     {
         PDM_LOG_DEBUG("Mounting %s to AVN", driveName.c_str());
-        sprintf (command, "/etc/pdm/scripts/mount_to_avn.sh %s\n", driveName.c_str());
+        mountcommand = "/etc/pdm/scripts/mount_to_avn.sh " + driveName;
     }
     else if (deviceSetId == "RSE-L")
     {
         PDM_LOG_DEBUG("Mounting %s to RSE-L", driveName.c_str());
-        sprintf (command, "/etc/pdm/scripts/mount_to_rse_left.sh %s\n", driveName.c_str());
+        mountcommand = "/etc/pdm/scripts/mount_to_rse_left.sh " + driveName;
     }
     else if (deviceSetId == "RSE-R")
     {
         PDM_LOG_DEBUG("Mounting %s to RSE-R", driveName.c_str());
-        sprintf (command, "/etc/pdm/scripts/mount_to_rse_right.sh %s\n", driveName.c_str());
+        mountcommand = "/etc/pdm/scripts/mount_to_rse_right.sh " + driveName;
     }
+    PDM_LOG_INFO("PdmLunaService:",0,"%s line: %d mountcommand:%s", __FUNCTION__,__LINE__, mountcommand.c_str());
     system("chmod +x /etc/pdm/scripts/*");
-    system(command);
+    system(mountcommand.c_str());
 
     return true;
 }
