@@ -162,7 +162,7 @@ void StorageDevice::updateDiskInfo(PdmNetlinkEvent* pNE)
                 isReadOnly = true; // disk is read only, FSCK will not be done
 
             setStorageInterfaceType(pNE);
-            PDM_LOG_INFO("StorageDevice:",0,"%s line: %d rootPath:%s m_deviceName: %s readRootPath:%s", __FUNCTION__,__LINE__,rootPath.c_str(),m_deviceName.c_str(), readRootPath());
+            PDM_LOG_INFO("StorageDevice:",0,"%s line: %d rootPath:%s m_deviceName: %s readRootPath:%s", __FUNCTION__,__LINE__,rootPath.c_str(),m_deviceName.c_str(), readRootPath().c_str());
             if(!rootPath.empty() && readRootPath() == rootPath) {
                 rootPath.append((m_deviceName.substr(m_deviceName.find_last_of("/") + 1)));
                 PDM_LOG_INFO("StorageDevice:",0,"%s line: %d rootPath: %s ", __FUNCTION__,__LINE__,rootPath.c_str());

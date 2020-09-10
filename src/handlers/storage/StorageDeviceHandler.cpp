@@ -208,7 +208,7 @@ void StorageDeviceHandler::createStorageDevice(PdmNetlinkEvent* pNE, IDevice *de
 {
     PDM_LOG_DEBUG("StorageDeviceHandler:%s line: %d DEVNAME: %s", __FUNCTION__, __LINE__,pNE->getDevAttribute(DEVNAME).c_str());
     if(mStorageList.size() >= m_maxStorageDevices) {
-        PDM_LOG_CRITICAL("StorageDeviceHandler:%s line: %d Storage Device count: %d has reached max. Dont process", __FUNCTION__, __LINE__, mStorageList.size());
+        PDM_LOG_CRITICAL("StorageDeviceHandler:%s line: %d Storage Device count: %zd has reached max. Dont process", __FUNCTION__, __LINE__, mStorageList.size());
         Notify(STORAGE_DEVICE,MAX_COUNT_REACHED);
         return;
     }
@@ -225,7 +225,7 @@ void StorageDeviceHandler::createStorageDevice(PdmNetlinkEvent* pNE, IDevice *de
     storageDev->setDeviceInfo(pNE);
     std::lock_guard<std::mutex> lock(mStorageListMtx);
     mStorageList.push_back(storageDev);
-    PDM_LOG_DEBUG("StorageDeviceHandler: %s line: %d Storage Device count: %d ", __FUNCTION__,__LINE__,mStorageList.size());
+    PDM_LOG_DEBUG("StorageDeviceHandler: %s line: %d Storage Device count: %zd ", __FUNCTION__,__LINE__,mStorageList.size());
 
 }
 
@@ -236,13 +236,13 @@ bool StorageDeviceHandler::deleteStorageDevice(PdmNetlinkEvent* pNE)
    bool deviceRemoveStatus =  false;
 
     if(pNE->getDevAttribute(DEVTYPE) == USB_DEVICE) {
-           PDM_LOG_DEBUG("StorageDeviceHandler:%s line: %d with USB_DEVICE list size: %d", __FUNCTION__, __LINE__, mStorageList.size());
+           PDM_LOG_DEBUG("StorageDeviceHandler:%s line: %d with USB_DEVICE list size: %zd", __FUNCTION__, __LINE__, mStorageList.size());
            storageDev = getDeviceWithPath < StorageDevice > (mStorageList, pNE->getDevAttribute(DEVPATH));
          if(storageDev) {
             deviceRemoveStatus = true;
          }
     } else if(pNE->getDevAttribute(DEVTYPE) == DISK) {
-        PDM_LOG_DEBUG("StorageDeviceHandler:%s line: %d with DISK list size: %d", __FUNCTION__, __LINE__, mStorageList.size());
+        PDM_LOG_DEBUG("StorageDeviceHandler:%s line: %d with DISK list size: %zd", __FUNCTION__, __LINE__, mStorageList.size());
         storageDev = getDeviceWithName < StorageDevice > (mStorageList, pNE->getDevAttribute(DEVNAME));
         if(nullptr == storageDev){
             PDM_LOG_DEBUG("StorageDeviceHandler:%s line: %d with storageDev is null for DEVNAME: %s", __FUNCTION__, __LINE__, pNE->getDevAttribute(DEVNAME).c_str());

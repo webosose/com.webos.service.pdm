@@ -23,7 +23,8 @@ LunaIPC *LunaIPC::getInstance() {
 }
 
 LunaIPC::LunaIPC(): mServiceHandle(nullptr)
-                  , mPdmService(nullptr) {
+                  , mPdmService(nullptr)
+                  , mServiceCPPHandle(nullptr){
 
 }
 

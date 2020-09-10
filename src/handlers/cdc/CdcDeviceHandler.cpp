@@ -96,9 +96,10 @@ void CdcDeviceHandler::ProcessCdcDevice(PdmNetlinkEvent* pNE)
                    if(cdcDevice) {
                       cdcDevice->setDeviceInfo(pNE);
                       sList.push_back(cdcDevice);
-                      if(pNE->getDevAttribute(ID_USB_MODEM_DONGLE) == YES) // In case of modem dongle there is only a single event and no update happens later.
+                      if(pNE->getDevAttribute(ID_USB_MODEM_DONGLE) == YES) { // In case of modem dongle there is only a single event and no update happens later.
                           sList.push_back(cdcDevice);
                           Notify(CDC_DEVICE,ADD); // So notify now itself
+                      }
                    } else {
                       PDM_LOG_CRITICAL("CdcDeviceHandler:%s line: %d Unable to create new CDC device", __FUNCTION__, __LINE__);
                    }

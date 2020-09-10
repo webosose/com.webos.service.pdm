@@ -27,6 +27,7 @@ AutoAndroidDeviceHandler::AutoAndroidDeviceHandler(PdmConfig* const pConfObj, Pl
                         : DeviceHandler(pConfObj, pluginAdapter)
                         , m_deviceRemoved(false)
                         , m_context(nullptr)
+                        , mHandle(nullptr)
 
 {
     lunaHandler->registerLunaCallback(std::bind(&AutoAndroidDeviceHandler::GetAttachedDeviceStatus, this, _1, _2),

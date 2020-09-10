@@ -80,6 +80,8 @@ LSMethod PdmLunaService::pdm_methods[] = {
 PdmLunaService::PdmLunaService(CommandManager *cmdManager)
     : mServiceHandle(nullptr)
     , mCommandManager(cmdManager)
+    , mServiceCPPHandle(nullptr)
+    , replyMsg(nullptr)
 {
 
 }
@@ -2199,7 +2201,7 @@ bool PdmLunaService::notifyDisplayChange(std::string deviceSetId, std::string de
     pbnjson::JValue deviceListArray = pbnjson::Array();
     pbnjson::JValue deviceListInfo = pbnjson::Object();
 
-    PDM_LOG_DEBUG("PdmLunaService:%s line: %d Device changed from %s", __FUNCTION__, __LINE__, deviceSetId);
+    PDM_LOG_DEBUG("PdmLunaService:%s line: %d Device changed from %s", __FUNCTION__, __LINE__, deviceSetId.c_str());
     pbnjson::JValue payload = pbnjson::Object();
     if (deviceType == "USB_STORAGE")
     {
