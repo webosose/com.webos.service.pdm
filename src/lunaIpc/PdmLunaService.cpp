@@ -994,6 +994,9 @@ bool PdmLunaService::cbSetDeviceForSession(LSHandle *sh, LSMessage *message)
         else if (nonStorageDeviceType == "NFC") {
             createToast("NFC device is connected", DEVICE_CONNECTED_ICON_PATH, deviceSetId);
         }
+        else if(nonStorageDeviceType == "AUTOANDROID") {
+            createToast("AUTOANDROID device is connected", DEVICE_CONNECTED_ICON_PATH, deviceSetId);
+        }
         else
         {
             createToast("Unknown device is connected", DEVICE_CONNECTED_ICON_PATH, deviceSetId);
@@ -1783,6 +1786,8 @@ bool PdmLunaService::deleteAndUpdatePayload(pbnjson::JValue resultArray) {
         createToast("Gamepad device is disconnected", DEVICE_CONNECTED_ICON_PATH, m_deviceSetId);
     else if (m_deviceType == "NFC")
         createToast("NFC device is disconnected", DEVICE_CONNECTED_ICON_PATH, m_deviceSetId);
+    else if(m_deviceType == "AUTOANDROID")
+            createToast("AUTOANDROID device is disconnected", DEVICE_CONNECTED_ICON_PATH, m_deviceSetId);
     else
         createToast("Unknown device is disconnected", DEVICE_CONNECTED_ICON_PATH, m_deviceSetId);
 
