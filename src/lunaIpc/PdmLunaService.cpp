@@ -774,7 +774,7 @@ pbnjson::JValue PdmLunaService::createJsonGetAttachedAllDeviceList(LSMessage *me
 bool PdmLunaService::cbSetDeviceForSession(LSHandle *sh, LSMessage *message)
 {
     PDM_LOG_DEBUG("PdmLunaService:%s line: %d payload:%s", __FUNCTION__, __LINE__, LSMessageGetPayload(message));
-    bool bRetVal, success;
+    bool bRetVal = false, success = false;
     LSError error;
     LSErrorInit(&error);
     bool subscribed = false;
@@ -816,8 +816,10 @@ bool PdmLunaService::cbSetDeviceForSession(LSHandle *sh, LSMessage *message)
         std::string deviceSetId = device["deviceSetId"].asString();
         std::string hubPortPath = device["hubPortPath"].asString();
 
-        if (!deviceSetId.empty() && (deviceSetId != "Select"))
+        if (!deviceSetId.empty() && (deviceSetId != "Select")) {
             success = storeDeviceInfo(device);
+        }
+        PDM_LOG_DEBUG("PdmLunaService:%s line: %d success:%d", __FUNCTION__, __LINE__, success);
         std::string storageDeviceType = device["deviceType"].asString();
         deviceSetId = device["deviceSetId"].asString();
         PDM_LOG_DEBUG("PdmLunaService:%s line: %d storageDeviceType: %s deviceSetId: %s", __FUNCTION__, __LINE__, storageDeviceType.c_str(), deviceSetId.c_str());
@@ -853,8 +855,9 @@ bool PdmLunaService::cbSetDeviceForSession(LSHandle *sh, LSMessage *message)
                 std::string fsType = drive["fsType"].asString();
                 if (fsType == "tntfs" || fsType == "ntfs" || fsType == "vfat" || fsType == "tfat") {
                     success = mountDeviceToSession(driveName, deviceSetId);
-                    response.put("returnValue", success);
                 }
+                response.put("returnValue", success);
+                PDM_LOG_DEBUG("PdmLunaService:%s line: %d success:%d fsType:%s", __FUNCTION__, __LINE__, success,fsType.c_str());
             }
         }
         auto devicePair = std::find_if(std::begin(m_portDisplayMap), std::end(m_portDisplayMap), [&](const std::pair<std::string, std::string> &pair)
@@ -950,8 +953,10 @@ bool PdmLunaService::cbSetDeviceForSession(LSHandle *sh, LSMessage *message)
         std::string deviceSetId = device["deviceSetId"].asString();
         std::string hubPortPath = device["hubPortPath"].asString();
 
-        if (!deviceSetId.empty() && (deviceSetId != "Select"))
+        if (!deviceSetId.empty() && (deviceSetId != "Select")) {
             success = storeDeviceInfo(device);
+        }
+        PDM_LOG_DEBUG("PdmLunaService:%s line: %d success:%d ", __FUNCTION__, __LINE__, success);
         response.put("returnValue", success);
         std::string nonStorageDeviceType = device["deviceType"].asString();
         deviceSetId = device["deviceSetId"].asString();
