@@ -24,7 +24,10 @@ LunaIPC *LunaIPC::getInstance() {
 
 LunaIPC::LunaIPC(): mServiceHandle(nullptr)
                   , mPdmService(nullptr)
-                  , mServiceCPPHandle(nullptr){
+#ifdef WEBOS_SESSION
+                  , mServiceCPPHandle(nullptr)
+#endif
+{
 
 }
 

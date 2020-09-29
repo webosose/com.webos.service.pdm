@@ -80,8 +80,10 @@ LSMethod PdmLunaService::pdm_methods[] = {
 PdmLunaService::PdmLunaService(CommandManager *cmdManager)
     : mServiceHandle(nullptr)
     , mCommandManager(cmdManager)
+#ifdef WEBOS_SESSION
     , mServiceCPPHandle(nullptr)
     , replyMsg(nullptr)
+#endif
 {
 
 }
