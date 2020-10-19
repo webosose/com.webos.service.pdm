@@ -59,7 +59,7 @@ include_directories(${LIBUSB_INCLUDE_DIRS})
 webos_add_compiler_flags(ALL ${LIBUSB_CFLAGS_OTHER})
 
 if(WEBOS_TARGET_DISTRO STREQUAL "webos-auto")
-    if(WEBOS_TARGET_MACHINE STREQUAL "sa8155" )
+    if(WEBOS_TARGET_MACHINE STREQUAL "sa8155" OR WEBOS_TARGET_MACHINE STREQUAL "qemux86-64")
         add_definitions(-DWEBOS_SESSION)
     endif()
 endif()
