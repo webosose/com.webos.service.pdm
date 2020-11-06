@@ -1,4 +1,4 @@
-// Copyright (c) 2019 LG Electronics, Inc.
+// Copyright (c) 2019-2020 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ DiskFormat::~DiskFormat()
 
 PdmDevStatus DiskFormat::formatDrive(const std::string driveName,const std::string fsType,const std::string &volumeLabel)
  {
+    PDM_LOG_INFO("DiskFormat:",0,"%s line: %d driveName:%s,fsType:%s,volumeLabel:%s ", __FUNCTION__,__LINE__,driveName.c_str(),fsType.c_str(),volumeLabel.c_str());
     std::unordered_map<std::string,std::string>::iterator it;
     it = formatFsCommands.find(fsType);
     if (it == formatFsCommands.end()) {

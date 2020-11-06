@@ -1,4 +1,4 @@
-// Copyright (c) 2019 LG Electronics, Inc.
+// Copyright (c) 2019-2020 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -42,7 +42,11 @@ std::unordered_map<std::string,std::string> volumeLabelOptions = {
 std::unordered_map<std::string, std::string> formatFsCommands = {
     {PdmDevAttributes::PDM_DRV_TYPE_NOFS,    ""},
     {PdmDevAttributes::PDM_DRV_TYPE_NTFS,    "mkntfs -F -Q "},
+#ifdef WEBOS_SESSION
     {PdmDevAttributes::PDM_DRV_TYPE_FAT,     "mkfs.vfat " },
+#else
+    {PdmDevAttributes::PDM_DRV_TYPE_FAT,     "mkfs.vfat -F 32 " },
+#endif
     {PdmDevAttributes::PDM_DRV_TYPE_JFS,     "jfs_mkfs -q -z 0x00000000 "},
     {PdmDevAttributes::PDM_DRV_TYPE_EXT2,    "mkfs.ext2 -F "},
     {PdmDevAttributes::PDM_DRV_TYPE_EXT3,    "mkfs.ext3 -F "},

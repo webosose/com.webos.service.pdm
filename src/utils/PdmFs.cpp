@@ -1,4 +1,4 @@
-// Copyright (c) 2019 LG Electronics, Inc.
+// Copyright (c) 2019-2020 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -58,6 +58,7 @@ PdmDevStatus PdmFs::format(DiskPartitionInfo *partition, std::string &fileSysTyp
     if (result == PdmDevStatus::PDM_DEV_SUCCESS) {
         partition->setFsType(fileSysType);
         partition->setVolumeLabel(label);
+        partition->setIsSupportedFs(true);
     }
     return result;
 }
