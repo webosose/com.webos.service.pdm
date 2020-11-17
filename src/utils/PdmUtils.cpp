@@ -1,4 +1,4 @@
-// Copyright (c) 2019 LG Electronics, Inc.
+// Copyright (c) 2019-2021 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -24,7 +24,66 @@
 #include <algorithm>
 #include <locale>
 
+#include <sys/types.h>
+#include <pwd.h>
+#include <grp.h>
+#include <unistd.h>
+#include <errno.h>
+#include <string.h>
+
 namespace fs = std::experimental::filesystem;
+
+uid_t PdmUtils::get_uid(const char *user_name)
+{
+    uid_t          uid;
+    struct passwd *pwd;
+
+    pwd = getpwnam(user_name);
+    if (pwd == NULL) {
+        PDM_LOG_CRITICAL("PdmUtils:%s line: %d error: Failed to get uid", __FUNCTION__, __LINE__);
+    }
+    uid = pwd->pw_uid;
+
+    return uid;
+}
+
+gid_t PdmUtils::get_gid(const char *group_name)
+{
+    gid_t          gid;
+    struct group  *grp;
+
+    grp = getgrnam(group_name);
+    if (grp == NULL) {
+        PDM_LOG_CRITICAL("PdmUtils:%s line: %d error: Failed to get gid", __FUNCTION__, __LINE__);
+    }
+    gid = grp->gr_gid;
+
+    return gid;
+}
+
+void PdmUtils::do_chown(const char *file_path, const char *user_name, const char *group_name)
+{
+    uid_t          uid;
+    gid_t          gid;
+    struct passwd *pwd;
+    struct group  *grp;
+
+    pwd = getpwnam(user_name);
+    if (pwd == NULL) {
+        PDM_LOG_CRITICAL("PdmUtils:%s line: %d error: Failed to get uid", __FUNCTION__, __LINE__);
+    }
+    uid = pwd->pw_uid;
+
+    grp = getgrnam(group_name);
+    if (grp == NULL) {
+        PDM_LOG_CRITICAL("PdmUtils:%s line: %d error: Failed to get gid", __FUNCTION__, __LINE__);
+    }
+    gid = grp->gr_gid;
+
+    if (chown(file_path, uid, gid) == -1) {
+        PDM_LOG_CRITICAL("PdmUtils:%s line: %d error: chown fail. errno: %d strerror: %s", __FUNCTION__, __LINE__, errno, strerror(errno));
+    }
+}
 
 std::string PdmUtils::execShellCmd(const std::string &cmd)
 {

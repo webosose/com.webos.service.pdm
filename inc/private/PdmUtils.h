@@ -1,4 +1,4 @@
-// Copyright (c) 2019 LG Electronics, Inc.
+// Copyright (c) 2019-2021 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,9 +18,13 @@
 #define _PDM_UTILS_H
 
 #include <string>
+#include <sys/types.h>
 
 namespace PdmUtils
 {
+    uid_t get_uid(const char *user_name);
+    gid_t get_gid(const char *group_name);
+    void do_chown(const char *file_path, const char *user_name, const char *group_name);
     std::string execShellCmd(const std::string &cmd);
     bool createDir(const std::string &dirName);
     bool removeDirRecursive(const std::string &dirPath);

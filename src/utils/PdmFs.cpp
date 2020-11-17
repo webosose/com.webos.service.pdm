@@ -1,4 +1,4 @@
-// Copyright (c) 2019-2020 LG Electronics, Inc.
+// Copyright (c) 2019-2021 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -38,7 +38,7 @@ std::unordered_map<std::string,std::string> mountData = {
         { PDM_DRV_TYPE_NOFS,  ""},
         { PDM_DRV_TYPE_NTFS,  "uid=0,gid=5000,umask=0002"},
         { PDM_DRV_TYPE_TNTFS, "nls=utf8,max_prealloc_size=64m,uid=0,gid=5000,umask=0002"},
-        { PDM_DRV_TYPE_FAT,   "shortname=mixed,uid=0,gid=5000,umask=0002"},
+        { PDM_DRV_TYPE_FAT,   "shortname=mixed,uid=9,gid=9,umask=0002"},
         { PDM_DRV_TYPE_TFAT,  "iocharset=utf8,fastmount=1,max_prealloc_size=32m,uid=0,gid=5000,umask=0002"},
         { PDM_DRV_TYPE_JFS,   "" },
         { PDM_DRV_TYPE_EXT2,  "" },
@@ -58,7 +58,6 @@ PdmDevStatus PdmFs::format(DiskPartitionInfo *partition, std::string &fileSysTyp
     if (result == PdmDevStatus::PDM_DEV_SUCCESS) {
         partition->setFsType(fileSysType);
         partition->setVolumeLabel(label);
-        partition->setIsSupportedFs(true);
     }
     return result;
 }

@@ -1,4 +1,4 @@
-// Copyright (c) 2019-2020 LG Electronics, Inc.
+// Copyright (c) 2019-2021 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -50,6 +50,8 @@
 #define PDM_EVENT_AUTO_ATTACHED_ALL_DEVICES_RSE_R   "getAttachedAutoAllDeviceList:RSE-R"
 //#endif
 
+#define USER_MOUNT                            1
+
 #define LSERROR_CHECK_AND_PRINT(ret, lsError)\
      do {                          \
          if (ret == false) {               \
@@ -71,6 +73,9 @@ class PdmLunaService
         static std::string m_sessionId;
         static std::string m_deviceSetId;
         static std::string m_deviceType;
+        static std::string avnUserId;
+        static std::string rselUserId;
+        static std::string rserUserId;
         LS::Handle *mServiceCPPHandle;
         static LSMethod pdm_dev_methods[];
         static std::map<std::string, std::string> m_sessionMap;
@@ -150,7 +155,7 @@ class PdmLunaService
         bool isDeviceExist(pbnjson::JValue resultArray,std::string hubPortPath, std::string deviceType);
         static bool cbDb8Response(LSHandle* lshandle, LSMessage *message, void *user_data);
         bool storeDeviceInfo(pbnjson::JValue list);
-        bool mountDeviceToSession(std::string driveName, std::string deviceSetId);
+        bool mountDeviceToSession(std::string driveName, std::string deviceSetId, std::string fsType);
         bool createToast(const std::string &message, const std::string &iconUrl, std::string deviceSetId);
         bool queryForSession();
         void notifyResumeDone();
