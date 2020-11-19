@@ -123,6 +123,7 @@ bool StorageDeviceHandler::HandlerCommand(CommandType *cmdtypes, CommandResponse
     PDM_LOG_INFO("StorageDeviceHandler:",0,"%s line: %d Command Type: %d", __FUNCTION__,__LINE__,cmdtypes->commandId);
     switch(cmdtypes->commandId)
     {
+#ifndef WEBOS_SESSION
         case FORMAT:
             result = format(cmdtypes, cmdResponse);
             break;
@@ -147,6 +148,7 @@ bool StorageDeviceHandler::HandlerCommand(CommandType *cmdtypes, CommandResponse
         case SPACE_INFO:
             result = getSpaceInfo(cmdtypes, cmdResponse);
             break;
+#endif
         default:
             PDM_LOG_CRITICAL("Command not supported");
             break;

@@ -223,19 +223,20 @@ template < class T > bool getAttachedUsbStorageDeviceList (std::list<T*>& sList,
         for(auto disk : storageIter->getDiskPartition())
         {
             pbnjson::JValue driveInfo = pbnjson::Object();
-
+#ifndef WEBOS_SESSION
             if(disk->getPowerStatus())
                 driveInfo.put("isMounted", disk->isMounted());
             else //in suspend case before umount need to send isMounted as false
                 driveInfo.put("isMounted", false);
-
+#endif
             driveInfo.put("volumeLabel", disk->getVolumeLable());
             driveInfo.put("uuid", disk->getUuid());
             driveInfo.put("driveName", disk->getDriveName());
             driveInfo.put("driveSize", (int32_t)disk->getDriveSize());
             driveInfo.put("fsType", disk->getFsType());
+#ifndef WEBOS_SESSION
             driveInfo.put("mountName", disk->getMountName());
-
+#endif
             storageDriveList.append(driveInfo);
         }
         storageDevice.put("storageDriveList", storageDriveList);

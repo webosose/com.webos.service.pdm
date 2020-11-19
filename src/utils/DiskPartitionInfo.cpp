@@ -36,8 +36,10 @@ void DiskPartitionInfo::setPartitionInfo(PdmNetlinkEvent* pNE,const std::string 
     PDM_LOG_INFO("DiskPartitionInfo:",0,"%s driveName: %s deviceRootPath:%s", __FUNCTION__,driveName.c_str(), deviceRootPath.c_str());
     if(!driveName.empty() && !deviceRootPath.empty())
     {
-            rootPath = deviceRootPath;
-            mountName = deviceRootPath + "/" + driveName;
+#ifndef WEBOS_SESSION
+        rootPath = deviceRootPath;
+        mountName = deviceRootPath + "/" + driveName;
+#endif
     }
     if(!pNE->getDevAttribute(ID_FS_TYPE).empty())
         fsType = pNE->getDevAttribute(ID_FS_TYPE);

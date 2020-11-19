@@ -290,16 +290,21 @@ void StorageDevice::storageDeviceNotification()
         m_storageDeviceHandlerCb(FSCK_TIMED_OUT,this);
         m_storageDeviceHandlerCb(ADD,this);
         m_isDevAddEventNotified = true;
+#ifdef WEBOS_SESSION
+        return;
+#endif
     }
+#ifndef WEBOS_SESSION
     else if(std::any_of(m_diskPartitionList.begin(), m_diskPartitionList.end(), [&](DiskPartitionInfo* dev){return dev->isMounted();})){
-
+#endif
         m_errorReason = PDM_ERR_NOTHING;
         m_deviceIsMounted = true;
         m_storageDeviceHandlerCb(ADD,this);
         m_isDevAddEventNotified = true;
+#ifndef WEBOS_SESSION
     }
-
     pdmSmartDeviceInfoLogger();
+#endif
 }
 
 bool StorageDevice::notifyStorageConnecting(StorageDevice *ptr)
@@ -614,8 +619,10 @@ PdmDevStatus StorageDevice::fsckPartition(DiskPartitionInfo &partition, const st
     PdmDevStatus fsckStatus = PdmDevStatus::PDM_DEV_SUCCESS;
     m_storageDeviceHandlerCb(FSCK_STARTED, nullptr);
     fsckStatus = m_pdmFileSystemObj.fsck(partition, fsckMode);
+#ifndef WEBOS_SESSION
     if( fsckStatus == PdmDevStatus::PDM_DEV_SUCCESS)
         fsckStatus = mountPartition(partition,false);
+#endif
     m_storageDeviceHandlerCb(FSCK_FINISHED, nullptr);
     return fsckStatus;
 }
