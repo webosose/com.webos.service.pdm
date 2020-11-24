@@ -23,7 +23,9 @@ void NfcDevice::setDeviceInfo(PdmNetlinkEvent* pNE)
     PDM_LOG_DEBUG("NfcDevice:%s line: %d setDeviceInfo", __FUNCTION__, __LINE__);
     if(pNE->getDevAttribute(ACTION) == DEVICE_ADD ) {
         PDM_LOG_DEBUG("NfcDevice:%s line: %d setDeviceInfo: DEVICE_ADD", __FUNCTION__, __LINE__);
-        m_devSpeed = getDeviceSpeed(stoi(pNE->getDevAttribute(SPEED),nullptr));
+        if (!pNE->getDevAttribute(SPEED).empty()) {
+            m_devSpeed = getDeviceSpeed(stoi(pNE->getDevAttribute(SPEED),nullptr));
+        }
         Device::setDeviceInfo(pNE);
     }
 }

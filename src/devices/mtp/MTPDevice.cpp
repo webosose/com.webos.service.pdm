@@ -1,4 +1,4 @@
-// Copyright (c) 2019 LG Electronics, Inc.
+// Copyright (c) 2019-2020 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -37,7 +37,9 @@ MTPDevice::~MTPDevice()
 void MTPDevice::setDeviceInfo(PdmNetlinkEvent* pNE)
 {
     if( pNE->getDevAttribute(DEVTYPE) == USB_DEVICE){
-        m_devSpeed = getDeviceSpeed(stoi(pNE->getDevAttribute(SPEED)));
+        if(!pNE->getDevAttribute(SPEED).empty()) {
+            m_devSpeed = getDeviceSpeed(stoi(pNE->getDevAttribute(SPEED)));
+        }
         driveName = pNE->getDevAttribute(DEVLINKS);
         if(!driveName.empty())
         {

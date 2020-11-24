@@ -1,4 +1,4 @@
-// Copyright (c) 2019 LG Electronics, Inc.
+// Copyright (c) 2019-2020 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -25,7 +25,9 @@ void GamepadDevice::setDeviceInfo(PdmNetlinkEvent* pNE)
     PDM_LOG_DEBUG("GamepadDevice:%s line: %d setDeviceInfo", __FUNCTION__, __LINE__);
     if(pNE->getDevAttribute(ACTION) == DEVICE_ADD ) {
         PDM_LOG_DEBUG("GamepadDevice:%s line: %d setDeviceInfo: DEVICE_ADD", __FUNCTION__, __LINE__);
-        m_devSpeed = getDeviceSpeed(stoi(pNE->getDevAttribute(SPEED),nullptr));
+        if(!pNE->getDevAttribute(SPEED).empty()) {
+            m_devSpeed = getDeviceSpeed(stoi(pNE->getDevAttribute(SPEED),nullptr));
+        }
         Device::setDeviceInfo(pNE);
         m_deviceSubType = pNE->getDevAttribute(ID_MODEL);
     }

@@ -1,4 +1,4 @@
-// Copyright (c) 2019 LG Electronics, Inc.
+// Copyright (c) 2019-2020 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -34,7 +34,9 @@ void SoundDevice::setDeviceInfo(PdmNetlinkEvent* pNE)
 {
     PDM_LOG_DEBUG("SoundDevice:%s line: %d setDeviceInfo", __FUNCTION__, __LINE__);
     if( pNE->getDevAttribute(DEVTYPE) == USB_DEVICE ) {
-        m_devSpeed = getDeviceSpeed(stoi(pNE->getDevAttribute(SPEED),nullptr));
+        if(!pNE->getDevAttribute(SPEED).empty()) {
+            m_devSpeed = getDeviceSpeed(stoi(pNE->getDevAttribute(SPEED),nullptr));
+        }
         Device::setDeviceInfo(pNE);
     }
 }

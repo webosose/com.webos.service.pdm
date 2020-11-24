@@ -67,7 +67,9 @@ int StorageDevice::countPartitions(const std::string &devName)
         return count;
     std::string sysCommand = "lsblk -n /dev/" + devName + " | grep -c part";
     std::string partitions = PdmUtils::execShellCmd(sysCommand);
-    count = std::stoi(partitions);
+    if(!partitions.empty()){
+        count = std::stoi(partitions);
+    }
     return count;
 }
 
@@ -133,8 +135,11 @@ void StorageDevice::updateMultiSdCard(PdmNetlinkEvent* pNE) {
         if(!pNE->getDevAttribute(ID_INSTANCE).empty()) {
             std::string instance = pNE->getDevAttribute(ID_INSTANCE);
             std::size_t found = instance.find_first_of(":");
-            int instanceNum = stoi(instance.substr(found+1));
-            m_deviceNum += instanceNum;
+            std::string idInstance =instance.substr(found+1);
+            if(!idInstance.empty()) {
+                int instanceNum = stoi(instance.substr(found+1));
+                m_deviceNum += instanceNum;
+            }
         }
     }
 }
@@ -143,7 +148,9 @@ void StorageDevice::updateDeviceInfo(PdmNetlinkEvent* pNE)
 {
     PDM_LOG_DEBUG("StorageDevice:%s line: %d DEVNAME: %s", __FUNCTION__, __LINE__,pNE->getDevAttribute(DEVNUM).c_str());
     Device::setDeviceInfo(pNE);
-    m_devSpeed = getDeviceSpeed(stoi(pNE->getDevAttribute(SPEED)));
+    if(!pNE->getDevAttribute(SPEED).empty()) {
+        m_devSpeed = getDeviceSpeed(stoi(pNE->getDevAttribute(SPEED)));
+    }
     if((!pNE->getDevAttribute(ID_BLACK_LISTED_SUPER_SPEED_DEVICE).empty()) && (pNE->getDevAttribute(ID_BLACK_LISTED_SUPER_SPEED_DEVICE) == YES) )
     {
             PDM_LOG_INFO("StorageDevice:",0,"%s line: %d This is a black listed super speed device", __FUNCTION__,__LINE__);
