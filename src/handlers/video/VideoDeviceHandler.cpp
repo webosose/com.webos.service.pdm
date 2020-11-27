@@ -75,7 +75,7 @@ void VideoDeviceHandler::removeDevice(VideoDevice* videoDevice)
 
 void VideoDeviceHandler::ProcessVideoDevice(PdmNetlinkEvent* pNE){
     VideoDevice *videoDevice;
-    PDM_LOG_INFO("VideoDeviceHandler:",0,"%s line: %d DEVTYPE: %s ACTION: %s", __FUNCTION__,__LINE__,pNE->getDevAttribute(DEVTYPE).c_str(),pNE->getDevAttribute(ACTION).c_str());
+    PDM_LOG_INFO("VideoDeviceHandler:",0,"%s line: %d DEVTYPE: %s SUBSYSTEM:%s ACTION: %s", __FUNCTION__,__LINE__,pNE->getDevAttribute(DEVTYPE).c_str(),pNE->getDevAttribute(SUBSYSTEM).c_str(),pNE->getDevAttribute(ACTION).c_str());
     try {
             switch(sMapDeviceActions.at(pNE->getDevAttribute(ACTION)))
             {
@@ -83,15 +83,17 @@ void VideoDeviceHandler::ProcessVideoDevice(PdmNetlinkEvent* pNE){
                     PDM_LOG_DEBUG("VideoDeviceHandler:%s line: %d action : %s", __FUNCTION__, __LINE__,pNE->getDevAttribute(ACTION).c_str());
                     videoDevice = getDeviceWithPath< VideoDevice >(sList,pNE->getDevAttribute(DEVPATH));
                     if(!videoDevice ){
-                        PDM_LOG_INFO("VideoDeviceHandler",0," Created New device.");
-                        videoDevice = new (std::nothrow) VideoDevice(m_pConfObj, m_pluginAdapter);
+                        if(pNE->getDevAttribute(DEVTYPE) ==  USB_DEVICE) {
+                            PDM_LOG_INFO("VideoDeviceHandler",0," Created New device.");
+                            videoDevice = new (std::nothrow) VideoDevice(m_pConfObj, m_pluginAdapter);
+                        }
                         if(!videoDevice){
-                            PDM_LOG_CRITICAL("VideoDeviceHandler:%s line: %d Unable to create new Video device", __FUNCTION__, __LINE__);
                             return;
                         }
-                    videoDevice->setDeviceInfo(pNE, mIsCameraReady);
-                    sList.push_back(videoDevice);
+                        videoDevice->setDeviceInfo(pNE, mIsCameraReady);
+                        sList.push_back(videoDevice);
                     } else {
+                        PDM_LOG_INFO("VideoDeviceHandler",0," update the video device info.");
                         videoDevice->updateDeviceInfo(pNE);
                         if(!mIsCameraReady)
                             Notify(UNKNOWN_DEVICE,ADD);
