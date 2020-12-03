@@ -1,0 +1,5 @@
+{
+    "allowedNames" : [],
+    "physicaldevice.query" : ["dev"],
+    "physicaldevice.management" : ["oem"]
+}
