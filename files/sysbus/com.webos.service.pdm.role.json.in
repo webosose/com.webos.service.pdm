@@ -1,6 +1,6 @@
 {
     "exeName": "/usr/sbin/physical-device-manager",
-    "trustLevel" : ["oem"],
+    "trustLevel" : "oem",
     "type": "regular",
     "allowedNames": ["com.webos.service.pdm"],
     "permissions": [
