@@ -1236,7 +1236,7 @@ bool PdmLunaService::storeDeviceInfo(pbnjson::JValue list)
                 if (fsType == "tntfs" || fsType == "ntfs" || fsType == "vfat" || fsType == "tfat")
                 {
                     std::string driveName = list["storageDriveList"][idx]["driveName"].asString();
-                    std::string mountPath = "/tmp/usb_avn/" + driveName;
+                    std::string mountPath = "/tmp/usb_" + avnUserId + driveName;
                     list["storageDriveList"][idx].put("mountPath", mountPath);
                 }
                 else
@@ -1252,7 +1252,7 @@ bool PdmLunaService::storeDeviceInfo(pbnjson::JValue list)
                 if (fsType == "tntfs" || fsType == "ntfs" || fsType == "vfat" || fsType == "tfat")
                 {
                     std::string driveName = list["storageDriveList"][idx]["driveName"].asString();
-                    std::string mountPath = "/tmp/usb_rse_left/" + driveName;
+                    std::string mountPath = "/tmp/usb_" + rselUserId + "/" + driveName;
                     list["storageDriveList"][idx].put("mountPath", mountPath);
                 }
                 else
@@ -1268,7 +1268,7 @@ bool PdmLunaService::storeDeviceInfo(pbnjson::JValue list)
                 if (fsType == "tntfs" || fsType == "ntfs" || fsType == "vfat" || fsType == "tfat")
                 {
                     std::string driveName = list["storageDriveList"][idx]["driveName"].asString();
-                    std::string mountPath = "/tmp/usb_rse_right/" + driveName;
+                    std::string mountPath = "/tmp/usb_" + rserUserId + "/" + driveName;
                     list["storageDriveList"][idx].put("mountPath", mountPath);
                 }
                 else
@@ -1466,7 +1466,7 @@ bool PdmLunaService::mountDeviceToSession(std::string driveName, std::string dev
     else if (deviceSetId == "RSE-R")
     {
         PDM_LOG_DEBUG("Mounting %s to RSE-R user: %s", driveName.c_str(), rserUserId.c_str());
-        mountName = "/tmp/usb_" + rselUserId + "/" + driveName;
+        mountName = "/tmp/usb_" + rserUserId + "/" + driveName;
         PdmUtils::createDir(mountName);
 
         uid = PdmUtils::get_uid(rserUserId.c_str());
