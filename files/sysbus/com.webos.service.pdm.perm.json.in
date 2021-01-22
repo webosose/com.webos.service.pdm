@@ -1,8 +1,10 @@
 {
-   "com.webos.service.pdm":[
-      "notifications",
-      "settings.read",
-      "database",
-      "session.management"
-   ]
+    "com.webos.service.pdm":[
+        "session.management",
+        "applicationmanager.launcher",
+        "settings.query",
+        "notification.operation",
+        "notification.management",
+        "database.operation"
+    ]
 }

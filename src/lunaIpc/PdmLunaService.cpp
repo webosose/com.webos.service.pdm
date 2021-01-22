@@ -1236,7 +1236,7 @@ bool PdmLunaService::storeDeviceInfo(pbnjson::JValue list)
                 if (fsType == "tntfs" || fsType == "ntfs" || fsType == "vfat" || fsType == "tfat")
                 {
                     std::string driveName = list["storageDriveList"][idx]["driveName"].asString();
-                    std::string mountPath = "/tmp/usb_" + avnUserId + driveName;
+                    std::string mountPath = "/tmp/usb_" + avnUserId + "/" + driveName;
                     list["storageDriveList"][idx].put("mountPath", mountPath);
                 }
                 else
@@ -1444,9 +1444,12 @@ bool PdmLunaService::mountDeviceToSession(std::string driveName, std::string dev
     uid_t uid;
     gid_t gid;
 
+    std::string dirName = "";
+
     if (deviceSetId == "AVN")
     {
-        PDM_LOG_DEBUG("Mounting %s to AVN user: %s", driveName.c_str(), avnUserId.c_str());
+        PDM_LOG_DEBUG("PdmLunaService::%s line:%d Mounting %s to AVN user: %s", __FUNCTION__, __LINE__, driveName.c_str(), avnUserId.c_str());
+        dirName = "/tmp/usb_" + avnUserId;
         mountName = "/tmp/usb_" + avnUserId + "/" + driveName;
         PdmUtils::createDir(mountName);
 
@@ -1455,7 +1458,8 @@ bool PdmLunaService::mountDeviceToSession(std::string driveName, std::string dev
     }
     else if (deviceSetId == "RSE-L")
     {
-        PDM_LOG_DEBUG("Mounting %s to RSE-L user: %s", driveName.c_str(), rselUserId.c_str());
+        PDM_LOG_DEBUG("PdmLunaService::%s line:%d Mounting %s to RSE-L user: %s", __FUNCTION__, __LINE__, driveName.c_str(), rselUserId.c_str());
+        dirName = "/tmp/usb_" + rselUserId;
         mountName = "/tmp/usb_" + rselUserId + "/" + driveName;
         PdmUtils::createDir(mountName);
 
@@ -1465,7 +1469,8 @@ bool PdmLunaService::mountDeviceToSession(std::string driveName, std::string dev
 
     else if (deviceSetId == "RSE-R")
     {
-        PDM_LOG_DEBUG("Mounting %s to RSE-R user: %s", driveName.c_str(), rserUserId.c_str());
+        PDM_LOG_DEBUG("PdmLunaService::%s line:%d Mounting %s to RSE-R user: %s", __FUNCTION__, __LINE__, driveName.c_str(), rserUserId.c_str());
+        dirName = "/tmp/usb_" + rserUserId;
         mountName = "/tmp/usb_" + rserUserId + "/" + driveName;
         PdmUtils::createDir(mountName);
 
@@ -1481,6 +1486,7 @@ bool PdmLunaService::mountDeviceToSession(std::string driveName, std::string dev
     strg << gid;
     string uid_str = stru.str();
     string gid_str = strg.str();
+    PDM_LOG_DEBUG("PdmLunaService::%s line:%d UID: %s GID: %s", __FUNCTION__, __LINE__, uid_str.c_str(), gid_str.c_str());
 
     std::string data = ""; // NOFS
     if (fsType == "vfat")
@@ -1493,30 +1499,37 @@ bool PdmLunaService::mountDeviceToSession(std::string driveName, std::string dev
         data = "iocharset=utf8,fastmount=1,max_prealloc_size=32m,uid=" + uid_str + ",gid=" + gid_str + ",umask=0002"; // TFAT
 
     int32_t ret = mount(drivePath.c_str(), mountName.c_str(), fsType.c_str(), mountFlag, (void*)data.c_str());
-    PDM_LOG_DEBUG("Drive path: %s, Mount name: %s, fs type: %s, data: %s", drivePath.c_str(), mountName.c_str(), fsType.c_str(), data);
-    PDM_LOG_DEBUG("Mount output: %d", ret);
-    PDM_LOG_DEBUG("UID: %s GID: %s", uid_str, gid_str);
+    PDM_LOG_DEBUG("PdmLunaService::%s line:%d Drive path: %s, Mount name: %s, fs type: %s, data: %s", __FUNCTION__, __LINE__, drivePath.c_str(), mountName.c_str(), fsType.c_str(), data);
+    PDM_LOG_DEBUG("PdmLunaService::%s line:%d Mount output: %d", __FUNCTION__, __LINE__, ret);
 
     if(ret)
         PDM_LOG_WARNING("PdmLunaService:%s line:%d mount failed. errno: %d strerror: %s", __FUNCTION__, __LINE__, errno, strerror(errno));
 
     if (deviceSetId == "AVN")
     {
-        PDM_LOG_DEBUG("Mounting %s to AVN user: %s", driveName.c_str(), avnUserId.c_str());
+        PDM_LOG_DEBUG("PdmLunaService:%s line:%d Mounting %s to AVN user: %s", __FUNCTION__, __LINE__, driveName.c_str(), avnUserId.c_str());
+        PdmUtils::do_chown(dirName.c_str(), avnUserId.c_str(), avnUserId.c_str());
         PdmUtils::do_chown(mountName.c_str(), avnUserId.c_str(), avnUserId.c_str());
     }
     else if (deviceSetId == "RSE-L")
     {
-        PDM_LOG_DEBUG("Mounting %s to RSE-L user: %s", driveName.c_str(), rselUserId.c_str());
+        PDM_LOG_DEBUG("PdmLunaService:%s line:%d Mounting %s to RSE-L user: %s", __FUNCTION__, __LINE__, driveName.c_str(), rselUserId.c_str());
+        PdmUtils::do_chown(dirName.c_str(), rselUserId.c_str(), rselUserId.c_str());
         PdmUtils::do_chown(mountName.c_str(), rselUserId.c_str(), rselUserId.c_str());
+        chmod(dirName.c_str(), MOUNT_FILE_MODE);
     }
     else if (deviceSetId == "RSE-R")
     {
-        PDM_LOG_DEBUG("Mounting %s to RSE-R user: %s", driveName.c_str(), rserUserId.c_str());
+        PDM_LOG_DEBUG("PdmLunaService:%s line:%d Mounting %s to RSE-R user: %s", __FUNCTION__, __LINE__, driveName.c_str(), rserUserId.c_str());
+        PdmUtils::do_chown(dirName.c_str(), rserUserId.c_str(), rserUserId.c_str());
         PdmUtils::do_chown(mountName.c_str(), rserUserId.c_str(), rserUserId.c_str());
+        chmod(dirName.c_str(), MOUNT_FILE_MODE);
     }
 
-    chmod(mountName.c_str(), MOUNT_FILE_MODE);
+    int cm_ret = chmod(dirName.c_str(), MOUNT_FILE_MODE);
+    PDM_LOG_DEBUG("PdmLunaService:%s line:%d chmod output: %d", __FUNCTION__, __LINE__, cm_ret);
+    if(cm_ret)
+        PDM_LOG_DEBUG("PdmLunaService:%s line:%d chmod error: %d stderror: %s", __FUNCTION__, __LINE__, errno, strerror(errno));
 
     return true;
 }
