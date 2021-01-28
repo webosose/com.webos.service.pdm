@@ -1,4 +1,4 @@
-// Copyright (c) 2019-2020 LG Electronics, Inc.
+// Copyright (c) 2019-2021 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,6 +15,10 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include <functional>
+#include <sys/mount.h>
+#include <sys/types.h>
+#include <sstream>
+#include <sys/stat.h>
 
 #include "Common.h"
 #include "CommandManager.h"
@@ -26,9 +30,16 @@
 #include "PdmLunaHandler.h"
 #include "PdmLunaService.h"
 #include "SchemaValidationApi.h"
+#include "PdmUtils.h"
+#include "DiskFormat.h"
 
 #ifdef WEBOS_SESSION
 #define DB8_KIND "com.webos.service.pdmhistory:1"
+
+#define USER_MOUNT                            1
+
+#define MOUNT_FILE_MODE        (S_IRWXU|S_IRGRP) //740
+
 std::map<std::string, std::string> PdmLunaService::m_sessionMap = {};
 std::map<std::string, std::string> PdmLunaService::m_portDisplayMap = {};
 const std::string DEVICE_CONNECTED_ICON_PATH = "/usr/share/physical-device-manager/usb_connect.png";
@@ -36,6 +47,10 @@ std::string PdmLunaService::m_sessionId = "host";
 std::string PdmLunaService::m_deviceSetId = "";
 std::string PdmLunaService::m_deviceType = "";
 bool PdmLunaService::isRequestForStorageDevice = false;
+
+std::string PdmLunaService::avnUserId = "driver0";
+std::string PdmLunaService::rselUserId = "guest0";
+std::string PdmLunaService::rserUserId = "guest1";
 #endif
 
 const char* DeviceEventTable[] =
@@ -858,7 +873,7 @@ bool PdmLunaService::cbSetDeviceForSession(LSHandle *sh, LSMessage *message)
                 std::string driveName = drive["driveName"].asString();
                 std::string fsType = drive["fsType"].asString();
                 if (fsType == "tntfs" || fsType == "ntfs" || fsType == "vfat" || fsType == "tfat") {
-                    success = mountDeviceToSession(driveName, deviceSetId);
+                    success = mountDeviceToSession(driveName, deviceSetId, fsType);
                 }
                 response.put("returnValue", success);
                 PDM_LOG_DEBUG("PdmLunaService:%s line: %d success:%d fsType:%s", __FUNCTION__, __LINE__, success,fsType.c_str());
@@ -964,12 +979,15 @@ bool PdmLunaService::cbSetDeviceForSession(LSHandle *sh, LSMessage *message)
         response.put("returnValue", success);
         std::string nonStorageDeviceType = device["deviceType"].asString();
         deviceSetId = device["deviceSetId"].asString();
+        std::string devPath = device["devPath"].asString();
         if(deviceSetId == "RSE-L") {
             nsDeviceConnectedRseL = true;allDeviceConnectedRseL=true;
             rselDeviceArray.put(rselDeviceNo, device);
             hostDeviceArray.put(hostDeviceNo,device);
             rselAllDeviceArray.put(rselAllDeviceNo, device);
             rselDeviceNo++; hostDeviceNo++;rselAllDeviceNo++;
+            PdmUtils::do_chown(devPath.c_str(), rselUserId.c_str(), rselUserId.c_str());
+            PDM_LOG_DEBUG("PdmLunaService:%s line: %d devPath: %s", __FUNCTION__, __LINE__, devPath.c_str());
         }
         if(deviceSetId == "RSE-R") {
             nsDeviceConnectedRseR = true;allDeviceConnectedRseR = true;
@@ -977,6 +995,8 @@ bool PdmLunaService::cbSetDeviceForSession(LSHandle *sh, LSMessage *message)
             hostDeviceArray.put(hostDeviceNo,device);
             rserAllDeviceArray.put(rserAllDeviceNo, device);
             rserDeviceNo++; hostDeviceNo++;rserAllDeviceNo++;
+            PdmUtils::do_chown(devPath.c_str(), rserUserId.c_str(), rserUserId.c_str());
+            PDM_LOG_DEBUG("PdmLunaService:%s line: %d devPath: %s", __FUNCTION__, __LINE__, devPath.c_str());
         }
 
         if(deviceSetId == "AVN") {
@@ -985,6 +1005,8 @@ bool PdmLunaService::cbSetDeviceForSession(LSHandle *sh, LSMessage *message)
             hostDeviceArray.put(hostDeviceNo,device);
             avnAllDeviceArray.put(avnAllDeviceNo, device);
             avnDeviceNo++;hostDeviceNo++;avnAllDeviceNo++;
+            PdmUtils::do_chown(devPath.c_str(), avnUserId.c_str(), avnUserId.c_str());
+            PDM_LOG_DEBUG("PdmLunaService:%s line: %d devPath: %s", __FUNCTION__, __LINE__, devPath.c_str());
         }
         PDM_LOG_DEBUG("PdmLunaService:%s line: %d nonStorageDeviceType: %s deviceSetId: %s", __FUNCTION__, __LINE__, nonStorageDeviceType.c_str(), deviceSetId.c_str());
 
@@ -1163,6 +1185,28 @@ bool PdmLunaService::queryForSession()
         m_sessionMap.insert(std::pair<std::string, std::string>(deviceSetId2, sessionId2));
         PDM_LOG_DEBUG("PdmLunaService: %s line: %d DeviceSetId2: %s, SessionId2: %s", __FUNCTION__, __LINE__, deviceSetId2.c_str(), sessionId2.c_str());
     }
+
+    if (deviceSetId0 == "AVN")
+            avnUserId = request["sessionList"][0]["userInfo"]["userId"].asString();
+    else if (deviceSetId1 == "AVN")
+            avnUserId = request["sessionList"][1]["userInfo"]["userId"].asString();
+    else if ((!deviceSetId2.empty()) && (deviceSetId2 == "AVN"))
+            avnUserId = request["sessionList"][2]["userInfo"]["userId"].asString();
+
+    if (deviceSetId0 == "RSE-L")
+            rselUserId = request["sessionList"][0]["userInfo"]["userId"].asString();
+    else if (deviceSetId1 == "RSE-L")
+            rselUserId = request["sessionList"][1]["userInfo"]["userId"].asString();
+    else if ((!deviceSetId2.empty()) && (deviceSetId2 == "RSE-L"))
+            rselUserId = request["sessionList"][2]["userInfo"]["userId"].asString();
+
+    if (deviceSetId0 == "RSE-R")
+            rserUserId = request["sessionList"][0]["userInfo"]["userId"].asString();
+    else if (deviceSetId1 == "RSE-R")
+            rserUserId = request["sessionList"][1]["userInfo"]["userId"].asString();
+    else if ((!deviceSetId2.empty()) && (deviceSetId2 == "RSE-R"))
+            rserUserId = request["sessionList"][2]["userInfo"]["userId"].asString();
+
     return true;
 }
 
@@ -1192,7 +1236,7 @@ bool PdmLunaService::storeDeviceInfo(pbnjson::JValue list)
                 if (fsType == "tntfs" || fsType == "ntfs" || fsType == "vfat" || fsType == "tfat")
                 {
                     std::string driveName = list["storageDriveList"][idx]["driveName"].asString();
-                    std::string mountPath = "/tmp/usb_avn/" + driveName;
+                    std::string mountPath = "/tmp/usb_" + avnUserId + driveName;
                     list["storageDriveList"][idx].put("mountPath", mountPath);
                 }
                 else
@@ -1208,7 +1252,7 @@ bool PdmLunaService::storeDeviceInfo(pbnjson::JValue list)
                 if (fsType == "tntfs" || fsType == "ntfs" || fsType == "vfat" || fsType == "tfat")
                 {
                     std::string driveName = list["storageDriveList"][idx]["driveName"].asString();
-                    std::string mountPath = "/tmp/usb_rse_left/" + driveName;
+                    std::string mountPath = "/tmp/usb_" + rselUserId + "/" + driveName;
                     list["storageDriveList"][idx].put("mountPath", mountPath);
                 }
                 else
@@ -1224,7 +1268,7 @@ bool PdmLunaService::storeDeviceInfo(pbnjson::JValue list)
                 if (fsType == "tntfs" || fsType == "ntfs" || fsType == "vfat" || fsType == "tfat")
                 {
                     std::string driveName = list["storageDriveList"][idx]["driveName"].asString();
-                    std::string mountPath = "/tmp/usb_rse_right/" + driveName;
+                    std::string mountPath = "/tmp/usb_" + rserUserId + "/" + driveName;
                     list["storageDriveList"][idx].put("mountPath", mountPath);
                 }
                 else
@@ -1386,34 +1430,93 @@ bool PdmLunaService::createToast(const std::string &message, const std::string &
     return retValue;
 }
 
-bool PdmLunaService::mountDeviceToSession(std::string driveName, std::string deviceSetId)
+bool PdmLunaService::mountDeviceToSession(std::string driveName, std::string deviceSetId, std::string fsType)
 {
     PDM_LOG_DEBUG("PdmLunaService::%s line:%d", __FUNCTION__, __LINE__);
     bool bRetVal = false;
 
-    std::string driveDir("/dev/");
-    driveDir.append(driveName);
+    std::string drivePath("/dev/");
+    drivePath.append(driveName);
 
-    std::string mountcommand = "";
+    std::string mountName = "";
+    bool isDirCreated = false;
+
+    uid_t uid;
+    gid_t gid;
 
     if (deviceSetId == "AVN")
     {
-        PDM_LOG_DEBUG("Mounting %s to AVN", driveName.c_str());
-        mountcommand = "/etc/pdm/scripts/mount_to_avn.sh " + driveName;
+        PDM_LOG_DEBUG("Mounting %s to AVN user: %s", driveName.c_str(), avnUserId.c_str());
+        mountName = "/tmp/usb_" + avnUserId + "/" + driveName;
+        PdmUtils::createDir(mountName);
+
+        uid = PdmUtils::get_uid(avnUserId.c_str());
+        gid = PdmUtils::get_gid(avnUserId.c_str());
     }
     else if (deviceSetId == "RSE-L")
     {
-        PDM_LOG_DEBUG("Mounting %s to RSE-L", driveName.c_str());
-        mountcommand = "/etc/pdm/scripts/mount_to_rse_left.sh " + driveName;
+        PDM_LOG_DEBUG("Mounting %s to RSE-L user: %s", driveName.c_str(), rselUserId.c_str());
+        mountName = "/tmp/usb_" + rselUserId + "/" + driveName;
+        PdmUtils::createDir(mountName);
+
+        uid = PdmUtils::get_uid(rselUserId.c_str());
+        gid = PdmUtils::get_gid(rselUserId.c_str());
+    }
+
+    else if (deviceSetId == "RSE-R")
+    {
+        PDM_LOG_DEBUG("Mounting %s to RSE-R user: %s", driveName.c_str(), rserUserId.c_str());
+        mountName = "/tmp/usb_" + rserUserId + "/" + driveName;
+        PdmUtils::createDir(mountName);
+
+        uid = PdmUtils::get_uid(rserUserId.c_str());
+        gid = PdmUtils::get_gid(rserUserId.c_str());
+    }
+
+    uint64_t mountFlag = MS_MGC_VAL;
+    mountFlag |= MS_RELATIME;
+
+    ostringstream stru, strg;
+    stru << uid;
+    strg << gid;
+    string uid_str = stru.str();
+    string gid_str = strg.str();
+
+    std::string data = ""; // NOFS
+    if (fsType == "vfat")
+        data = "shortname=mixed,uid=" + uid_str + ",gid=" + gid_str + ",umask=0002"; // FAT
+    else if (fsType == "ntfs")
+        data = "uid=" + uid_str + ",gid=" + gid_str + ",umask=0002"; // NTFS
+    else if (fsType == "tntfs")
+        data = "nls=utf8,max_prealloc_size=64m,uid=" + uid_str + ",gid=" + gid_str + ",umask=0002"; // TNTFS
+    else if (fsType == "tfat")
+        data = "iocharset=utf8,fastmount=1,max_prealloc_size=32m,uid=" + uid_str + ",gid=" + gid_str + ",umask=0002"; // TFAT
+
+    int32_t ret = mount(drivePath.c_str(), mountName.c_str(), fsType.c_str(), mountFlag, (void*)data.c_str());
+    PDM_LOG_DEBUG("Drive path: %s, Mount name: %s, fs type: %s, data: %s", drivePath.c_str(), mountName.c_str(), fsType.c_str(), data);
+    PDM_LOG_DEBUG("Mount output: %d", ret);
+    PDM_LOG_DEBUG("UID: %s GID: %s", uid_str, gid_str);
+
+    if(ret)
+        PDM_LOG_WARNING("PdmLunaService:%s line:%d mount failed. errno: %d strerror: %s", __FUNCTION__, __LINE__, errno, strerror(errno));
+
+    if (deviceSetId == "AVN")
+    {
+        PDM_LOG_DEBUG("Mounting %s to AVN user: %s", driveName.c_str(), avnUserId.c_str());
+        PdmUtils::do_chown(mountName.c_str(), avnUserId.c_str(), avnUserId.c_str());
+    }
+    else if (deviceSetId == "RSE-L")
+    {
+        PDM_LOG_DEBUG("Mounting %s to RSE-L user: %s", driveName.c_str(), rselUserId.c_str());
+        PdmUtils::do_chown(mountName.c_str(), rselUserId.c_str(), rselUserId.c_str());
     }
     else if (deviceSetId == "RSE-R")
     {
-        PDM_LOG_DEBUG("Mounting %s to RSE-R", driveName.c_str());
-        mountcommand = "/etc/pdm/scripts/mount_to_rse_right.sh " + driveName;
+        PDM_LOG_DEBUG("Mounting %s to RSE-R user: %s", driveName.c_str(), rserUserId.c_str());
+        PdmUtils::do_chown(mountName.c_str(), rserUserId.c_str(), rserUserId.c_str());
     }
-    PDM_LOG_INFO("PdmLunaService:",0,"%s line: %d mountcommand:%s", __FUNCTION__,__LINE__, mountcommand.c_str());
-    system("chmod +x /etc/pdm/scripts/*");
-    system(mountcommand.c_str());
+
+    chmod(mountName.c_str(), MOUNT_FILE_MODE);
 
     return true;
 }
