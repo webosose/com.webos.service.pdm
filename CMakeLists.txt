@@ -1,4 +1,4 @@
-# Copyright (c) 2019-2020 LG Electronics, Inc.
+# Copyright (c) 2019-2021 LG Electronics, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -91,7 +91,17 @@ target_link_libraries (${BIN_NAME} ${LIB_LIST})
 webos_build_system_bus_files()
 webos_include_install_paths()
 webos_build_db8_files()
-webos_build_configured_file(files/systemd/physical-device-manager.service SYSCONFDIR systemd/system)
+if(WEBOS_TARGET_DISTRO STREQUAL "webos-auto")
+    if(WEBOS_TARGET_MACHINE STREQUAL "sa8155" OR WEBOS_TARGET_MACHINE STREQUAL "qemux86-64" )
+        webos_build_configured_file(files/systemd/auto/physical-device-manager.service SYSCONFDIR systemd/system)
+    endif()
+endif()
+
+if(WEBOS_TARGET_DISTRO STREQUAL "webos")
+    if(WEBOS_TARGET_MACHINE STREQUAL "raspberrypi4")
+        webos_build_configured_file(files/systemd/physical-device-manager.service SYSCONFDIR systemd/system)
+    endif()
+endif()
 
 install(TARGETS ${BIN_NAME} DESTINATION sbin)
 install(FILES @CMAKE_SOURCE_DIR@/files/rules/39-usb-auto-port.rules DESTINATION @WEBOS_INSTALL_SYSCONFDIR@/udev/rules.d/)
