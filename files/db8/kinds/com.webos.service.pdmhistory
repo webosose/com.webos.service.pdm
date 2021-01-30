@@ -2,6 +2,7 @@
     "id":"com.webos.service.pdmhistory:1",
     "owner":"com.webos.service.pdm",
     "indexes":[
+        {"name":"deviceNum", "props":[{"name":"deviceNum"}]},
         {"name":"deviceSetId", "props":[{"name":"deviceSetId"}]},
         {"name":"deviceType", "props":[{"name":"deviceType"}]},
         {"name":"hubPortPath", "props":[{"name":"hubPortPath"}]},

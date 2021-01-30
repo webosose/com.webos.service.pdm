@@ -1,4 +1,4 @@
-// Copyright (c) 2019-2020 LG Electronics, Inc.
+// Copyright (c) 2019-2021 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,6 +18,9 @@
 #include "DiskPartitionInfo.h"
 #include "PdmLogUtils.h"
 #include "PdmNetlinkEvent.h"
+#include <luna-service2/lunaservice.hpp>
+#include <luna-service2++/handle.hpp>
+#include "LunaIPC.h"
 
 using namespace PdmDevAttributes;
 
@@ -82,5 +85,46 @@ void DiskPartitionInfo::setVolumeLabel(const std::string &label) {
         return;
     }
     volumeLabel = label;
+}
+
+bool DiskPartitionInfo::isPartitionMounted(std::string hubPortPath) {
+
+    PDM_LOG_DEBUG("Device::%s line:%d", __FUNCTION__, __LINE__);
+    LSError lserror;
+    LSErrorInit(&lserror);
+
+    std::string m_errorReason;
+
+    pbnjson::JValue find_query = pbnjson::Object();
+    pbnjson::JValue query;
+
+    query = pbnjson::JObject{{"from", "com.webos.service.pdmhistory:1"},
+                             {"where", pbnjson::JArray{{{"prop", "hubPortPath"}, {"op", "="}, {"val", hubPortPath.c_str()}}}}};
+
+    find_query.put("query", query);
+
+    LS::Payload find_payload(find_query);
+    LS::Call call = LunaIPC::getInstance()->getLSCPPHandle()->callOneReply("luna://com.webos.service.db/find", find_payload.getJson(), NULL, this, NULL);
+    LS::Message message = call.get();
+
+    LS::PayloadRef response_payload = message.accessPayload();
+    pbnjson::JValue request = response_payload.getJValue();
+
+    if(request.isNull())
+    {
+        PDM_LOG_DEBUG("Db8 LS2 response is empty in %s", __PRETTY_FUNCTION__ );
+    }
+
+    if(!request["returnValue"].asBool())
+    {
+        PDM_LOG_DEBUG("Call to Db8 to is failed in %s", __PRETTY_FUNCTION__ );
+    }
+
+    m_errorReason = request["results"][0]["errorReason"].asString();
+    PDM_LOG_DEBUG("Device::%s line:%d deviceSetId: %s", __FUNCTION__, __LINE__, m_errorReason.c_str());
+    if(m_errorReason == "nothing") {
+       return true;
+    }
+    return false;
 }
 

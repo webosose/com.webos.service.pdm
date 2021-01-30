@@ -72,6 +72,7 @@ class PdmLunaService
         static bool isRequestForStorageDevice;
         static std::string m_sessionId;
         static std::string m_deviceSetId;
+        static std::string m_ejectedDeviceSetId;
         static std::string m_deviceType;
         static std::string avnUserId;
         static std::string rselUserId;
@@ -155,12 +156,20 @@ class PdmLunaService
         bool isDeviceExist(pbnjson::JValue resultArray,std::string hubPortPath, std::string deviceType);
         static bool cbDb8Response(LSHandle* lshandle, LSMessage *message, void *user_data);
         bool storeDeviceInfo(pbnjson::JValue list);
+        bool updateIsMount(pbnjson::JValue list,std::string driveName);
+        bool updateErrorReason(pbnjson::JValue list);
+        bool ejectDevice(pbnjson::JValue list,PdmLunaService* object);
+        bool umount(std::string mountPath);
+        void findDevice(LSHandle * sh, int deviceNum);
         bool mountDeviceToSession(std::string driveName, std::string deviceSetId, std::string fsType);
         bool createToast(const std::string &message, const std::string &iconUrl, std::string deviceSetId);
         bool queryForSession();
         void notifyResumeDone();
         bool notifyToDisplay(pbnjson::JValue deviceList, std::string deviceSetId, std::string deviceType);
         bool notifyAllDeviceToDisplay(std::string deviceSetId, pbnjson::JValue deviceList);
+        void updateDeviceAlldeviceList();
+        void updateDeviceList(std::string deviceSetId);
+        void updateStorageDeviceList(std::string deviceSetId);
         pbnjson::JValue getStorageDevicePayload(pbnjson::JValue resultArray);
         pbnjson::JValue getNonStorageDevicePayload(pbnjson::JValue resultArray);
         static bool cbAllDeviceSessionResponse(LSHandle * sh, LSMessage * message, void * user_data);
@@ -177,6 +186,9 @@ class PdmLunaService
         static bool cbDbResponse(LSHandle * sh, LSMessage * message, void * user_data);
         static bool cbUpdateDBResponse(LSHandle * sh, LSMessage * message, void * user_data);
         static bool cbDeleteDeviceResponse(LSHandle * sh, LSMessage * message, void * user_data);
+        static bool cbEjectDevice(LSHandle * sh, LSMessage * message, void * user_data);
+        static bool cbUpdateDeviceListResponse(LSHandle * sh, LSMessage * message, void * user_data);
+        static bool cbUpdateStorageDeviceListResponse(LSHandle * sh, LSMessage * message, void * user_data);
 #endif
         bool notifySubscribers(int eventDeviceType, const int &eventID, std::string hubPortPath);
         bool cbGetExample(LSHandle *sh, LSMessage *message);

@@ -1,4 +1,4 @@
-// Copyright (c) 2019-2020 LG Electronics, Inc.
+// Copyright (c) 2019-2021 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -220,6 +220,7 @@ template < class T > bool getAttachedUsbStorageDeviceList (std::list<T*>& sList,
             continue;
         pbnjson::JValue storageDevice = pbnjson::Object();
         pbnjson::JValue storageDriveList = pbnjson::Array();
+        storageDevice.put("errorReason", storageIter->getErrorReason(storageIter->getHubPortNumber()));
         for(auto disk : storageIter->getDiskPartition())
         {
             pbnjson::JValue driveInfo = pbnjson::Object();
@@ -227,7 +228,9 @@ template < class T > bool getAttachedUsbStorageDeviceList (std::list<T*>& sList,
             if(disk->getPowerStatus())
                 driveInfo.put("isMounted", disk->isMounted());
             else //in suspend case before umount need to send isMounted as false
-                driveInfo.put("isMounted", false);
+            driveInfo.put("isMounted", false);
+#else
+            driveInfo.put("isMounted", disk->isPartitionMounted(storageIter->getHubPortNumber()));
 #endif
             driveInfo.put("volumeLabel", disk->getVolumeLable());
             driveInfo.put("uuid", disk->getUuid());
@@ -247,10 +250,14 @@ template < class T > bool getAttachedUsbStorageDeviceList (std::list<T*>& sList,
         storageDevice.put("serialNumber",storageIter->getSerialNumber());
         storageDevice.put("deviceType", storageIter->getDeviceType());
         storageDevice.put("storageType", storageIter->getStorageTypeString());
+#ifndef WEBOS_SESSION
         storageDevice.put("rootPath", storageIter->getRootPath());
+#endif
         storageDevice.put("isPowerOnConnect", storageIter->isConnectedToPower());
         storageDevice.put("devSpeed", storageIter->getDevSpeed());
+#ifndef WEBOS_SESSION
         storageDevice.put("errorReason", storageIter->getErrorReason());
+#endif
 #ifdef WEBOS_SESSION
         storageDevice.put("hubPortPath", storageIter->getHubPortNumber());
         storageDevice.put("vendorId", storageIter->getVendorID());
