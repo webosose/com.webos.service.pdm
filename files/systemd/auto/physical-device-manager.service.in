@@ -13,4 +13,4 @@ ExecStop=-/usr/bin/luna-send -n 1 luna://com.webos.service.pdm/umountAllDrive '{
 Restart=on-failure
 User=guest0
 #CapabilityBoundingSet=CAP_SYS_ADMIN CAP_SETGID CAP_CHOWN CAP_DAC_OVERRIDE CAP_SETUID
-AmbientCapabilities=CAP_SYS_ADMIN CAP_SETGID CAP_CHOWN CAP_DAC_OVERRIDE CAP_SETUID
+AmbientCapabilities=CAP_SYS_ADMIN CAP_SETGID CAP_CHOWN CAP_DAC_OVERRIDE CAP_SETUID CAP_FOWNER
