@@ -220,7 +220,6 @@ template < class T > bool getAttachedUsbStorageDeviceList (std::list<T*>& sList,
             continue;
         pbnjson::JValue storageDevice = pbnjson::Object();
         pbnjson::JValue storageDriveList = pbnjson::Array();
-        storageDevice.put("errorReason", storageIter->getErrorReason(storageIter->getHubPortNumber()));
         for(auto disk : storageIter->getDiskPartition())
         {
             pbnjson::JValue driveInfo = pbnjson::Object();
@@ -229,17 +228,17 @@ template < class T > bool getAttachedUsbStorageDeviceList (std::list<T*>& sList,
                 driveInfo.put("isMounted", disk->isMounted());
             else //in suspend case before umount need to send isMounted as false
             driveInfo.put("isMounted", false);
+            driveInfo.put("mountName", disk->getMountName());
 #else
             driveInfo.put("isMounted", disk->isPartitionMounted(storageIter->getHubPortNumber()));
+            driveInfo.put("mountName", disk->getPartitionMountName(storageIter->getHubPortNumber(), disk->getDriveName()));
 #endif
             driveInfo.put("volumeLabel", disk->getVolumeLable());
             driveInfo.put("uuid", disk->getUuid());
             driveInfo.put("driveName", disk->getDriveName());
             driveInfo.put("driveSize", (int32_t)disk->getDriveSize());
             driveInfo.put("fsType", disk->getFsType());
-#ifndef WEBOS_SESSION
-            driveInfo.put("mountName", disk->getMountName());
-#endif
+
             storageDriveList.append(driveInfo);
         }
         storageDevice.put("storageDriveList", storageDriveList);
@@ -250,20 +249,19 @@ template < class T > bool getAttachedUsbStorageDeviceList (std::list<T*>& sList,
         storageDevice.put("serialNumber",storageIter->getSerialNumber());
         storageDevice.put("deviceType", storageIter->getDeviceType());
         storageDevice.put("storageType", storageIter->getStorageTypeString());
-#ifndef WEBOS_SESSION
-        storageDevice.put("rootPath", storageIter->getRootPath());
-#endif
-        storageDevice.put("isPowerOnConnect", storageIter->isConnectedToPower());
-        storageDevice.put("devSpeed", storageIter->getDevSpeed());
-#ifndef WEBOS_SESSION
-        storageDevice.put("errorReason", storageIter->getErrorReason());
-#endif
 #ifdef WEBOS_SESSION
         storageDevice.put("hubPortPath", storageIter->getHubPortNumber());
+        storageDevice.put("errorReason", storageIter->getErrorReason(storageIter->getHubPortNumber()));
         storageDevice.put("vendorId", storageIter->getVendorID());
         storageDevice.put("productId", storageIter->getProductID());
         storageDevice.put("deviceSetId", storageIter->getDeviceSetId());
+        storageDevice.put("rootPath", storageIter->getStorageRootPath(storageIter->getDeviceSetId()));
+#else
+        storageDevice.put("rootPath", storageIter->getRootPath());
+        storageDevice.put("errorReason", storageIter->getErrorReason());
 #endif
+        storageDevice.put("isPowerOnConnect", storageIter->isConnectedToPower());
+        storageDevice.put("devSpeed", storageIter->getDevSpeed());
         payload.append(storageDevice);
     }
     return true;

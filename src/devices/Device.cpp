@@ -183,6 +183,23 @@ std::string Device::getErrorReason(std::string hubPortPath)
     return m_errorReason;
 }
 
+std::string Device::getStorageRootPath(std::string deviceSetId)
+{
+    PDM_LOG_DEBUG("Device::%s line:%d deviceSetId:%s", __FUNCTION__, __LINE__,deviceSetId.c_str());
+    std::string rootPath;
+    if("AVN" == deviceSetId) {
+        rootPath = "/tmp/usb_driver0";
+    } else if ("RSE-L" == deviceSetId ) {
+        rootPath = "/tmp/usb_guest0";
+    } else if("RSE-R" == deviceSetId) {
+        rootPath = "/tmp/usb_guest1";
+    }else {
+        PDM_LOG_DEBUG("Device::%s line:%d Unknown rootPath", __FUNCTION__, __LINE__);
+    }
+    PDM_LOG_DEBUG("Device::%s line:%d rootPath:%s", __FUNCTION__, __LINE__,rootPath.c_str());
+    return rootPath;
+}
+
 std::string  Device::getDeviceSpeed(int speed) const {
 
     switch(speed){

@@ -729,16 +729,18 @@ bool PdmLunaService::ejectDevice(pbnjson::JValue list, PdmLunaService* object)
     if (list[0]["deviceType"] == "USB_STORAGE")
     {
         for(ssize_t idx = 0; idx < list[0]["storageDriveList"].arraySize() ; idx++) {
-            std::string mountPath = list[0]["storageDriveList"][idx]["mountPath"].asString();
-            PDM_LOG_DEBUG("PdmLunaService::%s line:%d mountPath: %s", __FUNCTION__, __LINE__, mountPath.c_str());
+            std::string mountName = list[0]["storageDriveList"][idx]["mountName"].asString();
+            PDM_LOG_DEBUG("PdmLunaService::%s line:%d mountName: %s", __FUNCTION__, __LINE__, mountName.c_str());
             allPartitionUnmounted = false;
-            if(umount(mountPath)) {
-                int ret = PdmUtils::removeDirRecursive(mountPath);
+            if(umount(mountName)) {
+                int ret = PdmUtils::removeDirRecursive(mountName);
                 if(ret) {
                     if(deviceSetId == "RSE-L"){
-                        list[0]["storageDriveList"][idx].put("mountPath","/tmp/usb_guest0");
-                    } else {
-                        list[0]["storageDriveList"][idx].put("mountPath","/tmp/usb_guest1");
+                        list[0]["storageDriveList"][idx].put("mountName","/tmp/usb_guest0");
+                    } else if (deviceSetId == "RSE-L") {
+                        list[0]["storageDriveList"][idx].put("mountName","/tmp/usb_guest1");
+                    } else if(deviceSetId == "AVN") {
+                        list[0]["storageDriveList"][idx].put("mountName","/tmp/usb_driver0");
                     }
                 }
                 list[0]["storageDriveList"][idx].put("isMounted", false);
@@ -898,7 +900,7 @@ bool PdmLunaService::cbUpdateStorageDeviceListResponse(LSHandle * sh, LSMessage 
     return true;
 }
 
-bool PdmLunaService::umount(std::string mountPath)
+bool PdmLunaService::umount(std::string mountName)
 {
     bool retValue = true;
     int umountFlags = MNT_FORCE;
@@ -906,12 +908,12 @@ bool PdmLunaService::umount(std::string mountPath)
     if(1)
         umountFlags |= MNT_DETACH;
 
-    int res = umount2(mountPath.c_str(), umountFlags);
+    int res = umount2(mountName.c_str(), umountFlags);
     if(res != 0) {
         PDM_LOG_ERROR("PdmFs:%s line: %d Umount Failed :%s", __FUNCTION__, __LINE__, strerror(errno));
         retValue = false;
     }
-    PDM_LOG_DEBUG("PdmLunaService::%s line:%d mountPath: %s retValue:%d", __FUNCTION__, __LINE__, mountPath.c_str(), retValue);
+    PDM_LOG_DEBUG("PdmLunaService::%s line:%d mountName: %s retValue:%d", __FUNCTION__, __LINE__, mountName.c_str(), retValue);
     return retValue;
 }
 
@@ -1629,14 +1631,15 @@ bool PdmLunaService::storeDeviceInfo(pbnjson::JValue list)
                 if (fsType == "tntfs" || fsType == "ntfs" || fsType == "vfat" || fsType == "tfat")
                 {
                     std::string driveName = list["storageDriveList"][idx]["driveName"].asString();
-                    std::string mountPath = "/tmp/usb_" + avnUserId + "/" + driveName;
-                    list["storageDriveList"][idx].put("mountPath", mountPath);
+                    std::string mountName = "/tmp/usb_" + avnUserId + "/" + driveName;
+                    list["storageDriveList"][idx].put("mountName", mountName);
                 }
                 else
                 {
-                    list["storageDriveList"][idx].put("mountPath", "UNSUPPORTED_FILESYSTEM");
+                    list["storageDriveList"][idx].put("mountName", "UNSUPPORTED_FILESYSTEM");
                 }
             }
+            list.put("rootPath","/tmp/usb_driver0");
         }
         else if (list["deviceSetId"].asString() == "RSE-L")
         {
@@ -1645,14 +1648,15 @@ bool PdmLunaService::storeDeviceInfo(pbnjson::JValue list)
                 if (fsType == "tntfs" || fsType == "ntfs" || fsType == "vfat" || fsType == "tfat")
                 {
                     std::string driveName = list["storageDriveList"][idx]["driveName"].asString();
-                    std::string mountPath = "/tmp/usb_" + rselUserId + "/" + driveName;
-                    list["storageDriveList"][idx].put("mountPath", mountPath);
+                    std::string mountName = "/tmp/usb_" + rselUserId + "/" + driveName;
+                    list["storageDriveList"][idx].put("mountName", mountName);
                 }
                 else
                 {
-                    list["storageDriveList"][idx].put("mountPath", "UNSUPPORTED_FILESYSTEM");
+                    list["storageDriveList"][idx].put("mountName", "UNSUPPORTED_FILESYSTEM");
                 }
             }
+            list.put("rootPath","/tmp/usb_guest0");
         }
         else if (list["deviceSetId"].asString() == "RSE-R")
         {
@@ -1661,14 +1665,15 @@ bool PdmLunaService::storeDeviceInfo(pbnjson::JValue list)
                 if (fsType == "tntfs" || fsType == "ntfs" || fsType == "vfat" || fsType == "tfat")
                 {
                     std::string driveName = list["storageDriveList"][idx]["driveName"].asString();
-                    std::string mountPath = "/tmp/usb_" + rserUserId + "/" + driveName;
-                    list["storageDriveList"][idx].put("mountPath", mountPath);
+                    std::string mountName = "/tmp/usb_" + rserUserId + "/" + driveName;
+                    list["storageDriveList"][idx].put("mountName", mountName);
                 }
                 else
                 {
-                    list["storageDriveList"][idx].put("mountPath", "UNSUPPORTED_FILESYSTEM");
+                    list["storageDriveList"][idx].put("mountName", "UNSUPPORTED_FILESYSTEM");
                 }
             }
+            list.put("rootPath","/tmp/usb_guest1");
         }
     }
     mergeput_query.put("query", query);
@@ -1730,7 +1735,7 @@ pbnjson::JValue PdmLunaService::getStorageDevicePayload(pbnjson::JValue resultAr
                 driveListObj.put("uuid", resultArray[index]["storageDriveList"][idx]["uuid"]);
                 driveListObj.put("driveSize", resultArray[index]["storageDriveList"][idx]["driveSize"]);
                 driveListObj.put("driveName", resultArray[index]["storageDriveList"][idx]["driveName"]);
-                driveListObj.put("mountPath", resultArray[index]["storageDriveList"][idx]["mountPath"]);
+                driveListObj.put("mountName", resultArray[index]["storageDriveList"][idx]["mountName"]);
                 driveListObj.put("isMounted", resultArray[index]["storageDriveList"][idx]["isMounted"]);
                 storageDriveList.put(idx,driveListObj);
             }

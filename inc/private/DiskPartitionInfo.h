@@ -51,5 +51,6 @@ public:
     bool partitionLock();
     void partitionUnLock();
     bool isPartitionMounted(std::string hubPortPath);
+    std::string getPartitionMountName(std::string hubPortPath, std::string driveName);
 };
 #endif //DISKPARTIONINFO_H_
