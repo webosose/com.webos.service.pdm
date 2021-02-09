@@ -87,6 +87,7 @@ void DiskPartitionInfo::setVolumeLabel(const std::string &label) {
     volumeLabel = label;
 }
 
+#ifdef WEBOS_SESSION
 bool DiskPartitionInfo::isPartitionMounted(std::string hubPortPath) {
 
     PDM_LOG_DEBUG("Device::%s line:%d hubPortPath:%s", __FUNCTION__, __LINE__, hubPortPath.c_str());
@@ -174,3 +175,4 @@ std::string DiskPartitionInfo::getPartitionMountName(std::string hubPortPath, st
     PDM_LOG_DEBUG("DiskPartitionInfo::%s line:%d mountName: %s", __FUNCTION__, __LINE__, mountName.c_str());
     return mountName;
 }
+#endif

@@ -45,10 +45,12 @@ void VideoDevice::setDeviceInfo(PdmNetlinkEvent* pNE, bool isCameraReady)
 
 void VideoDevice::updateDeviceInfo(PdmNetlinkEvent* pNE)
 {
+#ifdef WEBOS_SESSION
     if (!pNE->getDevAttribute(DEVNAME).empty()) {
         std::string devPath = "/dev/";
         m_devPath = devPath.append(pNE->getDevAttribute(DEVNAME));
     }
+#endif
     if(pNE->getDevAttribute(SUBSYSTEM) ==  "video4linux"){
         if(!pNE->getDevAttribute(DEVNAME).empty())
             m_kernel = pNE->getDevAttribute(DEVNAME);

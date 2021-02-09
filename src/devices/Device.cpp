@@ -140,7 +140,6 @@ void Device::setDeviceSetId(std::string hubPortPath)
 
     PDM_LOG_DEBUG("Device::%s line:%d deviceSetId: %s", __FUNCTION__, __LINE__, m_deviceSetId.c_str());
 }
-#endif
 
 std::string Device::getErrorReason(std::string hubPortPath)
 {
@@ -199,7 +198,7 @@ std::string Device::getStorageRootPath(std::string deviceSetId)
     PDM_LOG_DEBUG("Device::%s line:%d rootPath:%s", __FUNCTION__, __LINE__,rootPath.c_str());
     return rootPath;
 }
-
+#endif
 std::string  Device::getDeviceSpeed(int speed) const {
 
     switch(speed){

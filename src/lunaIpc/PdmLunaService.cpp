@@ -624,6 +624,7 @@ bool PdmLunaService::cbEject(LSHandle *sh, LSMessage *message)
     return true;
 }
 
+#ifdef WEBOS_SESSION
 void PdmLunaService::findDevice(LSHandle * sh,int deviceNum)
 {
     PDM_LOG_DEBUG("PdmLunaService:%s line: %d devicenum: %d", __FUNCTION__, __LINE__, deviceNum);
@@ -916,6 +917,7 @@ bool PdmLunaService::umount(std::string mountName)
     PDM_LOG_DEBUG("PdmLunaService::%s line:%d mountName: %s retValue:%d", __FUNCTION__, __LINE__, mountName.c_str(), retValue);
     return retValue;
 }
+#endif
 
 bool PdmLunaService::cbSetVolumeLabel(LSHandle *sh, LSMessage *message)
 {
