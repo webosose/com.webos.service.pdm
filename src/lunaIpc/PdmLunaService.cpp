@@ -1841,8 +1841,8 @@ bool PdmLunaService::mountDeviceToSession(std::string driveName, std::string dev
     std::string mountName = "";
     bool isDirCreated = false;
 
-    uid_t uid;
-    gid_t gid;
+    uid_t uid = 0;
+    gid_t gid = 0;
 
     std::string dirName = "";
 

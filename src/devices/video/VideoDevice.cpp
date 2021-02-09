@@ -1,4 +1,4 @@
-// Copyright (c) 2019-2020 LG Electronics, Inc.
+// Copyright (c) 2019-2021 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -45,6 +45,10 @@ void VideoDevice::setDeviceInfo(PdmNetlinkEvent* pNE, bool isCameraReady)
 
 void VideoDevice::updateDeviceInfo(PdmNetlinkEvent* pNE)
 {
+    if (!pNE->getDevAttribute(DEVNAME).empty()) {
+        std::string devPath = "/dev/";
+        m_devPath = devPath.append(pNE->getDevAttribute(DEVNAME));
+    }
     if(pNE->getDevAttribute(SUBSYSTEM) ==  "video4linux"){
         if(!pNE->getDevAttribute(DEVNAME).empty())
             m_kernel = pNE->getDevAttribute(DEVNAME);
