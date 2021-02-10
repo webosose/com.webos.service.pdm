@@ -738,7 +738,7 @@ bool PdmLunaService::ejectDevice(pbnjson::JValue list, PdmLunaService* object)
                 if(ret) {
                     if(deviceSetId == "RSE-L"){
                         list[0]["storageDriveList"][idx].put("mountName","/tmp/usb_guest0");
-                    } else if (deviceSetId == "RSE-L") {
+                    } else if (deviceSetId == "RSE-R") {
                         list[0]["storageDriveList"][idx].put("mountName","/tmp/usb_guest1");
                     } else if(deviceSetId == "AVN") {
                         list[0]["storageDriveList"][idx].put("mountName","/tmp/usb_driver0");
@@ -1291,6 +1291,7 @@ bool PdmLunaService::cbSetDeviceForSession(LSHandle *sh, LSMessage *message)
             rselAllDeviceArray.put(rselAllDeviceNo, device);
             rselDeviceNo++; hostDeviceNo++;rselAllDeviceNo++;
             PdmUtils::do_chown(devPath.c_str(), rselUserId.c_str(), rselUserId.c_str());
+            chmod(devPath.c_str(), MOUNT_FILE_MODE);
             PDM_LOG_DEBUG("PdmLunaService:%s line: %d devPath: %s", __FUNCTION__, __LINE__, devPath.c_str());
         }
         if(deviceSetId == "RSE-R") {
@@ -1300,6 +1301,7 @@ bool PdmLunaService::cbSetDeviceForSession(LSHandle *sh, LSMessage *message)
             rserAllDeviceArray.put(rserAllDeviceNo, device);
             rserDeviceNo++; hostDeviceNo++;rserAllDeviceNo++;
             PdmUtils::do_chown(devPath.c_str(), rserUserId.c_str(), rserUserId.c_str());
+            chmod(devPath.c_str(), MOUNT_FILE_MODE);
             PDM_LOG_DEBUG("PdmLunaService:%s line: %d devPath: %s", __FUNCTION__, __LINE__, devPath.c_str());
         }
 
@@ -1310,6 +1312,7 @@ bool PdmLunaService::cbSetDeviceForSession(LSHandle *sh, LSMessage *message)
             avnAllDeviceArray.put(avnAllDeviceNo, device);
             avnDeviceNo++;hostDeviceNo++;avnAllDeviceNo++;
             PdmUtils::do_chown(devPath.c_str(), avnUserId.c_str(), avnUserId.c_str());
+            chmod(devPath.c_str(), MOUNT_FILE_MODE);
             PDM_LOG_DEBUG("PdmLunaService:%s line: %d devPath: %s", __FUNCTION__, __LINE__, devPath.c_str());
         }
         PDM_LOG_DEBUG("PdmLunaService:%s line: %d nonStorageDeviceType: %s deviceSetId: %s", __FUNCTION__, __LINE__, nonStorageDeviceType.c_str(), deviceSetId.c_str());
