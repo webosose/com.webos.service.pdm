@@ -77,6 +77,7 @@ class PdmLunaService
         static std::string avnUserId;
         static std::string rselUserId;
         static std::string rserUserId;
+        static std::string m_writableDrive;
         LS::Handle *mServiceCPPHandle;
         static LSMethod pdm_dev_methods[];
         static std::map<std::string, std::string> m_sessionMap;
@@ -146,6 +147,7 @@ class PdmLunaService
         static bool _cbSetDeviceForSession(LSHandle *sh, LSMessage *message , void *data){
             return static_cast<PdmLunaService*>(data)->cbSetDeviceForSession(sh, message);
         }
+        bool isWritable(std::string driveNmae);
         void UpdateDB();
         void updateAllDeviceSessionPayload(std::string deviceSetId);
         void updateHostPayload(std::string deviceType);
@@ -187,6 +189,7 @@ class PdmLunaService
         static bool cbUpdateDBResponse(LSHandle * sh, LSMessage * message, void * user_data);
         static bool cbDeleteDeviceResponse(LSHandle * sh, LSMessage * message, void * user_data);
         static bool cbEjectDevice(LSHandle * sh, LSMessage * message, void * user_data);
+        static bool cbFindDriveName(LSHandle * sh, LSMessage * message, void * user_data);
         static bool cbUpdateDeviceListResponse(LSHandle * sh, LSMessage * message, void * user_data);
         static bool cbUpdateStorageDeviceListResponse(LSHandle * sh, LSMessage * message, void * user_data);
 #endif

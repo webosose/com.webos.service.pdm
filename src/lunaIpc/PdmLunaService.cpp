@@ -19,6 +19,12 @@
 #include <sys/types.h>
 #include <sstream>
 #include <sys/stat.h>
+extern "C" {
+#include <sys/mount.h>
+#include <sys/statvfs.h>
+#include <mntent.h>
+}
+
 
 #include "Common.h"
 #include "CommandManager.h"
@@ -48,6 +54,7 @@ std::string PdmLunaService::m_sessionId = "host";
 std::string PdmLunaService::m_deviceSetId = "";
 std::string PdmLunaService::m_ejectedDeviceSetId = "";
 std::string PdmLunaService::m_deviceType = "";
+std::string PdmLunaService::m_writableDrive = "";
 bool PdmLunaService::isRequestForStorageDevice = false;
 
 std::string PdmLunaService::avnUserId = "driver0";
@@ -944,6 +951,7 @@ bool PdmLunaService::cbSetVolumeLabel(LSHandle *sh, LSMessage *message)
 
     return true;
 }
+
 bool PdmLunaService::cbIsWritableDrive(LSHandle *sh, LSMessage *message)
 {
     PDM_LOG_DEBUG("PdmLunaService:%s line: %d payload:%s", __FUNCTION__, __LINE__, LSMessageGetPayload(message));
@@ -953,6 +961,29 @@ bool PdmLunaService::cbIsWritableDrive(LSHandle *sh, LSMessage *message)
 
     if (payload) {
         pbnjson::JValue list = pbnjson::JDomParser::fromString(payload);
+#ifdef WEBOS_SESSION
+        std::string driveName = list["driveName"].asString();
+        PDM_LOG_DEBUG("PdmLunaService:%s line: %d driveName: %s", __FUNCTION__, __LINE__, driveName.c_str());
+        m_writableDrive = driveName;
+        LSError lserror;
+        LSErrorInit(&lserror);
+        LSMessageRef(message);
+        replyMsg = message;
+        pbnjson::JValue find_query = pbnjson::Object();
+        pbnjson::JValue request;
+        request = pbnjson::JObject{{"from", "com.webos.service.pdmhistory:1"},
+                                    {"where", pbnjson::JArray{{{"prop", "deviceType"}, {"op", "="}, {"val","USB_STORAGE"}}}}};
+
+        find_query.put("query", request);
+        if (LSCallOneReply(sh,"luna://com.webos.service.db/find",
+                             find_query.stringify().c_str(), cbFindDriveName, this, NULL, &lserror) == false) {
+            PDM_LOG_DEBUG("finding to the db failed in %s", __PRETTY_FUNCTION__ );
+            LSErrorPrint(&lserror, stderr);
+            LSErrorFree(&lserror);
+        }
+    }
+
+#else
 
         IsWritableCommand *writableCmd = new IsWritableCommand;
         if(!writableCmd)
@@ -964,9 +995,84 @@ bool PdmLunaService::cbIsWritableDrive(LSHandle *sh, LSMessage *message)
         mCommandManager->sendCommand(cmdIsWritable);
 
     }
-
+#endif
     return true;
 }
+
+#ifdef WEBOS_SESSION
+bool PdmLunaService::cbFindDriveName(LSHandle * sh, LSMessage * message, void * user_data)
+{
+    PDM_LOG_DEBUG("PdmLunaService:%s line: %d", __FUNCTION__, __LINE__);
+    LSError lserror;
+    LSErrorInit(&lserror);
+    bool deviceFound = false;
+    bool isWritable = false;
+    const char* payload = LSMessageGetPayload(message);
+    if(!payload) {
+        PDM_LOG_ERROR("PdmLunaService:%s line: %d payload is empty ", __FUNCTION__, __LINE__);
+        return false;
+    }
+    PdmLunaService* object = (PdmLunaService*)user_data;
+    LSMessage* writableReplyMsg = object->getReplyMsg();
+    if (!writableReplyMsg) {
+        PDM_LOG_ERROR("PdmLunaService:%s line: %d writableReplyMsg is empty ", __FUNCTION__, __LINE__);
+        return false;
+    }
+
+    pbnjson::JValue request = pbnjson::JDomParser::fromString(payload);
+    if(request.isNull() || (!request["returnValue"].asBool())){
+        PDM_LOG_ERROR("PdmLunaService:%s line: %d Db8Response is empty ", __FUNCTION__, __LINE__);
+    }
+    pbnjson::JValue json = pbnjson::Object();
+    json.put("returnValue", true);
+    pbnjson::JValue resultArray = request["results"];
+    for(ssize_t index = 0; index < resultArray.arraySize() ; index++) {
+        pbnjson::JValue deviceInfoObj = pbnjson::Object();
+        for(ssize_t idx = 0; idx < resultArray[index]["storageDriveList"].arraySize() ; idx++) {
+            std::string driveName =  resultArray[index]["storageDriveList"][idx]["driveName"].asString();
+            if(driveName == m_writableDrive){
+                deviceFound = true;
+                if (!object->isWritable(driveName)){
+                    json.put("errorText", "writable failed");
+                }
+                break;
+            }
+        }
+    }
+    if(!deviceFound) {
+        json.put("errorText", "No drive found");
+    }
+    if(!LSMessageReply( sh, writableReplyMsg, json.stringify(NULL).c_str(), &lserror)) {
+        LSErrorPrint(&lserror, stderr);
+        LSErrorFree(&lserror);
+        LSMessageUnref(writableReplyMsg);
+    }
+    return true;
+}
+
+bool PdmLunaService::isWritable(std::string driveName)
+{
+    PDM_LOG_DEBUG("PdmLunaService:%s line: %d", __FUNCTION__, __LINE__);
+    FILE *pfile;
+    bool isWritable = false;
+    std::string devName = "/dev/" + driveName;
+    if ((pfile = setmntent("/etc/mtab", "r")) != NULL) {
+        struct mntent *pmnt;
+        while ((pmnt = getmntent(pfile)) != NULL)
+        {
+            if(strcmp(devName.c_str(), pmnt->mnt_fsname) == 0) {
+                if (hasmntopt(pmnt, "ro") == NULL)
+                {
+                    isWritable = true;
+                    break;
+                }
+            }
+        }
+    }
+    endmntent (pfile);
+    return isWritable;
+}
+#endif
 
 bool PdmLunaService::cbUmountAllDrive(LSHandle *sh, LSMessage *message)
 {
