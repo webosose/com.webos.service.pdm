@@ -39,6 +39,7 @@
 #define USER_MOUNT                            1
 
 #define MOUNT_FILE_MODE        (S_IRWXU|S_IRGRP) //740
+#define NON_STORAGE_FILE_MODE  (S_IRUSR| S_IWUSR|S_IRGRP) //640
 
 std::map<std::string, std::string> PdmLunaService::m_sessionMap = {};
 std::map<std::string, std::string> PdmLunaService::m_portDisplayMap = {};
@@ -1291,7 +1292,7 @@ bool PdmLunaService::cbSetDeviceForSession(LSHandle *sh, LSMessage *message)
             rselAllDeviceArray.put(rselAllDeviceNo, device);
             rselDeviceNo++; hostDeviceNo++;rselAllDeviceNo++;
             PdmUtils::do_chown(devPath.c_str(), rselUserId.c_str(), rselUserId.c_str());
-            chmod(devPath.c_str(), MOUNT_FILE_MODE);
+            chmod(devPath.c_str(), NON_STORAGE_FILE_MODE);
             PDM_LOG_DEBUG("PdmLunaService:%s line: %d devPath: %s", __FUNCTION__, __LINE__, devPath.c_str());
         }
         if(deviceSetId == "RSE-R") {
@@ -1301,7 +1302,7 @@ bool PdmLunaService::cbSetDeviceForSession(LSHandle *sh, LSMessage *message)
             rserAllDeviceArray.put(rserAllDeviceNo, device);
             rserDeviceNo++; hostDeviceNo++;rserAllDeviceNo++;
             PdmUtils::do_chown(devPath.c_str(), rserUserId.c_str(), rserUserId.c_str());
-            chmod(devPath.c_str(), MOUNT_FILE_MODE);
+            chmod(devPath.c_str(), NON_STORAGE_FILE_MODE);
             PDM_LOG_DEBUG("PdmLunaService:%s line: %d devPath: %s", __FUNCTION__, __LINE__, devPath.c_str());
         }
 
@@ -1312,7 +1313,7 @@ bool PdmLunaService::cbSetDeviceForSession(LSHandle *sh, LSMessage *message)
             avnAllDeviceArray.put(avnAllDeviceNo, device);
             avnDeviceNo++;hostDeviceNo++;avnAllDeviceNo++;
             PdmUtils::do_chown(devPath.c_str(), avnUserId.c_str(), avnUserId.c_str());
-            chmod(devPath.c_str(), MOUNT_FILE_MODE);
+            chmod(devPath.c_str(), NON_STORAGE_FILE_MODE);
             PDM_LOG_DEBUG("PdmLunaService:%s line: %d devPath: %s", __FUNCTION__, __LINE__, devPath.c_str());
         }
         PDM_LOG_DEBUG("PdmLunaService:%s line: %d nonStorageDeviceType: %s deviceSetId: %s", __FUNCTION__, __LINE__, nonStorageDeviceType.c_str(), deviceSetId.c_str());
