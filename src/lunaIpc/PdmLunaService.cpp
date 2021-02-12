@@ -25,7 +25,7 @@ extern "C" {
 #include <mntent.h>
 }
 
-
+#include <sys/statfs.h>
 #include "Common.h"
 #include "CommandManager.h"
 #include "JsonUtils.h"
@@ -1638,36 +1638,23 @@ bool PdmLunaService::updateIsMount(pbnjson::JValue list, std::string driveName)
     std::string hubPortPath = list["hubPortPath"].asString();
     PDM_LOG_DEBUG("PdmLunaService::%s line:%d hubPortPath: %s", __FUNCTION__, __LINE__, hubPortPath.c_str());
     query = pbnjson::JObject{{"from", "com.webos.service.pdmhistory:1"},
-                               {"where", pbnjson::JArray{{{"prop", "hubPortPath"}, {"op", "="}, {"val", hubPortPath.c_str()}}}}};
+                              {"where", pbnjson::JArray{{{"prop", "hubPortPath"}, {"op", "="}, {"val", hubPortPath.c_str()}}}}};
 
-    if (list["deviceType"].asString() == "USB_STORAGE")
-    {
-        if (list["deviceSetId"].asString() == "AVN")
-        {
-            for(ssize_t idx = 0; idx < list["storageDriveList"].arraySize() ; idx++) {
-                std::string partitionName = list["storageDriveList"][idx]["driveName"].asString();
-                if(partitionName == driveName) {
-                    list["storageDriveList"][idx].put("isMounted", true);
-                }
+    struct statfs fsInfo = {0};
+    int32_t driveSize;
+    for(ssize_t idx = 0; idx < list["storageDriveList"].arraySize() ; idx++) {
+        std::string partitionName = list["storageDriveList"][idx]["driveName"].asString();
+        std::string mountName = list["storageDriveList"][idx]["mountName"].asString();
+        if(partitionName == driveName) {
+            list["storageDriveList"][idx].put("isMounted", true);
+            if (statfs( mountName.c_str(), &fsInfo ) != 0) {
+                PDM_LOG_ERROR("PdmFs:%s line: %d statfs failed for mountName:%s ", __FUNCTION__, __LINE__, mountName.c_str());
+                list["storageDriveList"][idx].put("driveSize","driveSize");
+                return false;
             }
-        }
-        else if (list["deviceSetId"].asString() == "RSE-L")
-        {
-            for(ssize_t idx = 0; idx < list["storageDriveList"].arraySize() ; idx++) {
-                std::string partitionName = list["storageDriveList"][idx]["driveName"].asString();
-                if(partitionName == driveName) {
-                    list["storageDriveList"][idx].put("isMounted", true);
-                }
-            }
-        }
-        else if (list["deviceSetId"].asString() == "RSE-R")
-        {
-            for(ssize_t idx = 0; idx < list["storageDriveList"].arraySize() ; idx++) {
-                std::string partitionName = list["storageDriveList"][idx]["driveName"].asString();
-                if(partitionName == driveName) {
-                    list["storageDriveList"][idx].put("isMounted", true);
-                }
-            }
+            driveSize = ( fsInfo.f_blocks * (fsInfo.f_bsize / 1024) );
+            list["storageDriveList"][idx].put("driveSize",driveSize);
+            break;
         }
     }
     mergeput_query.put("query", query);

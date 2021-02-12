@@ -229,14 +229,15 @@ template < class T > bool getAttachedUsbStorageDeviceList (std::list<T*>& sList,
             else //in suspend case before umount need to send isMounted as false
             driveInfo.put("isMounted", false);
             driveInfo.put("mountName", disk->getMountName());
+            driveInfo.put("driveSize", (int32_t)disk->getDriveSize());
 #else
             driveInfo.put("isMounted", disk->isPartitionMounted(storageIter->getHubPortNumber()));
             driveInfo.put("mountName", disk->getPartitionMountName(storageIter->getHubPortNumber(), disk->getDriveName()));
+            driveInfo.put("driveSize", disk->getPartitionSize(storageIter->getHubPortNumber(), disk->getDriveName()));
 #endif
             driveInfo.put("volumeLabel", disk->getVolumeLable());
             driveInfo.put("uuid", disk->getUuid());
             driveInfo.put("driveName", disk->getDriveName());
-            driveInfo.put("driveSize", (int32_t)disk->getDriveSize());
             driveInfo.put("fsType", disk->getFsType());
 
             storageDriveList.append(driveInfo);

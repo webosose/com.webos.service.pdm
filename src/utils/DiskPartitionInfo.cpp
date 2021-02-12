@@ -90,7 +90,7 @@ void DiskPartitionInfo::setVolumeLabel(const std::string &label) {
 #ifdef WEBOS_SESSION
 bool DiskPartitionInfo::isPartitionMounted(std::string hubPortPath) {
 
-    PDM_LOG_DEBUG("Device::%s line:%d hubPortPath:%s", __FUNCTION__, __LINE__, hubPortPath.c_str());
+    PDM_LOG_DEBUG("DiskPartitionInfo::%s line:%d hubPortPath:%s", __FUNCTION__, __LINE__, hubPortPath.c_str());
     LSError lserror;
     LSErrorInit(&lserror);
 
@@ -122,7 +122,7 @@ bool DiskPartitionInfo::isPartitionMounted(std::string hubPortPath) {
     }
 
     m_errorReason = request["results"][0]["errorReason"].asString();
-    PDM_LOG_DEBUG("Device::%s line:%d deviceSetId: %s", __FUNCTION__, __LINE__, m_errorReason.c_str());
+    PDM_LOG_DEBUG("DiskPartitionInfo::%s line:%d deviceSetId: %s", __FUNCTION__, __LINE__, m_errorReason.c_str());
     if(m_errorReason == "nothing") {
        return true;
     }
@@ -174,5 +174,51 @@ std::string DiskPartitionInfo::getPartitionMountName(std::string hubPortPath, st
     }
     PDM_LOG_DEBUG("DiskPartitionInfo::%s line:%d mountName: %s", __FUNCTION__, __LINE__, mountName.c_str());
     return mountName;
+}
+int DiskPartitionInfo::getPartitionSize(std::string hubPortPath, std::string driveName) {
+
+    PDM_LOG_DEBUG("DiskPartitionInfo::%s line:%d hubPortPath:%s driveName:%s", __FUNCTION__, __LINE__, hubPortPath.c_str(), driveName.c_str());
+    LSError lserror;
+    LSErrorInit(&lserror);
+
+    pbnjson::JValue find_query = pbnjson::Object();
+    pbnjson::JValue query;
+    int32_t driveSize = 0;
+
+    query = pbnjson::JObject{{"from", "com.webos.service.pdmhistory:1"},
+                             {"where", pbnjson::JArray{{{"prop", "hubPortPath"}, {"op", "="}, {"val", hubPortPath.c_str()}}}}};
+
+    find_query.put("query", query);
+
+    LS::Payload find_payload(find_query);
+    LS::Call call = LunaIPC::getInstance()->getLSCPPHandle()->callOneReply("luna://com.webos.service.db/find", find_payload.getJson(), NULL, this, NULL);
+    LS::Message message = call.get();
+
+    LS::PayloadRef response_payload = message.accessPayload();
+    pbnjson::JValue request = response_payload.getJValue();
+
+    if(request.isNull())
+    {
+        PDM_LOG_DEBUG("Db8 LS2 response is empty in %s", __PRETTY_FUNCTION__ );
+    }
+
+    if(!request["returnValue"].asBool())
+    {
+        PDM_LOG_DEBUG("Call to Db8 to is failed in %s", __PRETTY_FUNCTION__ );
+    }
+
+    if (request["results"][0]["deviceType"] == "USB_STORAGE")
+    {
+        for(ssize_t idx = 0; idx < request["results"][0]["storageDriveList"].arraySize() ; idx++) {
+            std::string partitionName = request["results"][0]["storageDriveList"][idx]["driveName"].asString();
+            PDM_LOG_DEBUG("DiskPartitionInfo::%s line:%d driveName:%s", __FUNCTION__, __LINE__,driveName.c_str());
+            if(partitionName == driveName){
+                driveSize = request["results"][0]["storageDriveList"][idx]["driveSize"].asNumber<int>();
+                break;
+            }
+        }
+    }
+    PDM_LOG_DEBUG("DiskPartitionInfo::%s line:%d driveSize: %d", __FUNCTION__, __LINE__, driveSize);
+    return driveSize;
 }
 #endif
