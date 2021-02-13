@@ -77,13 +77,14 @@ class PdmLunaService
         static std::string avnUserId;
         static std::string rselUserId;
         static std::string rserUserId;
-        static std::string m_writableDrive;
+        static std::string m_requestedDrive;
         LS::Handle *mServiceCPPHandle;
         static LSMethod pdm_dev_methods[];
         static std::map<std::string, std::string> m_sessionMap;
         static std::map<std::string, std::string> m_portDisplayMap;
         LSMessage* replyMsg;
         LSMessage* getReplyMsg() { return replyMsg;}
+        bool isGetSpaceInfoRequest;
 #endif
         CommandManager *mCommandManager;
         bool subscriptionAdd(LSHandle *a_sh, const char *a_key, LSMessage *a_message);
