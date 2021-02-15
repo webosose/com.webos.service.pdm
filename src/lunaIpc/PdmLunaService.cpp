@@ -1071,15 +1071,19 @@ bool PdmLunaService::cbFindDriveName(LSHandle * sh, LSMessage * message, void * 
                         if (driveSize) {
                             usedRate = usedSize * 100 / driveSize;
                         }
-                        json.put("driveSize",driveSize);
-                        json.put("freeSize", freeSize);
-                        json.put("usedRate", usedRate);
-                        json.put("usedSize", usedSize);
+                        pbnjson::JValue spaceInfo = pbnjson::Object();
+                        spaceInfo.put("driveSize",driveSize);
+                        spaceInfo.put("freeSize", freeSize);
+                        spaceInfo.put("usedRate", usedRate);
+                        spaceInfo.put("usedSize", usedSize);
+                        json.put("spaceInfo", spaceInfo);
+                        json.put("returnValue", true);
                     }
                 } else {
                     json.put("returnValue", true);
+                    json.put("isWritable", true);
                     if (!object->isWritable(driveName)){
-                        json.put("errorText", "writable failed");
+                        json.put("isWritable", false);
                     }
                 }
                 break;
@@ -1087,7 +1091,15 @@ bool PdmLunaService::cbFindDriveName(LSHandle * sh, LSMessage * message, void * 
         }
     }
     if(!driveFound) {
-        json.put("errorText", "No drive found");
+        if(false == object->isGetSpaceInfoRequest) {
+            json.put("errorCode", 1027);
+            json.put("returnValue", false);
+            json.put("errorText", "Device error unknown");
+        } else {
+            json.put("errorCode", 1022);
+            json.put("returnValue", false);
+            json.put("errorText", "Drive not found in device");
+        }
     }
     if(!LSMessageReply( sh, requestedDriveReplyMsg, json.stringify(NULL).c_str(), &lserror)) {
         LSErrorPrint(&lserror, stderr);
