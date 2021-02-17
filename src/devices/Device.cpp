@@ -182,21 +182,45 @@ std::string Device::getErrorReason(std::string hubPortPath)
     return m_errorReason;
 }
 
-std::string Device::getStorageRootPath(std::string deviceSetId)
+std::string Device::getStorageRootPath(std::string hubPortPath)
 {
-    PDM_LOG_DEBUG("Device::%s line:%d deviceSetId:%s", __FUNCTION__, __LINE__,deviceSetId.c_str());
-    std::string rootPath;
-    if("AVN" == deviceSetId) {
-        rootPath = "/tmp/usb_driver0";
-    } else if ("RSE-L" == deviceSetId ) {
-        rootPath = "/tmp/usb_guest0";
-    } else if("RSE-R" == deviceSetId) {
-        rootPath = "/tmp/usb_guest1";
-    }else {
-        PDM_LOG_DEBUG("Device::%s line:%d Unknown rootPath", __FUNCTION__, __LINE__);
+    PDM_LOG_DEBUG("Device::%s line:%d hubPortPath:%s", __FUNCTION__, __LINE__, hubPortPath.c_str());
+    LSError lserror;
+    LSErrorInit(&lserror);
+
+    std::string m_rootPath;
+
+    pbnjson::JValue find_query = pbnjson::Object();
+    pbnjson::JValue query;
+
+    query = pbnjson::JObject{{"from", "com.webos.service.pdmhistory:1"},
+                             {"where", pbnjson::JArray{{{"prop", "hubPortPath"}, {"op", "="}, {"val", hubPortPath.c_str()}}}}};
+
+    find_query.put("query", query);
+
+    LS::Payload find_payload(find_query);
+    LS::Call call = LunaIPC::getInstance()->getLSCPPHandle()->callOneReply("luna://com.webos.service.db/find", find_payload.getJson(), NULL, this, NULL);
+    LS::Message message = call.get();
+
+    LS::PayloadRef response_payload = message.accessPayload();
+    pbnjson::JValue request = response_payload.getJValue();
+
+    if(request.isNull())
+    {
+        PDM_LOG_DEBUG("Db8 LS2 response is empty in %s", __PRETTY_FUNCTION__ );
     }
-    PDM_LOG_DEBUG("Device::%s line:%d rootPath:%s", __FUNCTION__, __LINE__,rootPath.c_str());
-    return rootPath;
+
+    if(!request["returnValue"].asBool())
+    {
+        PDM_LOG_DEBUG("Call to Db8 to is failed in %s", __PRETTY_FUNCTION__ );
+    }
+
+    m_rootPath = request["results"][0]["rootPath"].asString();
+    PDM_LOG_DEBUG("Device::%s line:%d deviceSetId: %s", __FUNCTION__, __LINE__, m_rootPath.c_str());
+    if(m_rootPath.empty()) {
+        m_rootPath = "Device not selected";
+    }
+    return m_rootPath;
 }
 #endif
 std::string  Device::getDeviceSpeed(int speed) const {

@@ -148,6 +148,7 @@ class PdmLunaService
         static bool _cbSetDeviceForSession(LSHandle *sh, LSMessage *message , void *data){
             return static_cast<PdmLunaService*>(data)->cbSetDeviceForSession(sh, message);
         }
+        bool isDriveBusy(std::string mountName);
         bool isWritable(std::string driveNmae);
         void UpdateDB();
         void updateAllDeviceSessionPayload(std::string deviceSetId);

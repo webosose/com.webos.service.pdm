@@ -110,7 +110,7 @@ public:
     bool readFromFile(std::string fileToRead, std::string &usbData);
     void getBasicUsbInfo(std::string devPath);
     std::string getErrorReason(std::string hubPortPath);
-    std::string getStorageRootPath(std::string deviceSetId);
+    std::string getStorageRootPath(std::string hubPortPath);
 #endif
 };
 #endif //_DEVICE_H

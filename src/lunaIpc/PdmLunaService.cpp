@@ -107,6 +107,7 @@ PdmLunaService::PdmLunaService(CommandManager *cmdManager)
 #ifdef WEBOS_SESSION
     , mServiceCPPHandle(nullptr)
     , replyMsg(nullptr)
+    , isGetSpaceInfoRequest(false)
 #endif
 {
 
@@ -639,6 +640,7 @@ bool PdmLunaService::cbEject(LSHandle *sh, LSMessage *message)
     LSMessageRef(message);
     replyMsg = message;
     int deviceNum = root["deviceNum"].asNumber<int>();
+    queryForSession();
     findDevice(sh, deviceNum);
 #else
     EjectCommand *ejectCmd = new EjectCommand;
@@ -691,6 +693,10 @@ bool PdmLunaService::cbEjectDevice(LSHandle * sh, LSMessage * message, void * us
         deviceFound = false;
     }
     PdmLunaService* object = (PdmLunaService*)user_data;
+    if(nullptr == object) {
+        PDM_LOG_ERROR("PdmLunaService:%s line: %d PdmLunaService obj is NULL", __FUNCTION__, __LINE__);
+        return false;
+    }
     LSMessage* ejectFailReplyMsg = object->getReplyMsg();
     if (!ejectFailReplyMsg) {
         PDM_LOG_ERROR("PdmLunaService:%s line: %d ejectFailReplyMsg is empty ", __FUNCTION__, __LINE__);
@@ -703,7 +709,7 @@ bool PdmLunaService::cbEjectDevice(LSHandle * sh, LSMessage * message, void * us
             PDM_LOG_ERROR("PdmLunaService:%s line: %d No device Info in DB ", __FUNCTION__, __LINE__);
             deviceFound = false;
         }
-        if((object) && (deviceFound) && (!object->ejectDevice(resultArray,object))) {
+        if((deviceFound) && (!object->ejectDevice(resultArray,object))) {
             PDM_LOG_ERROR("PdmLunaService:%s line: %d unable to delete from db", __FUNCTION__, __LINE__);
         }
     }
@@ -765,12 +771,16 @@ bool PdmLunaService::ejectDevice(pbnjson::JValue list, PdmLunaService* object)
             if(umount(mountName)) {
                 int ret = PdmUtils::removeDirRecursive(mountName);
                 if(ret) {
+                    std::string mountName;
                     if(deviceSetId == "RSE-L"){
-                        list[0]["storageDriveList"][idx].put("mountName","/tmp/usb_guest0");
+                        mountName = "/tmp/users/" + rselUserId +"/usb";
+                        list[0]["storageDriveList"][idx].put("mountName",mountName);
                     } else if (deviceSetId == "RSE-R") {
-                        list[0]["storageDriveList"][idx].put("mountName","/tmp/usb_guest1");
+                        mountName = "/tmp/users/" + rserUserId +"/usb";
+                        list[0]["storageDriveList"][idx].put("mountName",mountName);
                     } else if(deviceSetId == "AVN") {
-                        list[0]["storageDriveList"][idx].put("mountName","/tmp/usb_driver0");
+                        mountName = "/tmp/users/" + avnUserId +"/usb";
+                        list[0]["storageDriveList"][idx].put("mountName",mountName);
                     }
                 }
                 list[0]["storageDriveList"][idx].put("isMounted", false);
@@ -873,7 +883,7 @@ bool PdmLunaService::cbUpdateDeviceListResponse(LSHandle * sh, LSMessage * messa
     PdmLunaService* object = (PdmLunaService*)user_data;
     if (!object) {
         PDM_LOG_ERROR("PdmLunaService:%s line: %d object is empty ", __FUNCTION__, __LINE__);
-    return false;
+        return false;
     }
     pbnjson::JValue deviceInfoArray = pbnjson::Array();
     pbnjson::JValue resultArray = request["results"];
@@ -1035,6 +1045,10 @@ bool PdmLunaService::cbFindDriveName(LSHandle * sh, LSMessage * message, void * 
         return false;
     }
     PdmLunaService* object = (PdmLunaService*)user_data;
+    if(nullptr == object) {
+        PDM_LOG_ERROR("PdmLunaService:%s line: %d PdmLunaService obj is NULL", __FUNCTION__, __LINE__);
+        return false;
+    }
     LSMessage* requestedDriveReplyMsg = object->getReplyMsg();
     if (!requestedDriveReplyMsg) {
         PDM_LOG_ERROR("PdmLunaService:%s line: %d requestedDriveReplyMsg is empty ", __FUNCTION__, __LINE__);
@@ -1054,37 +1068,42 @@ bool PdmLunaService::cbFindDriveName(LSHandle * sh, LSMessage * message, void * 
             std::string mountName =  resultArray[index]["storageDriveList"][idx]["mountName"].asString();
             if(driveName == m_requestedDrive){
                 driveFound = true;
-                if(object->isGetSpaceInfoRequest) {
-                    struct statfs fsInfo = {0};
-                    if (statfs( mountName.c_str(), &fsInfo ) != 0) {
-                        PDM_LOG_ERROR("PdmFs:%s line: %d statfs failed for mountName:%s ", __FUNCTION__, __LINE__, mountName.c_str());
-                        json.put("returnValue", false);
-                        json.put("errorText", "statfs failed");
+                if (object->isDriveBusy(mountName) == false ){
+                    if(object->isGetSpaceInfoRequest) {
+                        struct statfs fsInfo = {0};
+                        if (statfs( mountName.c_str(), &fsInfo ) != 0) {
+                            PDM_LOG_ERROR("PdmFs:%s line: %d statfs failed for mountName:%s ", __FUNCTION__, __LINE__, mountName.c_str());
+                            json.put("returnValue", false);
+                            json.put("errorText", "statfs failed");
+                        } else {
+                            int64_t driveSize = ( fsInfo.f_blocks * (fsInfo.f_bsize / 1024) );
+                            int64_t freeSize = ( fsInfo.f_bavail * (fsInfo.f_bsize / 1024) );
+                            int64_t usedRate = 0;
+                            int64_t usedSize = 0;
+                            if (driveSize > freeSize) {
+                                usedSize = driveSize - freeSize;
+                            }
+                            if (driveSize) {
+                                usedRate = usedSize * 100 / driveSize;
+                            }
+                            pbnjson::JValue spaceInfo = pbnjson::Object();
+                            spaceInfo.put("driveSize",driveSize);
+                            spaceInfo.put("freeSize", freeSize);
+                            spaceInfo.put("usedRate", usedRate);
+                            spaceInfo.put("usedSize", usedSize);
+                            json.put("spaceInfo", spaceInfo);
+                            json.put("returnValue", true);
+                        }
                     } else {
-                        int32_t driveSize = ( fsInfo.f_blocks * (fsInfo.f_bsize / 1024) );
-                        int32_t freeSize = ( fsInfo.f_bavail * (fsInfo.f_bsize / 1024) );
-                        int32_t usedRate = 0;
-                        int32_t usedSize = 0;
-                        if (driveSize > freeSize) {
-                            usedSize = driveSize - freeSize;
-                        }
-                        if (driveSize) {
-                            usedRate = usedSize * 100 / driveSize;
-                        }
-                        pbnjson::JValue spaceInfo = pbnjson::Object();
-                        spaceInfo.put("driveSize",driveSize);
-                        spaceInfo.put("freeSize", freeSize);
-                        spaceInfo.put("usedRate", usedRate);
-                        spaceInfo.put("usedSize", usedSize);
-                        json.put("spaceInfo", spaceInfo);
                         json.put("returnValue", true);
+                        json.put("isWritable", true);
+                        if (!object->isWritable(driveName)){
+                            json.put("isWritable", false);
+                        }
                     }
                 } else {
-                    json.put("returnValue", true);
-                    json.put("isWritable", true);
-                    if (!object->isWritable(driveName)){
-                        json.put("isWritable", false);
-                    }
+                    json.put("returnValue", false);
+                    json.put("errorText", "drive is busy");
                 }
                 break;
             }
@@ -1107,6 +1126,18 @@ bool PdmLunaService::cbFindDriveName(LSHandle * sh, LSMessage * message, void * 
         LSMessageUnref(requestedDriveReplyMsg);
     }
     return true;
+}
+bool PdmLunaService::isDriveBusy(std::string mountName)
+{
+    PDM_LOG_INFO("PdmLunaService:",0,"%s line: %d Mount Name: %s", __FUNCTION__,__LINE__,mountName.c_str());
+    std::string sysCommand("lsof +D ");
+    sysCommand.append(mountName);
+    std::string result = PdmUtils::execShellCmd(sysCommand);
+    if(!result.empty()){
+        PDM_LOG_ERROR("PdmLunaService:%s line: %d error on isDriveBusy", __FUNCTION__, __LINE__);
+        return true;
+    }
+     return false;
 }
 
 bool PdmLunaService::isWritable(std::string driveName)
@@ -1457,7 +1488,9 @@ bool PdmLunaService::cbSetDeviceForSession(LSHandle *sh, LSMessage *message)
             rselAllDeviceArray.put(rselAllDeviceNo, device);
             rselDeviceNo++; hostDeviceNo++;rselAllDeviceNo++;
             PdmUtils::do_chown(devPath.c_str(), rselUserId.c_str(), rselUserId.c_str());
-            chmod(devPath.c_str(), NON_STORAGE_FILE_MODE);
+            if(0 != chmod(devPath.c_str(), NON_STORAGE_FILE_MODE)) {
+                PDM_LOG_ERROR("PdmLunaService:%s line:%d chmod error: %d stderror: %s", __FUNCTION__, __LINE__, errno, strerror(errno));
+            }
             PDM_LOG_DEBUG("PdmLunaService:%s line: %d devPath: %s", __FUNCTION__, __LINE__, devPath.c_str());
         }
         if(deviceSetId == "RSE-R") {
@@ -1467,7 +1500,9 @@ bool PdmLunaService::cbSetDeviceForSession(LSHandle *sh, LSMessage *message)
             rserAllDeviceArray.put(rserAllDeviceNo, device);
             rserDeviceNo++; hostDeviceNo++;rserAllDeviceNo++;
             PdmUtils::do_chown(devPath.c_str(), rserUserId.c_str(), rserUserId.c_str());
-            chmod(devPath.c_str(), NON_STORAGE_FILE_MODE);
+            if(0 != chmod(devPath.c_str(), NON_STORAGE_FILE_MODE)) {
+                PDM_LOG_ERROR("PdmLunaService:%s line:%d chmod error: %d stderror: %s", __FUNCTION__, __LINE__, errno, strerror(errno));
+            }
             PDM_LOG_DEBUG("PdmLunaService:%s line: %d devPath: %s", __FUNCTION__, __LINE__, devPath.c_str());
         }
 
@@ -1478,7 +1513,9 @@ bool PdmLunaService::cbSetDeviceForSession(LSHandle *sh, LSMessage *message)
             avnAllDeviceArray.put(avnAllDeviceNo, device);
             avnDeviceNo++;hostDeviceNo++;avnAllDeviceNo++;
             PdmUtils::do_chown(devPath.c_str(), avnUserId.c_str(), avnUserId.c_str());
-            chmod(devPath.c_str(), NON_STORAGE_FILE_MODE);
+            if(0 != chmod(devPath.c_str(), NON_STORAGE_FILE_MODE)){
+                PDM_LOG_ERROR("PdmLunaService:%s line:%d chmod error: %d stderror: %s", __FUNCTION__, __LINE__, errno, strerror(errno));
+            }
             PDM_LOG_DEBUG("PdmLunaService:%s line: %d devPath: %s", __FUNCTION__, __LINE__, devPath.c_str());
         }
         PDM_LOG_DEBUG("PdmLunaService:%s line: %d nonStorageDeviceType: %s deviceSetId: %s", __FUNCTION__, __LINE__, nonStorageDeviceType.c_str(), deviceSetId.c_str());
@@ -1732,6 +1769,7 @@ bool PdmLunaService::updateIsMount(pbnjson::JValue list, std::string driveName)
 
 bool PdmLunaService::updateErrorReason(pbnjson::JValue list)
 {
+    PDM_LOG_DEBUG("PdmLunaService::%s line:%d ", __FUNCTION__, __LINE__);
     LSError lserror;
     LSErrorInit(&lserror);
 
@@ -1784,12 +1822,14 @@ bool PdmLunaService::storeDeviceInfo(pbnjson::JValue list)
     {
         if (list["deviceSetId"].asString() == "AVN")
         {
+            std::string rootPath = "/tmp/users/" + avnUserId + "/usb";
+            list.put("rootPath", rootPath);
             for(ssize_t idx = 0; idx < list["storageDriveList"].arraySize() ; idx++) {
                 std::string fsType = list["storageDriveList"][idx]["fsType"].asString();
                 if (fsType == "tntfs" || fsType == "ntfs" || fsType == "vfat" || fsType == "tfat")
                 {
                     std::string driveName = list["storageDriveList"][idx]["driveName"].asString();
-                    std::string mountName = "/tmp/usb_" + avnUserId + "/" + driveName;
+                    std::string mountName = rootPath + "/" + driveName;
                     list["storageDriveList"][idx].put("mountName", mountName);
                 }
                 else
@@ -1797,16 +1837,17 @@ bool PdmLunaService::storeDeviceInfo(pbnjson::JValue list)
                     list["storageDriveList"][idx].put("mountName", "UNSUPPORTED_FILESYSTEM");
                 }
             }
-            list.put("rootPath","/tmp/usb_driver0");
         }
         else if (list["deviceSetId"].asString() == "RSE-L")
         {
+            std::string rootPath = "/tmp/users/" + rselUserId + "/usb";
+            list.put("rootPath", rootPath);
             for(ssize_t idx = 0; idx < list["storageDriveList"].arraySize() ; idx++) {
                 std::string fsType = list["storageDriveList"][idx]["fsType"].asString();
                 if (fsType == "tntfs" || fsType == "ntfs" || fsType == "vfat" || fsType == "tfat")
                 {
                     std::string driveName = list["storageDriveList"][idx]["driveName"].asString();
-                    std::string mountName = "/tmp/usb_" + rselUserId + "/" + driveName;
+                    std::string mountName =  rootPath + "/" + driveName;
                     list["storageDriveList"][idx].put("mountName", mountName);
                 }
                 else
@@ -1814,16 +1855,17 @@ bool PdmLunaService::storeDeviceInfo(pbnjson::JValue list)
                     list["storageDriveList"][idx].put("mountName", "UNSUPPORTED_FILESYSTEM");
                 }
             }
-            list.put("rootPath","/tmp/usb_guest0");
         }
         else if (list["deviceSetId"].asString() == "RSE-R")
         {
+            std::string rootPath = "/tmp/users/" + rserUserId + "/usb";
+            list.put("rootPath", rootPath);
             for(ssize_t idx = 0; idx < list["storageDriveList"].arraySize() ; idx++) {
                 std::string fsType = list["storageDriveList"][idx]["fsType"].asString();
                 if (fsType == "tntfs" || fsType == "ntfs" || fsType == "vfat" || fsType == "tfat")
                 {
                     std::string driveName = list["storageDriveList"][idx]["driveName"].asString();
-                    std::string mountName = "/tmp/usb_" + rserUserId + "/" + driveName;
+                    std::string mountName =  rootPath + "/" + driveName;
                     list["storageDriveList"][idx].put("mountName", mountName);
                 }
                 else
@@ -1831,7 +1873,6 @@ bool PdmLunaService::storeDeviceInfo(pbnjson::JValue list)
                     list["storageDriveList"][idx].put("mountName", "UNSUPPORTED_FILESYSTEM");
                 }
             }
-            list.put("rootPath","/tmp/usb_guest1");
         }
     }
     mergeput_query.put("query", query);
@@ -2007,8 +2048,8 @@ bool PdmLunaService::mountDeviceToSession(std::string driveName, std::string dev
     if (deviceSetId == "AVN")
     {
         PDM_LOG_DEBUG("PdmLunaService::%s line:%d Mounting %s to AVN user: %s", __FUNCTION__, __LINE__, driveName.c_str(), avnUserId.c_str());
-        dirName = "/tmp/usb_" + avnUserId;
-        mountName = "/tmp/usb_" + avnUserId + "/" + driveName;
+        dirName = "/tmp/users/" + avnUserId;
+        mountName = "/tmp/users/" + avnUserId + "/usb/" + driveName;
         PdmUtils::createDir(mountName);
 
         uid = PdmUtils::get_uid(avnUserId.c_str());
@@ -2017,8 +2058,8 @@ bool PdmLunaService::mountDeviceToSession(std::string driveName, std::string dev
     else if (deviceSetId == "RSE-L")
     {
         PDM_LOG_DEBUG("PdmLunaService::%s line:%d Mounting %s to RSE-L user: %s", __FUNCTION__, __LINE__, driveName.c_str(), rselUserId.c_str());
-        dirName = "/tmp/usb_" + rselUserId;
-        mountName = "/tmp/usb_" + rselUserId + "/" + driveName;
+        dirName = "/tmp/users/" + rselUserId;
+        mountName = "/tmp/users/" + rselUserId + "/usb/" + driveName;
         PdmUtils::createDir(mountName);
 
         uid = PdmUtils::get_uid(rselUserId.c_str());
@@ -2028,8 +2069,8 @@ bool PdmLunaService::mountDeviceToSession(std::string driveName, std::string dev
     else if (deviceSetId == "RSE-R")
     {
         PDM_LOG_DEBUG("PdmLunaService::%s line:%d Mounting %s to RSE-R user: %s", __FUNCTION__, __LINE__, driveName.c_str(), rserUserId.c_str());
-        dirName = "/tmp/usb_" + rserUserId;
-        mountName = "/tmp/usb_" + rserUserId + "/" + driveName;
+        dirName = "/tmp/users/" + rserUserId;
+        mountName = "/tmp/users/" + rserUserId + "/usb/" + driveName;
         PdmUtils::createDir(mountName);
 
         uid = PdmUtils::get_uid(rserUserId.c_str());
@@ -2075,21 +2116,23 @@ bool PdmLunaService::mountDeviceToSession(std::string driveName, std::string dev
         PDM_LOG_DEBUG("PdmLunaService:%s line:%d Mounting %s to RSE-L user: %s", __FUNCTION__, __LINE__, driveName.c_str(), rselUserId.c_str());
         PdmUtils::do_chown(dirName.c_str(), rselUserId.c_str(), rselUserId.c_str());
         PdmUtils::do_chown(mountName.c_str(), rselUserId.c_str(), rselUserId.c_str());
-        chmod(dirName.c_str(), MOUNT_FILE_MODE);
+        if (0 != chmod(dirName.c_str(), MOUNT_FILE_MODE)) {
+            PDM_LOG_ERROR("PdmLunaService:%s line:%d chmod error: %d stderror: %s", __FUNCTION__, __LINE__, errno, strerror(errno));
+        }
     }
     else if (deviceSetId == "RSE-R")
     {
         PDM_LOG_DEBUG("PdmLunaService:%s line:%d Mounting %s to RSE-R user: %s", __FUNCTION__, __LINE__, driveName.c_str(), rserUserId.c_str());
         PdmUtils::do_chown(dirName.c_str(), rserUserId.c_str(), rserUserId.c_str());
         PdmUtils::do_chown(mountName.c_str(), rserUserId.c_str(), rserUserId.c_str());
-        chmod(dirName.c_str(), MOUNT_FILE_MODE);
+        if(0 != chmod(dirName.c_str(), MOUNT_FILE_MODE)) {
+            PDM_LOG_ERROR("PdmLunaService:%s line:%d chmod error: %d stderror: %s", __FUNCTION__, __LINE__, errno, strerror(errno));
+        }
     }
 
-    int cm_ret = chmod(dirName.c_str(), MOUNT_FILE_MODE);
-    PDM_LOG_DEBUG("PdmLunaService:%s line:%d chmod output: %d", __FUNCTION__, __LINE__, cm_ret);
-    if(cm_ret)
-        PDM_LOG_DEBUG("PdmLunaService:%s line:%d chmod error: %d stderror: %s", __FUNCTION__, __LINE__, errno, strerror(errno));
-
+    if (0 != chmod(dirName.c_str(), MOUNT_FILE_MODE)) {
+        PDM_LOG_ERROR("PdmLunaService:%s line:%d chmod error: %d stderror: %s", __FUNCTION__, __LINE__, errno, strerror(errno));
+    }
     return true;
 }
 
@@ -2222,7 +2265,7 @@ bool PdmLunaService::cbDbResponse(LSHandle * sh, LSMessage * message, void * use
     PdmLunaService* object = (PdmLunaService*)user_data;
     if (!object) {
         PDM_LOG_ERROR("PdmLunaService:%s line: %d object is empty ", __FUNCTION__, __LINE__);
-    return false;
+        return false;
     }
     LSMessage* getToastReplyMsg = object->getReplyMsg();
     if (!getToastReplyMsg) {
@@ -2416,10 +2459,14 @@ bool PdmLunaService::cbQueryResponse(LSHandle * sh, LSMessage * message, void * 
     pbnjson::JValue request = pbnjson::JDomParser::fromString(payload);
     if(request.isNull() || (!request["returnValue"].asBool()))
     {
-        PDM_LOG_ERROR("PdmLunaService:%s line: %d Db8Response is empty ", __FUNCTION__, __LINE__);  
+        PDM_LOG_ERROR("PdmLunaService:%s line: %d Db8Response is empty ", __FUNCTION__, __LINE__);
         return false;
     }
     PdmLunaService* object = (PdmLunaService*)user_data;
+    if(nullptr == object) {
+        PDM_LOG_ERROR("PdmLunaService:%s line: %d PdmLunaService obj is NULL", __FUNCTION__, __LINE__);
+        return false;
+    }
 
     pbnjson::JValue resultArray = request["results"];
     PDM_LOG_DEBUG("PdmLunaService:%s line: %d list:%s", __FUNCTION__, __LINE__, resultArray.stringify().c_str());
@@ -2486,6 +2533,10 @@ bool PdmLunaService::cbDeleteResponse(LSHandle * sh, LSMessage * message, void *
         return false;
     }
     PdmLunaService* object = (PdmLunaService*)user_data;
+    if(nullptr == object) {
+        PDM_LOG_ERROR("PdmLunaService:%s line: %d PdmLunaService obj is NULL", __FUNCTION__, __LINE__);
+        return false;
+    }
     pbnjson::JValue request = pbnjson::JDomParser::fromString(payload);
     PDM_LOG_DEBUG("PdmLunaService:%s line: %d request:%s", __FUNCTION__, __LINE__, request.stringify().c_str());
     if(request.isNull() || (!request["returnValue"].asBool()) || (!request["count"].asNumber<int>()))

@@ -256,7 +256,7 @@ template < class T > bool getAttachedUsbStorageDeviceList (std::list<T*>& sList,
         storageDevice.put("vendorId", storageIter->getVendorID());
         storageDevice.put("productId", storageIter->getProductID());
         storageDevice.put("deviceSetId", storageIter->getDeviceSetId());
-        storageDevice.put("rootPath", storageIter->getStorageRootPath(storageIter->getDeviceSetId()));
+        storageDevice.put("rootPath", storageIter->getStorageRootPath(storageIter->getHubPortNumber()));
 #else
         storageDevice.put("rootPath", storageIter->getRootPath());
         storageDevice.put("errorReason", storageIter->getErrorReason());

@@ -35,12 +35,13 @@ namespace fs = std::experimental::filesystem;
 
 uid_t PdmUtils::get_uid(const char *user_name)
 {
-    uid_t          uid;
+    uid_t          uid = 0;
     struct passwd *pwd;
 
     pwd = getpwnam(user_name);
     if (pwd == NULL) {
         PDM_LOG_CRITICAL("PdmUtils:%s line: %d error: Failed to get uid", __FUNCTION__, __LINE__);
+        return 0;
     }
     uid = pwd->pw_uid;
 
@@ -49,12 +50,13 @@ uid_t PdmUtils::get_uid(const char *user_name)
 
 gid_t PdmUtils::get_gid(const char *group_name)
 {
-    gid_t          gid;
+    gid_t          gid = 0;
     struct group  *grp;
 
     grp = getgrnam(group_name);
     if (grp == NULL) {
         PDM_LOG_CRITICAL("PdmUtils:%s line: %d error: Failed to get gid", __FUNCTION__, __LINE__);
+        return 0;
     }
     gid = grp->gr_gid;
 
@@ -63,20 +65,22 @@ gid_t PdmUtils::get_gid(const char *group_name)
 
 void PdmUtils::do_chown(const char *file_path, const char *user_name, const char *group_name)
 {
-    uid_t          uid;
-    gid_t          gid;
+    uid_t          uid = 0;
+    gid_t          gid = 0;
     struct passwd *pwd;
     struct group  *grp;
 
     pwd = getpwnam(user_name);
     if (pwd == NULL) {
         PDM_LOG_CRITICAL("PdmUtils:%s line: %d error: Failed to get uid", __FUNCTION__, __LINE__);
+        return;
     }
     uid = pwd->pw_uid;
 
     grp = getgrnam(group_name);
     if (grp == NULL) {
         PDM_LOG_CRITICAL("PdmUtils:%s line: %d error: Failed to get gid", __FUNCTION__, __LINE__);
+        return;
     }
     gid = grp->gr_gid;
 
