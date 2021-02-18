@@ -17,6 +17,7 @@
 #ifndef _PDMLUNASERVICE_H
 #define _PDMLUNASERVICE_H
 
+#include <map>
 #include <string>
 #include <glib.h>
 #include <lunaservice.h>
@@ -82,6 +83,7 @@ class PdmLunaService
         static LSMethod pdm_dev_methods[];
         static std::map<std::string, std::string> m_sessionMap;
         static std::map<std::string, std::string> m_portDisplayMap;
+        std::map <std::string, std::string> m_hubPortPathSessionIdMap;
         LSMessage* replyMsg;
         LSMessage* getReplyMsg() { return replyMsg;}
         bool isGetSpaceInfoRequest;
@@ -148,6 +150,11 @@ class PdmLunaService
         static bool _cbSetDeviceForSession(LSHandle *sh, LSMessage *message , void *data){
             return static_cast<PdmLunaService*>(data)->cbSetDeviceForSession(sh, message);
         }
+        std::string findPreviousSessionId(std::string hubPortPath);
+        void deletePreviousPayload(std::string hubPortPath);
+        void deletePreviousMountName(std::string hubPortPath);
+        void displayConnectedToast(std::string device, std::string deviceSetId);
+        void displayDisconnectedToast(std::string device, std::string deviceSetId);
         bool isDriveBusy(std::string mountName);
         bool isWritable(std::string driveNmae);
         void UpdateDB();
@@ -183,7 +190,6 @@ class PdmLunaService
         static bool cbDb8FindResponse(LSHandle * sh, LSMessage * message, void * user_data);
         static bool cbDeleteResponse (LSHandle * sh, LSMessage * message, void * user_data);
         bool getDevicesFromDB(std::string deviceType, std::string sessionId);
-        bool notifyDisplayChange(std::string deviceSetId, std::string deviceType, pbnjson::JValue deviceArray);
         bool cbgetAttachedAllDeviceList(LSHandle *sh, LSMessage *message);
         pbnjson::JValue createJsonGetAttachedAllDeviceList(LSMessage *message );
         bool cbgetAttachedDeviceList(LSHandle *sh, LSMessage *message);
