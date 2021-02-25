@@ -171,7 +171,7 @@ class PdmLunaService
         bool ejectDevice(pbnjson::JValue list,PdmLunaService* object);
         bool umount(std::string mountPath);
         void findDevice(LSHandle * sh, int deviceNum);
-        bool mountDeviceToSession(std::string driveName, std::string deviceSetId, std::string fsType);
+        bool mountDeviceToSession(std::string mountName, std::string driveName, std::string deviceSetId, std::string fsType);
         bool createToast(const std::string &message, const std::string &iconUrl, std::string deviceSetId);
         bool queryForSession();
         void notifyResumeDone();
