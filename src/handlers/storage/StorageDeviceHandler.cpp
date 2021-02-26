@@ -1,4 +1,4 @@
-// Copyright (c) 2019-2020 LG Electronics, Inc.
+// Copyright (c) 2019-2021 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,6 +19,10 @@
 #include "PdmLogUtils.h"
 #include "PdmJson.h"
 #include <algorithm>
+#include <luna-service2/lunaservice.hpp>
+#include <luna-service2++/handle.hpp>
+#include "LunaIPC.h"
+#include <sys/mount.h>
 
 using namespace PdmDevAttributes;
 using namespace std::placeholders;
@@ -136,9 +140,6 @@ bool StorageDeviceHandler::HandlerCommand(CommandType *cmdtypes, CommandResponse
         case SET_VOLUME_LABEL:
             result = setVolumeLabel(cmdtypes, cmdResponse);
             break;
-        case UMOUNT_ALL_DRIVE:
-            result = umountAllDrive(cmdResponse);
-            break;
         case IS_WRITABLE_DRIVE:
             result = isWritableDrive(cmdtypes, cmdResponse);
             break;
@@ -149,6 +150,9 @@ bool StorageDeviceHandler::HandlerCommand(CommandType *cmdtypes, CommandResponse
             result = getSpaceInfo(cmdtypes, cmdResponse);
             break;
 #endif
+        case UMOUNT_ALL_DRIVE:
+            result = umountAllDrive(cmdResponse);
+            break;
         default:
             PDM_LOG_CRITICAL("Command not supported");
             break;
@@ -522,10 +526,57 @@ bool StorageDeviceHandler::HandlePluginEvent(int eventType) {
 
 bool StorageDeviceHandler::umountAllDrive(bool lazyUnmount) {
     bool retVal = true;
+#ifdef WEBOS_SESSION
+    pbnjson::JValue find_query = pbnjson::Object();
+    pbnjson::JValue query;
+    query = pbnjson::JObject{{"from", "com.webos.service.pdmhistory:1"},
+                             {"where", pbnjson::JArray{{{"prop", "deviceType"}, {"op", "="}, {"val", "USB_STORAGE"}}}}};
+
+    find_query.put("query", query);
+
+    LS::Payload find_payload(find_query);
+    LS::Call call = LunaIPC::getInstance()->getLSCPPHandle()->callOneReply("luna://com.webos.service.db/find", find_payload.getJson(), NULL, this, NULL);
+    LS::Message message = call.get();
+
+    LS::PayloadRef response_payload = message.accessPayload();
+    pbnjson::JValue request = response_payload.getJValue();
+
+    if(request.isNull())
+    {
+        PDM_LOG_ERROR("PdmLunaService::%s line: %d Nothing is there in Db ",  __FUNCTION__, __LINE__);
+    }
+
+    if(!request["returnValue"].asBool())
+    {
+        PDM_LOG_ERROR("PdmLunaService::%s line: %d not able to find from db",  __FUNCTION__, __LINE__);
+    }
+
+    for(ssize_t index = 0; index < request.arraySize() ; index++) {
+        if(request[index]["deviceType"] == "USB_STORAGE") {
+            for(ssize_t idx = 0; idx < request[index]["storageDriveList"].arraySize() ; idx++) {
+                std::string mountName = request[index]["storageDriveList"][idx]["mountName"].asString();
+                if(!mountName.empty()) {
+                    int umountFlags = MNT_FORCE;
+
+                    if(1)
+                        umountFlags |= MNT_DETACH;
+
+                    int res = umount2(mountName.c_str(), umountFlags);
+                    if(res != 0) {
+                        PDM_LOG_ERROR("PdmFs:%s line: %d Umount Failed :%s", __FUNCTION__, __LINE__, strerror(errno));
+                        retVal = false;
+                    }
+                }
+            }
+        }
+    }
+
+#else
     for(auto storageDevice : mStorageList) {
         if(storageDevice->suspendUmountAllPartitions(lazyUnmount) == false)
             retVal = false;
     }
+#endif
     return retVal;
 }
 

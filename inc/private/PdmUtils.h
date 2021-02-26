@@ -28,6 +28,7 @@ namespace PdmUtils
     std::string execShellCmd(const std::string &cmd);
     bool createDir(const std::string &dirName);
     bool removeDirRecursive(const std::string &dirPath);
+    bool removeFile(const std::string &dirPath);
     std::string& ltrimString(std::string &str);
     std::string& rtrimString(std::string &str);
     std::string& trimString(std::string &str);

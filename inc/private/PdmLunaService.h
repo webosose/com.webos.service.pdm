@@ -87,6 +87,7 @@ class PdmLunaService
         LSMessage* replyMsg;
         LSMessage* getReplyMsg() { return replyMsg;}
         bool isGetSpaceInfoRequest;
+        void deleteDeviceFromDb(std::string deviceSetId);
 #endif
         CommandManager *mCommandManager;
         bool subscriptionAdd(LSHandle *a_sh, const char *a_key, LSMessage *a_message);
@@ -157,14 +158,12 @@ class PdmLunaService
         void displayDisconnectedToast(std::string device, std::string deviceSetId);
         bool isDriveBusy(std::string mountName);
         bool isWritable(std::string driveNmae);
-        void UpdateDB();
         void updateAllDeviceSessionPayload(std::string deviceSetId);
         void updateHostPayload(std::string deviceType);
         bool deleteAndUpdatePayload(pbnjson::JValue resultArray);
         bool updatePayload(std::string deviceSetId, std::string deviceType);
         bool queryDevice(std::string hubPortPath);
         bool cbSetDeviceForSession(LSHandle *sh, LSMessage *message);
-        bool isDeviceExist(pbnjson::JValue resultArray,std::string hubPortPath, std::string deviceType);
         static bool cbDb8Response(LSHandle* lshandle, LSMessage *message, void *user_data);
         bool storeDeviceInfo(pbnjson::JValue list);
         bool updateIsMount(pbnjson::JValue list,std::string driveName);
@@ -194,8 +193,6 @@ class PdmLunaService
         pbnjson::JValue createJsonGetAttachedAllDeviceList(LSMessage *message );
         bool cbgetAttachedDeviceList(LSHandle *sh, LSMessage *message);
         static bool cbDbResponse(LSHandle * sh, LSMessage * message, void * user_data);
-        static bool cbUpdateDBResponse(LSHandle * sh, LSMessage * message, void * user_data);
-        static bool cbDeleteDeviceResponse(LSHandle * sh, LSMessage * message, void * user_data);
         static bool cbEjectDevice(LSHandle * sh, LSMessage * message, void * user_data);
         static bool cbFindDriveName(LSHandle * sh, LSMessage * message, void * user_data);
         static bool cbUpdateDeviceListResponse(LSHandle * sh, LSMessage * message, void * user_data);

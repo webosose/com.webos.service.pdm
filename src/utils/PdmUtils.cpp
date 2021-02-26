@@ -140,6 +140,25 @@ bool PdmUtils::removeDirRecursive(const std::string &dirPath)
     return ret;
 }
 
+bool PdmUtils::removeFile(const std::string &file)
+{
+    bool ret = false;
+
+    if(!file.empty())
+    {
+        try{
+            ret = fs::remove(fs::path(file));
+            if(!ret)
+                PDM_LOG_CRITICAL("PdmUtils:%s line: %d not remove : %s", __FUNCTION__, __LINE__, file.c_str());
+        }
+        catch(const fs::filesystem_error& error){
+            PDM_LOG_CRITICAL("PdmUtils:%s line: %d error: %s ", __FUNCTION__, __LINE__, error.what());
+        }
+    }
+
+    return ret;
+}
+
 std::string& PdmUtils::ltrimString(std::string &str)
 {
     if(!str.empty()) {

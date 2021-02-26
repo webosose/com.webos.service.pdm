@@ -1264,7 +1264,10 @@ bool PdmLunaService::cbmountandFullFsck(LSHandle *sh, LSMessage *message)
 
 void PdmLunaService::notifyResumeDone() {
     PDM_LOG_DEBUG("PdmLunaService:%s line: %d ", __FUNCTION__, __LINE__);
-    UpdateDB();
+    sleep(2);
+    deleteDeviceFromDb("RSE-R");
+    deleteDeviceFromDb("RSE-L");
+    deleteDeviceFromDb("AVN");
 }
 bool PdmLunaService::cbgetAttachedAllDeviceList(LSHandle *sh, LSMessage *message) {
     PDM_LOG_DEBUG("PdmLunaService:%s line: %d payload:%s", __FUNCTION__, __LINE__, LSMessageGetPayload(message));
@@ -2574,6 +2577,7 @@ bool PdmLunaService::deleteAndUpdatePayload(pbnjson::JValue resultArray) {
     std::string hubPortPath = resultArray[0]["hubPortPath"].asString();
     m_deviceSetId = resultArray[0]["deviceSetId"].asString();
     m_deviceType =  resultArray[0]["deviceType"].asString();
+    std::string rootPath = resultArray[0]["rootPath"].asString();
 
     PDM_LOG_INFO("PdmLunaService:",0,"%s line: %d frm db hubPortPath:%s m_deviceSetId:%s m_deviceType:%s", __FUNCTION__,__LINE__,hubPortPath.c_str(), m_deviceSetId.c_str(), m_deviceType.c_str());
     if (m_deviceType == "USB_STORAGE") {
@@ -2581,11 +2585,15 @@ bool PdmLunaService::deleteAndUpdatePayload(pbnjson::JValue resultArray) {
             std::string mountName = resultArray[0]["storageDriveList"][idx]["mountName"].asString();
             PDM_LOG_DEBUG("PdmLunaService::%s line:%d mountName: %s", __FUNCTION__, __LINE__, mountName.c_str());
             if(umount(mountName)) {
-                int ret = PdmUtils::removeDirRecursive(mountName);
-                if(ret) {
-                    PDM_LOG_DEBUG("PdmLunaService::%s line:%d removed the directory: %s", __FUNCTION__, __LINE__, mountName.c_str());
+               bool ret = PdmUtils::removeDirRecursive(mountName);
+               if(!ret) {
+                   PDM_LOG_DEBUG("PdmLunaService::%s line:%d unable to remove the mountName: %s", __FUNCTION__, __LINE__, mountName.c_str());
                 }
             }
+        }
+        bool ret = PdmUtils::removeFile(rootPath);
+        if(!ret) {
+            PDM_LOG_DEBUG("PdmLunaService::%s line:%d unable to remove the rootPath :%s", __FUNCTION__, __LINE__, rootPath.c_str());
         }
     }
     pbnjson::JValue find_query = pbnjson::Object();
@@ -2882,129 +2890,33 @@ bool PdmLunaService::cbAllDeviceSessionResponse(LSHandle * sh, LSMessage * messa
     return true;
 }
 
-void PdmLunaService::UpdateDB() {
-    PDM_LOG_INFO("PdmLunaService:",0,"%s line: %d ", __FUNCTION__,__LINE__);
-    LSError lserror;
+void PdmLunaService::deleteDeviceFromDb(std::string deviceSetId)
+{
+    PDM_LOG_INFO("PdmLunaService:",0,"%s line: %d deviceSetId:%s", __FUNCTION__,__LINE__, deviceSetId.c_str());
+
     pbnjson::JValue find_query = pbnjson::Object();
-    pbnjson::JValue request = pbnjson::JObject{{"from", "com.webos.service.pdmhistory:1"}};
-    find_query.put("query", request);
-    if (LSCallOneReply(mServiceHandle,"luna://com.webos.service.db/find",
-                             find_query.stringify().c_str(), cbUpdateDBResponse, this, NULL, &lserror) == false) {
-        PDM_LOG_DEBUG("finding to the db failed in %s", __PRETTY_FUNCTION__ );
-        LSErrorPrint(&lserror, stderr);
-        LSErrorFree(&lserror);
-    }
-}
+    pbnjson::JValue query;
+    query = pbnjson::JObject{{"from", "com.webos.service.pdmhistory:1"},
+                             {"where", pbnjson::JArray{{{"prop", "deviceSetId"}, {"op", "="}, {"val", deviceSetId.c_str()}}}}};
 
-bool PdmLunaService::cbUpdateDBResponse(LSHandle * sh, LSMessage * message, void * user_data) {
-    PDM_LOG_INFO("PdmLunaService:",0,"%s line: %d ", __FUNCTION__,__LINE__);
-    LSError lserror;
-    const char* payload = LSMessageGetPayload(message);
+    find_query.put("query", query);
 
-    if(!payload) {
-        PDM_LOG_ERROR("PdmLunaService:%s line: %d payload is empty ", __FUNCTION__, __LINE__);
-        return false;
-    }
-    pbnjson::JValue request = pbnjson::JDomParser::fromString(payload);
-    if(request.isNull() || (!request["returnValue"].asBool()))
-    {
-        PDM_LOG_ERROR("PdmLunaService:%s line: %d Db8Response is empty ", __FUNCTION__, __LINE__);
-        return false;
-    }
-    PdmLunaService* object = (PdmLunaService*)user_data;
-    if (!object) {
-        PDM_LOG_ERROR("PdmLunaService:%s line: %d object is empty ", __FUNCTION__, __LINE__);
-        return false;
-    }
-    pbnjson::JValue resultArray = request["results"];
-    if(resultArray.isArray()) {
-        if(resultArray.arraySize() == 0) {
-            PDM_LOG_INFO("PdmLunaService:",0,"%s line: %d DB is empty", __FUNCTION__,__LINE__);
-        } else{
-            PDM_LOG_INFO("PdmLunaService:",0,"%s line: %d array size:%zu", __FUNCTION__,__LINE__, resultArray.arraySize());
-            pbnjson::JValue storageDevicePayload = object->createJsonGetAttachedStorageDeviceList(nullptr);
-            pbnjson::JValue nonStorageDevicePayload = object->createJsonGetAttachedNonStorageDeviceList(nullptr);
-            bool deviceExist = false;
-            for(ssize_t index = 0; index < resultArray.arraySize() ; ++index) {
-                std::string hubPortPath = resultArray[index]["hubPortPath"].asString();
-                std::string deviceType = resultArray[index]["deviceType"].asString();
-                std::string deviceSetId = resultArray[index]["deviceSetId"].asString();
-                PDM_LOG_INFO("PdmLunaService:",0,"%s line: %d hubPortPath: %s deviceType :%s deviceSetId: %s", __FUNCTION__,__LINE__, hubPortPath.c_str(), deviceType.c_str(), deviceSetId.c_str());
-                if((!hubPortPath.empty()) && (!deviceType.empty())) {
-                    if(deviceType == "USB_STORAGE")
-                    {
-                        deviceExist = object->isDeviceExist(storageDevicePayload,hubPortPath,deviceType);
-                    }else {
-                        deviceExist = object->isDeviceExist(nonStorageDevicePayload,hubPortPath,deviceType);
-                    }
-                    if(deviceExist == false) {
-                        PDM_LOG_INFO("PdmLunaService:",0,"%s line: %d deleting from db", __FUNCTION__,__LINE__);
-                        pbnjson::JValue find_query = pbnjson::Object();
-                        pbnjson::JValue request;
-                        request = pbnjson::JObject{{"from", "com.webos.service.pdmhistory:1"},
-                                                   {"where", pbnjson::JArray{{{"prop", "hubPortPath"}, {"op", "="}, {"val", hubPortPath.c_str()}}}}};
-                        find_query.put("query", request);
-                        if (LSCallOneReply(sh,"luna://com.webos.service.db/del",
-                                               find_query.stringify().c_str(), cbDeleteDeviceResponse, NULL, NULL, &lserror) == false) {
-                            PDM_LOG_DEBUG("finding to the db failed in %s", __PRETTY_FUNCTION__ );
-                            LSErrorPrint(&lserror, stderr);
-                            LSErrorFree(&lserror);
-                            return false;
-                        }
-                    }
-                }
-            }
-        }
-    }
-    return true;
-}
+    LS::Payload find_payload(find_query);
+    LS::Call call = LunaIPC::getInstance()->getLSCPPHandle()->callOneReply("luna://com.webos.service.db/del", find_payload.getJson(), NULL, this, NULL);
+    LS::Message message = call.get();
 
-bool PdmLunaService::cbDeleteDeviceResponse(LSHandle * sh, LSMessage * message, void * user_data) {
-    PDM_LOG_INFO("PdmLunaService:",0,"%s line: %d ", __FUNCTION__,__LINE__);
-    const char* payload = LSMessageGetPayload(message);
+    LS::PayloadRef response_payload = message.accessPayload();
+    pbnjson::JValue request = response_payload.getJValue();
 
-    if(!payload) {
-        PDM_LOG_ERROR("PdmLunaService:%s line: %d payload is empty ", __FUNCTION__, __LINE__);
-        return false;
-    }
-    pbnjson::JValue request = pbnjson::JDomParser::fromString(payload);
-    if(request.isNull() || (!request["returnValue"].asBool()))
+    if(request.isNull())
     {
         PDM_LOG_ERROR("PdmLunaService:%s line: %d reuest is empty ", __FUNCTION__, __LINE__);
-        return false;
     }
-    PDM_LOG_INFO("PdmLunaService:",0,"%s line: %d device is deleted", __FUNCTION__,__LINE__);
-    return true;
-}
 
-
-bool PdmLunaService::isDeviceExist(pbnjson::JValue request, std::string hubPortPath, std::string deviceType) {
-    PDM_LOG_INFO("PdmLunaService:",0,"%s line: %d hubPortPath:%s, deviceType:%s", __FUNCTION__, __LINE__,hubPortPath.c_str(),deviceType.c_str());
-    bool result = false;
-    pbnjson::JValue resultArray;
-    if(deviceType == "USB_STORAGE") {
-        resultArray = request["storageDeviceList"];
-    }else {
-        resultArray = request["nonStorageDeviceList"];
+    if(!request["returnValue"].asBool())
+    {
+        PDM_LOG_ERROR("PdmLunaService::%s line: %d not able to delete from db for %s",  __FUNCTION__, __LINE__,deviceSetId.c_str());
     }
-    if(resultArray.isArray()) {
-        if(resultArray.arraySize() == 0) {
-            PDM_LOG_ERROR("PdmLunaService:%s line: %d  No device Info in DB ", __FUNCTION__, __LINE__);
-        } else {
-            PDM_LOG_INFO("PdmLunaService:",0,"%s line: %d  array size: %zu", __FUNCTION__,__LINE__, resultArray.arraySize());
-            for(ssize_t index = 0; index < resultArray.arraySize() ; ++index) {
-                std::string deviceHubPortPath =  resultArray[index]["hubPortPath"].asString();
-                PDM_LOG_INFO("PdmLunaService:",0,"%s line: %d hubPortPath :%s deviceHubPortPath: %s", __FUNCTION__,__LINE__, deviceHubPortPath.c_str(), hubPortPath.c_str());
-                if(hubPortPath == deviceHubPortPath) {
-                    PDM_LOG_INFO("PdmLunaService:",0,"%s line: %d  hubPortPath: %s is connected", __FUNCTION__,__LINE__, hubPortPath.c_str());
-                    result = true;
-                    break;
-                }
-            }
-        }
-    }
-    PDM_LOG_INFO("PdmLunaService:",0,"%s line: %d device is connected:%d", __FUNCTION__,__LINE__, result);
-    return result;
 }
 
 void PdmLunaService::deletePreviousMountName(std::string hubPortPath)
