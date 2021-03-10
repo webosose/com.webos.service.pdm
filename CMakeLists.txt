@@ -98,7 +98,7 @@ if(WEBOS_TARGET_DISTRO STREQUAL "webos-auto")
 endif()
 
 if(WEBOS_TARGET_DISTRO STREQUAL "webos")
-    if(WEBOS_TARGET_MACHINE STREQUAL "raspberrypi4")
+    if(WEBOS_TARGET_MACHINE STREQUAL "raspberrypi4" OR WEBOS_TARGET_MACHINE STREQUAL "qemux86-64" OR  WEBOS_TARGET_MACHINE STREQUAL "qemux86")
         webos_build_configured_file(files/systemd/physical-device-manager.service SYSCONFDIR systemd/system)
     endif()
 endif()
