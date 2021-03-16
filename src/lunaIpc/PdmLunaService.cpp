@@ -1265,9 +1265,7 @@ bool PdmLunaService::cbmountandFullFsck(LSHandle *sh, LSMessage *message)
 void PdmLunaService::notifyResumeDone() {
     PDM_LOG_DEBUG("PdmLunaService:%s line: %d ", __FUNCTION__, __LINE__);
     sleep(2);
-    deleteDeviceFromDb("RSE-R");
-    deleteDeviceFromDb("RSE-L");
-    deleteDeviceFromDb("AVN");
+    deleteDeviceFromDbExceptBTDongle();
 }
 bool PdmLunaService::cbgetAttachedAllDeviceList(LSHandle *sh, LSMessage *message) {
     PDM_LOG_DEBUG("PdmLunaService:%s line: %d payload:%s", __FUNCTION__, __LINE__, LSMessageGetPayload(message));
@@ -2846,14 +2844,57 @@ bool PdmLunaService::cbAllDeviceSessionResponse(LSHandle * sh, LSMessage * messa
     return true;
 }
 
-void PdmLunaService::deleteDeviceFromDb(std::string deviceSetId)
+void PdmLunaService::deleteDeviceFromDbExceptBTDongle()
 {
-    PDM_LOG_INFO("PdmLunaService:",0,"%s line: %d deviceSetId:%s", __FUNCTION__,__LINE__, deviceSetId.c_str());
+    PDM_LOG_INFO("PdmLunaService:",0,"%s line: %d ", __FUNCTION__,__LINE__);
 
     pbnjson::JValue find_query = pbnjson::Object();
     pbnjson::JValue query;
+    query = pbnjson::JObject{{"from", "com.webos.service.pdmhistory:1"}};
+
+    find_query.put("query", query);
+
+    LS::Payload find_payload(find_query);
+    LS::Call call = LunaIPC::getInstance()->getLSCPPHandle()->callOneReply("luna://com.webos.service.db/find", find_payload.getJson(), NULL, this, NULL);
+    LS::Message message = call.get();
+
+    LS::PayloadRef response_payload = message.accessPayload();
+    pbnjson::JValue request = response_payload.getJValue();
+
+    if(request.isNull() || !request["returnValue"].asBool())
+    {
+        PDM_LOG_ERROR("PdmLunaService:%s line: %d request is empty ", __FUNCTION__, __LINE__);
+        return;
+    }
+
+    pbnjson::JValue resultArray = request["results"];
+    if(resultArray.isArray()) {
+        if(resultArray.arraySize() == 0) {
+            PDM_LOG_INFO("PdmLunaService:",0,"%s line: %d DB is empty", __FUNCTION__,__LINE__);
+        } else{
+            PDM_LOG_INFO("PdmLunaService:",0,"%s line: %d array size:%zu", __FUNCTION__,__LINE__, resultArray.arraySize());
+            for(ssize_t index = 0; index < resultArray.arraySize() ; ++index) {
+               std::string hubPortPath = resultArray[index]["hubPortPath"].asString();
+                std::string deviceType = resultArray[index]["deviceType"].asString();
+                std::string deviceSetId = resultArray[index]["deviceSetId"].asString();
+                PDM_LOG_INFO("PdmLunaService:",0,"%s line: %d hubPortPath: %s deviceType :%s deviceSetId: %s", __FUNCTION__,__LINE__, hubPortPath.c_str(), deviceType.c_str(), deviceSetId.c_str());
+                if((!hubPortPath.empty()) && (!deviceType.empty())) {
+                    if(deviceType != "BLUETOOTH")
+                    {
+                        deleteDeviceFromDb(deviceType);
+                    }
+                }
+            }
+        }
+    }
+}
+
+void PdmLunaService::deleteDeviceFromDb(std::string deviceType)
+{
+    pbnjson::JValue find_query = pbnjson::Object();
+    pbnjson::JValue query;
     query = pbnjson::JObject{{"from", "com.webos.service.pdmhistory:1"},
-                             {"where", pbnjson::JArray{{{"prop", "deviceSetId"}, {"op", "="}, {"val", deviceSetId.c_str()}}}}};
+                            {"where", pbnjson::JArray{{{"prop", "deviceType"}, {"op", "="}, {"val", deviceType.c_str()}}}}};
 
     find_query.put("query", query);
 
@@ -2864,14 +2905,9 @@ void PdmLunaService::deleteDeviceFromDb(std::string deviceSetId)
     LS::PayloadRef response_payload = message.accessPayload();
     pbnjson::JValue request = response_payload.getJValue();
 
-    if(request.isNull())
+    if(request.isNull() || !request["returnValue"].asBool())
     {
-        PDM_LOG_ERROR("PdmLunaService:%s line: %d reuest is empty ", __FUNCTION__, __LINE__);
-    }
-
-    if(!request["returnValue"].asBool())
-    {
-        PDM_LOG_ERROR("PdmLunaService::%s line: %d not able to delete from db for %s",  __FUNCTION__, __LINE__,deviceSetId.c_str());
+        PDM_LOG_ERROR("PdmLunaService:%s line: %d request is empty ", __FUNCTION__, __LINE__);
     }
 }
 

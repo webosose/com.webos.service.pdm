@@ -87,7 +87,8 @@ class PdmLunaService
         LSMessage* replyMsg;
         LSMessage* getReplyMsg() { return replyMsg;}
         bool isGetSpaceInfoRequest;
-        void deleteDeviceFromDb(std::string deviceSetId);
+        void deleteDeviceFromDbExceptBTDongle();
+        void deleteDeviceFromDb(std::string deviceType);
 #endif
         CommandManager *mCommandManager;
         bool subscriptionAdd(LSHandle *a_sh, const char *a_key, LSMessage *a_message);
