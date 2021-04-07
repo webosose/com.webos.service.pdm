@@ -1356,8 +1356,9 @@ bool PdmLunaService::cbSetDeviceForSession(LSHandle *sh, LSMessage *message)
         prevSessionId = findPreviousSessionId(hubPortPath);
         PDM_LOG_DEBUG("PdmLunaService:%s line: %d prevSessionId: %s, curSessionId: %s", __FUNCTION__, __LINE__, prevSessionId.c_str(), curSessionId.c_str());
         PDM_LOG_DEBUG("PdmLunaService:%s line: %d lastStorageDeviceSetId: %s, currentDeviceSetId: %s", __FUNCTION__, __LINE__, lastStorageDeviceSetId.c_str(), deviceSetId.c_str());
-        if ((!prevSessionId.empty() && prevSessionId != curSessionId))
+        if ((!prevSessionId.empty() && prevSessionId != curSessionId) || (!lastStorageDeviceSetId.empty() && deviceSetId.empty()))
         {
+            PDM_LOG_DEBUG("PdmLunaService:%s line: %d deleting previous mount path", __FUNCTION__, __LINE__);
             deletePreviousMountName(hubPortPath);
             deletePreviousPayload(hubPortPath);
             if((!lastStorageDeviceSetId.empty()) && (lastStorageDeviceSetId != deviceSetId)) {
@@ -1366,7 +1367,7 @@ bool PdmLunaService::cbSetDeviceForSession(LSHandle *sh, LSMessage *message)
         }
         m_portDisplayMap[hubPortPath] = deviceSetId;
         m_hubPortPathSessionIdMap[hubPortPath] = curSessionId;
-        if (!deviceSetId.empty() && (deviceSetId != "Select")) {
+        if (!deviceSetId.empty()) {
             success = storeDeviceInfo(device);
         }
         PDM_LOG_DEBUG("PdmLunaService:%s line: %d success:%d", __FUNCTION__, __LINE__, success);
@@ -1419,15 +1420,19 @@ bool PdmLunaService::cbSetDeviceForSession(LSHandle *sh, LSMessage *message)
                 std::string mountName = drive["mountName"].asString();
                 std::string fsType = drive["fsType"].asString();
                 if (fsType == "tntfs" || fsType == "ntfs" || fsType == "vfat" || fsType == "tfat") {
-                    success = mountDeviceToSession( mountName, driveName, deviceSetId, fsType);
-                    updateIsMount(device,driveName);
+                    if (!deviceSetId.empty()) {
+                        success = mountDeviceToSession( mountName, driveName, deviceSetId, fsType);
+                        updateIsMount(device,driveName);
+                    }
                 }
                 response.put("returnValue", success);
                 PDM_LOG_DEBUG("PdmLunaService:%s line: %d success:%d fsType:%s", __FUNCTION__, __LINE__, success,fsType.c_str());
             }
-            updateErrorReason(device);
+            if (!deviceSetId.empty()) {
+                updateErrorReason(device);
+                displayConnectedToast("Storage",deviceSetId);
+            }
         }
-        displayConnectedToast("Storage",deviceSetId);
     }
 
     pbnjson::JValue deviceListArray = pbnjson::Array();
@@ -2139,8 +2144,8 @@ bool PdmLunaService::mountDeviceToSession(std::string mountName, std::string dri
         data = "iocharset=utf8,fastmount=1,max_prealloc_size=32m,uid=" + uid_str + ",gid=" + gid_str + ",umask=0002"; // TFAT
 
     int32_t ret = mount(drivePath.c_str(), mountName.c_str(), fsType.c_str(), mountFlag, (void*)data.c_str());
-    PDM_LOG_DEBUG("PdmLunaService::%s line:%d Drive path: %s, Mount name: %s, fs type: %s, data: %s", __FUNCTION__, __LINE__, drivePath.c_str(), mountName.c_str(), fsType.c_str(), data);
-    PDM_LOG_DEBUG("PdmLunaService::%s line:%d Mount output: %d", __FUNCTION__, __LINE__, ret);
+    PDM_LOG_INFO("PdmLunaService:",0,"%s line:%d Drive path: %s, Mount name: %s, fs type: %s, data: %s", __FUNCTION__, __LINE__, drivePath.c_str(), mountName.c_str(), fsType.c_str(), data);
+    PDM_LOG_INFO("PdmLunaService:",0,"%s line:%d Mount output: %d", __FUNCTION__, __LINE__, ret);
 
     if(ret) {
         PDM_LOG_WARNING("PdmLunaService:%s line:%d mount failed. errno: %d strerror: %s", __FUNCTION__, __LINE__, errno, strerror(errno));
