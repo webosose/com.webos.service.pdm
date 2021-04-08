@@ -1,6 +1,6 @@
 {
     "com.webos.service.pdm":[
-        "session.management",
+        "account.query",
         "applicationmanager.launcher",
         "settings.query",
         "notification.operation",

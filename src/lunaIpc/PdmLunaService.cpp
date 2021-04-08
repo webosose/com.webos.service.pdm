@@ -1766,7 +1766,7 @@ bool PdmLunaService::queryForSession()
     payload.put("subscribe", true);
 
     LS::Payload find_payload(payload);
-    LS::Call call = mServiceCPPHandle->callOneReply("luna://com.webos.service.sessionmanager/getSessionList", find_payload.getJson(), NULL, this, NULL);
+    LS::Call call = mServiceCPPHandle->callOneReply("luna://com.webos.service.account/getSessions", find_payload.getJson(), NULL, this, NULL);
     LS::Message message = call.get();
 
     LS::PayloadRef response_payload = message.accessPayload();
