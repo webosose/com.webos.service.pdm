@@ -1,7 +1,7 @@
 [Unit]
 Description=webos - "%n"
-Requires=ls-hubd.service systemd-udevd.service
-After=ls-hubd.service systemd-udevd.service
+Requires=ls-hubd.service systemd-udevd.service db8-maindb.service
+After=ls-hubd.service systemd-udevd.service db8-maindb.service
 
 [Service]
 Type=simple

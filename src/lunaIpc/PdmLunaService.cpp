@@ -155,6 +155,7 @@ bool PdmLunaService::init(GMainLoop *mainLoop) {
     {
         PDM_LOG_ERROR("PdmLunaService::%s:%d sessionId fetching failed", __FUNCTION__, __LINE__);
     }
+    deleteDeviceFromDbExceptBTDongle();
 #endif
 
     return true;
@@ -1264,8 +1265,6 @@ bool PdmLunaService::cbmountandFullFsck(LSHandle *sh, LSMessage *message)
 
 void PdmLunaService::notifyResumeDone() {
     PDM_LOG_DEBUG("PdmLunaService:%s line: %d ", __FUNCTION__, __LINE__);
-    sleep(2);
-    deleteDeviceFromDbExceptBTDongle();
 }
 bool PdmLunaService::cbgetAttachedAllDeviceList(LSHandle *sh, LSMessage *message) {
     PDM_LOG_DEBUG("PdmLunaService:%s line: %d payload:%s", __FUNCTION__, __LINE__, LSMessageGetPayload(message));
@@ -2860,7 +2859,7 @@ void PdmLunaService::deleteDeviceFromDbExceptBTDongle()
     find_query.put("query", query);
 
     LS::Payload find_payload(find_query);
-    LS::Call call = LunaIPC::getInstance()->getLSCPPHandle()->callOneReply("luna://com.webos.service.db/find", find_payload.getJson(), NULL, this, NULL);
+    LS::Call call = get_LSCPPHandle()->callOneReply("luna://com.webos.service.db/find", find_payload.getJson(), NULL, this, NULL);
     LS::Message message = call.get();
 
     LS::PayloadRef response_payload = message.accessPayload();
@@ -2904,7 +2903,7 @@ void PdmLunaService::deleteDeviceFromDb(std::string deviceType)
     find_query.put("query", query);
 
     LS::Payload find_payload(find_query);
-    LS::Call call = LunaIPC::getInstance()->getLSCPPHandle()->callOneReply("luna://com.webos.service.db/del", find_payload.getJson(), NULL, this, NULL);
+    LS::Call call = get_LSCPPHandle()->callOneReply("luna://com.webos.service.db/del", find_payload.getJson(), NULL, this, NULL);
     LS::Message message = call.get();
 
     LS::PayloadRef response_payload = message.accessPayload();
