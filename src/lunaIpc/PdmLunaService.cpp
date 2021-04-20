@@ -1360,6 +1360,7 @@ bool PdmLunaService::cbSetDeviceForSession(LSHandle *sh, LSMessage *message)
             PDM_LOG_DEBUG("PdmLunaService:%s line: %d deleting previous mount path", __FUNCTION__, __LINE__);
             deletePreviousMountName(hubPortPath);
             deletePreviousPayload(hubPortPath);
+            updateGetAllDevicePayload(device);
             if((!lastStorageDeviceSetId.empty()) && (lastStorageDeviceSetId != deviceSetId)) {
                 displayDisconnectedToast("Storage", lastStorageDeviceSetId);
             }
@@ -1714,6 +1715,29 @@ bool PdmLunaService::cbSetDeviceForSession(LSHandle *sh, LSMessage *message)
     bRetVal  =  LSMessageReply (sh, message, response.stringify(NULL).c_str(), &error);
     LSERROR_CHECK_AND_PRINT(bRetVal, error);
     return true;
+}
+
+void PdmLunaService::updateGetAllDevicePayload(pbnjson::JValue list)
+{
+    std::string deviceSetId = list["deviceSetId"].asString();
+    PDM_LOG_DEBUG("PdmLunaService: %s line: %d DeviceSetId: %s", __FUNCTION__, __LINE__,deviceSetId.c_str());
+    if (deviceSetId.empty())
+    {
+        list.put("rootPath", "Device not selected");
+        list.put("errorReason", "Not selected");
+        for(ssize_t idx = 0; idx < list["storageDriveList"].arraySize() ; idx++) {
+            std::string fsType = list["storageDriveList"][idx]["fsType"].asString();
+            if (fsType == "tntfs" || fsType == "ntfs" || fsType == "vfat" || fsType == "tfat")
+            {
+                list["storageDriveList"][idx].put("mountName", "");
+                list["storageDriveList"][idx].put("isMounted", false);
+            }
+            else
+            {
+                list["storageDriveList"][idx].put("mountName", "UNSUPPORTED_FILESYSTEM");
+            }
+        }
+    }
 }
 
 std::string PdmLunaService::findPreviousSessionId(std::string hubPortPath)
