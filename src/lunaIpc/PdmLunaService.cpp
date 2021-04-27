@@ -1776,8 +1776,8 @@ bool PdmLunaService::queryForSession()
     std::string sessionId0, sessionId1, sessionId2 = "";
     std::map<std::string, std::string>::iterator it;
 
-    deviceSetId0 = request["sessionList"][0]["deviceSetInfo"]["deviceSetId"].asString();
-    sessionId0 = request["sessionList"][0]["sessionId"].asString();
+    deviceSetId0 = request["sessions"][0]["deviceSetInfo"]["deviceSetId"].asString();
+    sessionId0 = request["sessions"][0]["sessionId"].asString();
     PDM_LOG_DEBUG("PdmLunaService: %s line: %d DeviceSetId0: %s, SessionId0: %s", __FUNCTION__, __LINE__, deviceSetId0.c_str(), sessionId0.c_str());
     it = m_sessionMap.find(deviceSetId0);
     if (it != m_sessionMap.end()) {
@@ -1786,8 +1786,8 @@ bool PdmLunaService::queryForSession()
     } else {
         m_sessionMap.insert(std::pair<std::string, std::string>(deviceSetId0, sessionId0));
     }
-    deviceSetId1 = request["sessionList"][1]["deviceSetInfo"]["deviceSetId"].asString();
-    sessionId1 = request["sessionList"][1]["sessionId"].asString();
+    deviceSetId1 = request["sessions"][1]["deviceSetInfo"]["deviceSetId"].asString();
+    sessionId1 = request["sessions"][1]["sessionId"].asString();
     it = m_sessionMap.find(deviceSetId1);
     PDM_LOG_DEBUG("PdmLunaService: %s line: %d DeviceSetId1: %s, SessionId1: %s", __FUNCTION__, __LINE__, deviceSetId1.c_str(), sessionId1.c_str());
     if (it != m_sessionMap.end()) {
@@ -1796,10 +1796,10 @@ bool PdmLunaService::queryForSession()
     } else {
         m_sessionMap.insert(std::pair<std::string, std::string>(deviceSetId1, sessionId1));
     }
-    if(!request["sessionList"][2].isNull())
+    if(!request["sessions"][2].isNull())
     {
-        deviceSetId2 = request["sessionList"][2]["deviceSetInfo"]["deviceSetId"].asString();
-        sessionId2 = request["sessionList"][2]["sessionId"].asString();
+        deviceSetId2 = request["sessions"][2]["deviceSetInfo"]["deviceSetId"].asString();
+        sessionId2 = request["sessions"][2]["sessionId"].asString();
         PDM_LOG_DEBUG("PdmLunaService: %s line: %d DeviceSetId2: %s, SessionId2: %s", __FUNCTION__, __LINE__, deviceSetId2.c_str(), sessionId2.c_str());
         it = m_sessionMap.find(deviceSetId2);
         if (it != m_sessionMap.end()) {
@@ -1811,25 +1811,25 @@ bool PdmLunaService::queryForSession()
     }
 
     if (deviceSetId0 == "AVN")
-            avnUserId = request["sessionList"][0]["userInfo"]["userId"].asString();
+            avnUserId = request["sessions"][0]["accountInfo"]["accountId"].asString();
     else if (deviceSetId1 == "AVN")
-            avnUserId = request["sessionList"][1]["userInfo"]["userId"].asString();
+            avnUserId = request["sessions"][1]["accountInfo"]["accountId"].asString();
     else if ((!deviceSetId2.empty()) && (deviceSetId2 == "AVN"))
-            avnUserId = request["sessionList"][2]["userInfo"]["userId"].asString();
+            avnUserId = request["sessions"][2]["accountInfo"]["accountId"].asString();
 
     if (deviceSetId0 == "RSE-L")
-            rselUserId = request["sessionList"][0]["userInfo"]["userId"].asString();
+            rselUserId = request["sessions"][0]["accountInfo"]["accountId"].asString();
     else if (deviceSetId1 == "RSE-L")
-            rselUserId = request["sessionList"][1]["userInfo"]["userId"].asString();
+            rselUserId = request["sessions"][1]["accountInfo"]["accountId"].asString();
     else if ((!deviceSetId2.empty()) && (deviceSetId2 == "RSE-L"))
-            rselUserId = request["sessionList"][2]["userInfo"]["userId"].asString();
+            rselUserId = request["sessions"][2]["accountInfo"]["accountId"].asString();
 
     if (deviceSetId0 == "RSE-R")
-            rserUserId = request["sessionList"][0]["userInfo"]["userId"].asString();
+            rserUserId = request["sessions"][0]["accountInfo"]["accountId"].asString();
     else if (deviceSetId1 == "RSE-R")
-            rserUserId = request["sessionList"][1]["userInfo"]["userId"].asString();
+            rserUserId = request["sessions"][1]["accountInfo"]["accountId"].asString();
     else if ((!deviceSetId2.empty()) && (deviceSetId2 == "RSE-R"))
-            rserUserId = request["sessionList"][2]["userInfo"]["userId"].asString();
+            rserUserId = request["sessions"][2]["accountInfo"]["accountId"].asString();
 
     return true;
 }
