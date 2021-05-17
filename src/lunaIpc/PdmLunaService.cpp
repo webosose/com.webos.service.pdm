@@ -1354,8 +1354,8 @@ bool PdmLunaService::cbSetDeviceForSession(LSHandle *sh, LSMessage *message)
         }
         prevSessionId = findPreviousSessionId(hubPortPath);
         PDM_LOG_DEBUG("PdmLunaService:%s line: %d prevSessionId: %s, curSessionId: %s", __FUNCTION__, __LINE__, prevSessionId.c_str(), curSessionId.c_str());
-        PDM_LOG_DEBUG("PdmLunaService:%s line: %d lastStorageDeviceSetId: %s, currentDeviceSetId: %s", __FUNCTION__, __LINE__, lastStorageDeviceSetId.c_str(), deviceSetId.c_str());
-        if ((!prevSessionId.empty() && prevSessionId != curSessionId) || (!lastStorageDeviceSetId.empty() && deviceSetId.empty()))
+        PDM_LOG_DEBUG("PdmLunaService:%s line: %d lastStorageDeviceSetId: %s,currentDeviceSetId: %s", __FUNCTION__, __LINE__, lastStorageDeviceSetId.c_str(), deviceSetId.c_str());
+        if ((!prevSessionId.empty() && prevSessionId != curSessionId) || ((!lastStorageDeviceSetId.empty()) && (lastStorageDeviceSetId != deviceSetId)))
         {
             PDM_LOG_DEBUG("PdmLunaService:%s line: %d deleting previous mount path", __FUNCTION__, __LINE__);
             deletePreviousMountName(hubPortPath);
