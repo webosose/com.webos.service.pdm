@@ -1194,9 +1194,10 @@ bool PdmLunaService::notifySubscribers(int eventDeviceType, const int &eventID, 
 #ifdef WEBOS_SESSION
     if((2 == eventID) && (eventDeviceType == STORAGE_DEVICE || eventDeviceType == NON_STORAGE_DEVICE)) {
         if(!hubPortPath.empty()) {
-                if(!queryDevice(hubPortPath)) {
-                    PDM_LOG_ERROR("PdmLunaService:%s line: %d Error in db", __FUNCTION__, __LINE__);
-                }
+            if(!queryDevice(hubPortPath)) {
+                PDM_LOG_ERROR("PdmLunaService:%s line: %d Error in db", __FUNCTION__, __LINE__);
+            }
+            removeHubPortPathFromMap(hubPortPath);
         } else {
             PDM_LOG_ERROR("PdmLunaService:%s line: %d hubPortPath is null ", __FUNCTION__, __LINE__);
         }
@@ -1262,6 +1263,21 @@ bool PdmLunaService::cbmountandFullFsck(LSHandle *sh, LSMessage *message)
 }
 
 #ifdef WEBOS_SESSION
+
+void PdmLunaService::removeHubPortPathFromMap(std::string hubPortPath) {
+    PDM_LOG_INFO("PdmLunaService:",0,"%s line: %d hubPortPath: %s", __FUNCTION__,__LINE__,hubPortPath.c_str());
+    auto sessionIdMapItr = m_hubPortPathSessionIdMap.find (hubPortPath);
+    if(sessionIdMapItr != m_hubPortPathSessionIdMap.end()) {
+        PDM_LOG_INFO("PdmLunaService:",0,"%s line: %d Removing hubPortPath: %s from m_hubPortPathSessionIdMap", __FUNCTION__,__LINE__,hubPortPath.c_str());
+        m_hubPortPathSessionIdMap.erase (sessionIdMapItr);
+    }
+
+    auto displayMapItr = m_portDisplayMap.find (hubPortPath);
+    if(displayMapItr != m_portDisplayMap.end()) {
+        PDM_LOG_INFO("PdmLunaService:",0,"%s line: %d Removing hubPortPath: %s from m_portDisplayMap", __FUNCTION__,__LINE__,hubPortPath.c_str());
+        m_portDisplayMap.erase (displayMapItr);
+    }
+}
 
 void PdmLunaService::notifyResumeDone() {
     PDM_LOG_DEBUG("PdmLunaService:%s line: %d ", __FUNCTION__, __LINE__);

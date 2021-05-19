@@ -90,6 +90,7 @@ class PdmLunaService
         void deleteDeviceFromDbExceptBTDongle();
         void deleteDeviceFromDb(std::string deviceType);
         void updateGetAllDevicePayload(pbnjson::JValue list);
+        void removeHubPortPathFromMap(std::string hubPortPath);
 #endif
         CommandManager *mCommandManager;
         bool subscriptionAdd(LSHandle *a_sh, const char *a_key, LSMessage *a_message);
