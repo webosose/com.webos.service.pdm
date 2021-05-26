@@ -97,7 +97,6 @@ class PdmLunaService
         pbnjson::JValue createJsonGetAttachedDeviceStatus(LSMessage *message);
         pbnjson::JValue createJsonGetAttachedNonStorageDeviceList(LSMessage *message);
         pbnjson::JValue createJsonGetAttachedStorageDeviceList(LSMessage *message);
-        pbnjson::JValue createJsonGetAttachedAudioDeviceList(LSMessage *message);
     public:
         PdmLunaService(CommandManager *cmdManager);
         ~PdmLunaService();

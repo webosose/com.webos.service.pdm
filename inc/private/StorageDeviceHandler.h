@@ -1,4 +1,4 @@
-// Copyright (c) 2019-2020 LG Electronics, Inc.
+// Copyright (c) 2019-2021 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -25,7 +25,6 @@
 #include <mutex>
 #include <condition_variable>
 #include <thread>
-enum PdmCheckUsbPort {PDM_DEVICE_CONNECTED = 0, PDM_UNSUPPORTTED_FS = 1, PDM_DEVICE_NOT_CONNECTED = 4};
 
 class HddDeviceHandler;
 
@@ -61,8 +60,6 @@ private:
     bool umountAllDrive(CommandResponse *cmdResponse);
     bool isWritableDrive(CommandType *cmdtypes, CommandResponse *cmdResponse);
     bool mountFsck(CommandType *cmdtypes, CommandResponse *cmdResponse);
-    bool checkUsbPort(CommandType *cmdtypes, CommandResponse *cmdResponse);
-    bool fsckAlert(CommandType *cmdtypes, CommandResponse *cmdResponse);
     bool getSpaceInfo (CommandType *cmdtypes, CommandResponse *cmdResponse);
     bool isStorageDevice(PdmNetlinkEvent* pNE);
     bool umountAllDrive(bool lazyUnmount);

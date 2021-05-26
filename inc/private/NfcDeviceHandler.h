@@ -1,6 +1,6 @@
 // @@@LICENSE
 //
-// Copyright (c) 2020 LG Electronics, Inc.
+// Copyright (c) 2020-2021 LG Electronics, Inc.
 //
 // Confidential computer software. Valid license from LG required for
 // possession, use or copying. Consistent with FAR 12.211 and 12.212,
@@ -54,7 +54,6 @@ public:
     bool HandlePluginEvent(int eventType) override;
     bool GetAttachedDeviceStatus(pbnjson::JValue &payload, LSMessage *message) override;
     bool GetAttachedNonStorageDeviceList(pbnjson::JValue &payload, LSMessage *message);
-    bool GetExampleAttachedNonStorageDeviceList(pbnjson::JValue &payload, LSMessage *message);
     void ProcessNfcDevice(PdmNetlinkEvent* pNE);
     void commandNotification(EventType event, NfcDevice* device);
 };
