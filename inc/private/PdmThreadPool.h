@@ -1,4 +1,4 @@
-// Copyright (c) 2019 LG Electronics, Inc.
+// Copyright (c) 2019-2021 LG Electronics, Inc.
 // Copyright (c) 2012 Jakob Progsch, Václav Zeman
 //
 // This software is provided 'as-is', without any express or implied
@@ -62,7 +62,7 @@ inline PdmThreadPool::PdmThreadPool(size_t threads)
             {
                 for(;;)
                 {
-                    std::function<void()> task;
+                    std::function<void()> task = [] () {};
 
                     {
                         std::unique_lock<std::mutex> lock(this->queue_mutex);

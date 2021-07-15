@@ -1,4 +1,4 @@
-// Copyright (c) 2019-2020 LG Electronics, Inc.
+// Copyright (c) 2019-2021 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -41,6 +41,7 @@ StorageDevice::StorageDevice(PdmConfig* const pConfObj, PluginAdapter* const plu
             , m_partitionCount(0)
             , m_timeoutId(0)
             , m_fsckThreadCount(0)
+            , m_storageDeviceHandlerCb([] (EventType e, Storage* s){(void)e;(void)s;})
 {
     mHddDiskStats = std::make_tuple(-1,-1,-1);
 }
