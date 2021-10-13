@@ -39,7 +39,6 @@ void VideoDevice::setDeviceInfo(PdmNetlinkEvent* pNE, bool isCameraReady)
         }
         Device::setDeviceInfo(pNE);
         m_deviceSubType = pNE->getDevAttribute(ID_MODEL);
-        m_productName = "Camera";
     }
 }
 
