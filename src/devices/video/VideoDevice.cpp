@@ -51,8 +51,10 @@ void VideoDevice::updateDeviceInfo(PdmNetlinkEvent* pNE)
     }
 #endif
     if(pNE->getDevAttribute(SUBSYSTEM) ==  "video4linux"){
-        if(!pNE->getDevAttribute(DEVNAME).empty())
-            m_kernel = pNE->getDevAttribute(DEVNAME);
+        if(!pNE->getDevAttribute(DEVNAME).empty()) {
+            std::string cam_path = "/dev/";
+            m_kernel = cam_path.append(pNE->getDevAttribute(DEVNAME));
+        }
 
         if(!pNE->getDevAttribute(SUBSYSTEM).empty())
             m_subSystem = pNE->getDevAttribute(SUBSYSTEM);
