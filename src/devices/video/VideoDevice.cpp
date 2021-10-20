@@ -50,7 +50,7 @@ void VideoDevice::updateDeviceInfo(PdmNetlinkEvent* pNE)
         m_devPath = devPath.append(pNE->getDevAttribute(DEVNAME));
     }
 #endif
-    if(pNE->getDevAttribute(SUBSYSTEM) ==  "video4linux"){
+    if(pNE->getDevAttribute(SUBSYSTEM) ==  "video4linux" && pNE->getDevAttribute(ID_V4L_CAPABILITIES) ==  ":capture:"){
         if(!pNE->getDevAttribute(DEVNAME).empty()) {
             std::string cam_path = "/dev/";
             m_kernel = cam_path.append(pNE->getDevAttribute(DEVNAME));

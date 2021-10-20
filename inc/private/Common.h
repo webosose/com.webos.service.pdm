@@ -1,4 +1,4 @@
-// Copyright (c) 2019-2020 LG Electronics, Inc.
+// Copyright (c) 2019-2021 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -109,6 +109,7 @@ enum DeviceEventType { STORAGE_DEVICE = 0,
     const std::string ID_BLUETOOTH = "ID_BLUETOOTH";
     const std::string ID_USB_SERIAL = "ID_USB_SERIAL";
     const std::string ID_USB_MODEM_DONGLE = "ID_USB_MODEM_DONGLE";
+    const std::string ID_V4L_CAPABILITIES = "ID_V4L_CAPABILITIES";
 //To check the device on power on
     const std::string IS_POWER_ON_CONNECT = "isPowerOnConnect";
 // Black listed super speed devices
