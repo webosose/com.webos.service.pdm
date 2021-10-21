@@ -71,7 +71,8 @@ const char* DeviceEventTable[] =
     PDM_EVENT_STORAGE_DEVICES,
     PDM_EVENT_NON_STORAGE_DEVICES,
     PDM_EVENT_ALL_ATTACHED_DEVICES,
-    PDM_EVENT_ALL_ATTACHED_DEVICE_LIST
+    PDM_EVENT_ALL_ATTACHED_DEVICE_LIST,
+    PDM_EVENT_NON_STORAGE_DEVICES_VIDEO
 };
 
 using namespace std;
@@ -252,39 +253,38 @@ pbnjson::JValue PdmLunaService::createJsonGetAttachedStorageDeviceList(LSMessage
 }
 
 
-pbnjson::JValue PdmLunaService::createJsonGetAttachedNonStorageDeviceList(LSMessage *message)
+pbnjson::JValue PdmLunaService::createJsonGetAttachedNonStorageDeviceList(LSMessage *message, std::string deviceType)
 {
     pbnjson::JValue payload = pbnjson::Object();
 
     const char* payloadMsg = LSMessageGetPayload(message);
-    std::string category;
     if (payloadMsg) {
         pbnjson::JValue list = pbnjson::JDomParser::fromString(payloadMsg);
-        category = list["category"].asString();
-    }
-    PDM_LOG_DEBUG("PdmLunaService::createJsonGetAttachedNonStorageDeviceList category as %s",category.c_str());
+        deviceType = list["category"].asString();
+   }
+    PDM_LOG_DEBUG("PdmLunaService::createJsonGetAttachedNonStorageDeviceList deviceType as %s",deviceType.c_str());
 
-    if(category.empty()) {
+    if(deviceType.empty()) {
         if(PdmLunaHandler::getInstance()->getAttachedNonStorageDeviceList(payload,message)) {
             payload.put("returnValue", true);
             }else{
             appendErrorResponse(payload, PdmPayload::PDM_RESPONSE_FAILURE, PdmErrors::mPdmErrorTextTable[PdmPayload::PDM_RESPONSE_FAILURE]);
             }
-    }else if(category.compare("Audio") == 0) {
+    }else if(deviceType.compare("Audio") == 0) {
         if(PdmLunaHandler::getInstance()->getAttachedAudioDeviceList(payload,message))
         {
             payload.put("returnValue", true);
         }else{
             appendErrorResponse(payload, PdmPayload::PDM_RESPONSE_FAILURE, PdmErrors::mPdmErrorTextTable[PdmPayload::PDM_RESPONSE_FAILURE]);
         }
-    }else if(category.compare("Video") == 0) {
+    }else if(deviceType.compare("Video") == 0) {
         if(PdmLunaHandler::getInstance()->getAttachedVideoDeviceList(payload,message))
         {
             payload.put("returnValue", true);
         }else{
             appendErrorResponse(payload, PdmPayload::PDM_RESPONSE_FAILURE, PdmErrors::mPdmErrorTextTable[PdmPayload::PDM_RESPONSE_FAILURE]);
         }
-    }else if(category.compare("Net") == 0) {
+    }else if(deviceType.compare("Net") == 0) {
         if(PdmLunaHandler::getInstance()->getAttachedNetDeviceList(payload,message))
         {
             payload.put("returnValue", true);
@@ -472,13 +472,18 @@ bool PdmLunaService::cbGetAttachedNonStorageDeviceList(LSHandle *sh, LSMessage *
     }
 #else
     VALIDATE_SCHEMA_AND_RETURN(sh, message, JSON_SCHEMA_VALIDATE_NON_STORAGE_ATTACH_DEVICE_LIST);
+    const char* payloadMsg = LSMessageGetPayload(message);
+    std::string category;
+    if (payloadMsg) {
+        pbnjson::JValue list = pbnjson::JDomParser::fromString(payloadMsg);
+        category = list["category"].asString();
+    }
     pbnjson::JValue payload = createJsonGetAttachedNonStorageDeviceList(message);
     PDM_LOG_DEBUG("PdmLunaService::cbgetAttachedNonStorageDeviceList");
-    if (LSMessageIsSubscription(message))
-    {
-        subscribed = subscriptionAdd(sh, PDM_EVENT_NON_STORAGE_DEVICES, message);
+    if(LSMessageIsSubscription(message)){
+        const char* event = (category.empty())? PDM_EVENT_NON_STORAGE_DEVICES : PDM_EVENT_NON_STORAGE_DEVICES_VIDEO;
+        subscribed = subscriptionAdd(sh, event, message);
     }
-
     payload.put("returnValue", subscribed);
 
     bRetVal  =  LSMessageReply (sh,  message,  payload.stringify(NULL).c_str() ,  &error);
@@ -1204,10 +1209,14 @@ bool PdmLunaService::notifySubscribers(int eventDeviceType, const int &eventID, 
     }
 #endif
 
-    if(eventDeviceType == STORAGE_DEVICE)
+    if(eventDeviceType == STORAGE_DEVICE) {
         payload = createJsonGetAttachedStorageDeviceList(nullptr);
-    else if(eventDeviceType != STORAGE_DEVICE && eventDeviceType != ALL_DEVICE)
+    }else if(eventDeviceType == VIDEO_DEVICE) {
+        payload = createJsonGetAttachedNonStorageDeviceList(nullptr, "Video");
+    }
+    else if(eventDeviceType != ALL_DEVICE) {
         payload = createJsonGetAttachedNonStorageDeviceList(nullptr);
+    }
 
     if(eventDeviceType != ALL_DEVICE){
         // subscription reply

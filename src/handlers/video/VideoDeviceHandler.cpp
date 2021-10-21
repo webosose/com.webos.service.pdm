@@ -97,8 +97,11 @@ void VideoDeviceHandler::ProcessVideoDevice(PdmNetlinkEvent* pNE){
                         videoDevice->updateDeviceInfo(pNE);
                         if(!mIsCameraReady)
                             Notify(UNKNOWN_DEVICE,ADD);
-                        else
-                            Notify(VIDEO_DEVICE,ADD);
+                        else {
+                            if(pNE->getDevAttribute(SUBSYSTEM) == "video4linux" && pNE->getDevAttribute(ID_V4L_CAPABILITIES) == ":capture:"){
+                                Notify(VIDEO_DEVICE,ADD);
+                            }
+                        }
                     }
                     break;
                 case DeviceActions::USB_DEV_REMOVE:

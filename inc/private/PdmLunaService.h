@@ -35,6 +35,7 @@
 #define PDM_EVENT_NON_STORAGE_DEVICES        "getAttachedNonStorageDevicesList"
 #define PDM_EVENT_ALL_ATTACHED_DEVICES       "getAllAttachedDevicesList"
 #define PDM_EVENT_AUDIO_DEVICES              "getAttachedAudioDeviceList"
+#define PDM_EVENT_NON_STORAGE_DEVICES_VIDEO  "getAttachedVideoDeviceList"
 
 //#ifdef WEBOS_SESSION
 #define PDM_EVENT_ALL_ATTACHED_DEVICE_LIST         "getAttachedAllDeviceList"
@@ -95,7 +96,7 @@ class PdmLunaService
         CommandManager *mCommandManager;
         bool subscriptionAdd(LSHandle *a_sh, const char *a_key, LSMessage *a_message);
         pbnjson::JValue createJsonGetAttachedDeviceStatus(LSMessage *message);
-        pbnjson::JValue createJsonGetAttachedNonStorageDeviceList(LSMessage *message);
+        pbnjson::JValue createJsonGetAttachedNonStorageDeviceList(LSMessage *message, std::string deviceType = std::string());
         pbnjson::JValue createJsonGetAttachedStorageDeviceList(LSMessage *message);
     public:
         PdmLunaService(CommandManager *cmdManager);
