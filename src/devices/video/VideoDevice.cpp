@@ -38,7 +38,6 @@ void VideoDevice::setDeviceInfo(PdmNetlinkEvent* pNE, bool isCameraReady)
             m_deviceType = DEV_TYPE_UNKNOWN;
         }
         Device::setDeviceInfo(pNE);
-        m_deviceSubType = pNE->getDevAttribute(ID_MODEL);
     }
 }
 
@@ -58,5 +57,8 @@ void VideoDevice::updateDeviceInfo(PdmNetlinkEvent* pNE)
 
         if(!pNE->getDevAttribute(SUBSYSTEM).empty())
             m_subSystem = pNE->getDevAttribute(SUBSYSTEM);
+
+        if(!pNE->getDevAttribute(ID_USB_DRIVER).empty())
+            m_deviceSubType = pNE->getDevAttribute(ID_USB_DRIVER);
     }
 }
