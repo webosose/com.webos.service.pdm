@@ -1,4 +1,4 @@
-// Copyright (c) 2019 LG Electronics, Inc.
+// Copyright (c) 2019-2021 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -37,6 +37,7 @@ const std::string GET_DEVICESTATUS = "getAttachedDeviceStatus";
 const std::string GET_USBRESUMEDONE = "getUSBResumeDone";
 const std::string GET_AUDIODEVICELIST = "getAttachedAudioDeviceList";
 const std::string GET_VIDEODEVICELIST = "getAttachedVideoDeviceList";
+const std::string GET_VIDEOSUBDEVICELIST = "getAttachedVideoSubDeviceList";
 const std::string GET_NETDEVICELIST = "getAttachedNetDeviceList";
 
 
@@ -55,6 +56,7 @@ public:
     bool getExampleAttachedStorageDeviceList (pbnjson::JValue &payload, LSMessage *message);
     bool getAttachedAudioDeviceList(pbnjson::JValue &payload, LSMessage *message);
     bool getAttachedVideoDeviceList(pbnjson::JValue &payload, LSMessage *message);
+    bool getAttachedVideoSubDeviceList(pbnjson::JValue &payload, LSMessage *message);
     bool getAttachedNetDeviceList(pbnjson::JValue &payload, LSMessage *message);
 };
 #endif //PDMLUNAHANDLER_H

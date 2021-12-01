@@ -72,7 +72,8 @@ const char* DeviceEventTable[] =
     PDM_EVENT_NON_STORAGE_DEVICES,
     PDM_EVENT_ALL_ATTACHED_DEVICES,
     PDM_EVENT_ALL_ATTACHED_DEVICE_LIST,
-    PDM_EVENT_NON_STORAGE_DEVICES_VIDEO
+    PDM_EVENT_NON_STORAGE_DEVICES_VIDEO,
+    PDM_EVENT_NON_STORAGE_SUB_DEVICES_VIDEO
 };
 
 using namespace std;
@@ -257,18 +258,13 @@ pbnjson::JValue PdmLunaService::createJsonGetAttachedNonStorageDeviceList(LSMess
 {
     pbnjson::JValue payload = pbnjson::Object();
 
-    const char* payloadMsg = LSMessageGetPayload(message);
-    if (payloadMsg) {
-        pbnjson::JValue list = pbnjson::JDomParser::fromString(payloadMsg);
-        deviceType = list["category"].asString();
-   }
     PDM_LOG_DEBUG("PdmLunaService::createJsonGetAttachedNonStorageDeviceList deviceType as %s",deviceType.c_str());
 
     if(deviceType.empty()) {
         if(PdmLunaHandler::getInstance()->getAttachedNonStorageDeviceList(payload,message)) {
             payload.put("returnValue", true);
             }else{
-            appendErrorResponse(payload, PdmPayload::PDM_RESPONSE_FAILURE, PdmErrors::mPdmErrorTextTable[PdmPayload::PDM_RESPONSE_FAILURE]);
+                appendErrorResponse(payload, PdmPayload::PDM_RESPONSE_FAILURE, PdmErrors::mPdmErrorTextTable[PdmPayload::PDM_RESPONSE_FAILURE]);
             }
     }else if(deviceType.compare("Audio") == 0) {
         if(PdmLunaHandler::getInstance()->getAttachedAudioDeviceList(payload,message))
@@ -279,6 +275,14 @@ pbnjson::JValue PdmLunaService::createJsonGetAttachedNonStorageDeviceList(LSMess
         }
     }else if(deviceType.compare("Video") == 0) {
         if(PdmLunaHandler::getInstance()->getAttachedVideoDeviceList(payload,message))
+        {
+            payload.put("returnValue", true);
+        }else{
+            appendErrorResponse(payload, PdmPayload::PDM_RESPONSE_FAILURE, PdmErrors::mPdmErrorTextTable[PdmPayload::PDM_RESPONSE_FAILURE]);
+        }
+
+    }else if(deviceType.compare("VideoSubDevices") == 0) {
+        if(PdmLunaHandler::getInstance()->getAttachedVideoSubDeviceList(payload,message))
         {
             payload.put("returnValue", true);
         }else{
@@ -474,14 +478,30 @@ bool PdmLunaService::cbGetAttachedNonStorageDeviceList(LSHandle *sh, LSMessage *
     VALIDATE_SCHEMA_AND_RETURN(sh, message, JSON_SCHEMA_VALIDATE_NON_STORAGE_ATTACH_DEVICE_LIST);
     const char* payloadMsg = LSMessageGetPayload(message);
     std::string category;
+    bool groupSubDevices = false;
     if (payloadMsg) {
         pbnjson::JValue list = pbnjson::JDomParser::fromString(payloadMsg);
         category = list["category"].asString();
+        groupSubDevices = list["groupSubDevices"].asBool();
     }
-    pbnjson::JValue payload = createJsonGetAttachedNonStorageDeviceList(message);
+    pbnjson::JValue payload;
+    if(groupSubDevices && category.compare("Video") == 0)
+        payload = createJsonGetAttachedNonStorageDeviceList(message, "VideoSubDevices");
+    else if (category.compare("Video") == 0)
+        payload = createJsonGetAttachedNonStorageDeviceList(message, "Video");
+    else
+        payload = createJsonGetAttachedNonStorageDeviceList(message, category);
+
     PDM_LOG_DEBUG("PdmLunaService::cbgetAttachedNonStorageDeviceList");
     if(LSMessageIsSubscription(message)){
-        const char* event = (category.empty())? PDM_EVENT_NON_STORAGE_DEVICES : PDM_EVENT_NON_STORAGE_DEVICES_VIDEO;
+        const char* event = PDM_EVENT_NON_STORAGE_DEVICES;
+        if(!category.empty()) {
+            if(groupSubDevices) {
+                event = PDM_EVENT_NON_STORAGE_SUB_DEVICES_VIDEO;
+            } else {
+                event = PDM_EVENT_NON_STORAGE_DEVICES_VIDEO;
+            }
+        }
         subscribed = subscriptionAdd(sh, event, message);
     }
     payload.put("returnValue", subscribed);
@@ -534,8 +554,8 @@ bool PdmLunaService::cbGetSpaceInfo(LSHandle *sh, LSMessage *message)
     const char* payloadMsg = LSMessageGetPayload(message);
 
     if(!payloadMsg) {
-         PDM_LOG_ERROR("PdmLunaService:%s line: %d payloadMsg is empty ", __FUNCTION__, __LINE__);
-         return true;
+        PDM_LOG_ERROR("PdmLunaService:%s line: %d payloadMsg is empty ", __FUNCTION__, __LINE__);
+        return true;
     }
     pbnjson::JValue list = pbnjson::JDomParser::fromString(payloadMsg);
 
@@ -551,7 +571,7 @@ bool PdmLunaService::cbGetSpaceInfo(LSHandle *sh, LSMessage *message)
     pbnjson::JValue find_query = pbnjson::Object();
     pbnjson::JValue request;
     request = pbnjson::JObject{{"from", "com.webos.service.pdmhistory:1"},
-                                {"where", pbnjson::JArray{{{"prop", "deviceType"}, {"op", "="}, {"val","USB_STORAGE"}}}}};
+        {"where", pbnjson::JArray{{{"prop", "deviceType"}, {"op", "="}, {"val","USB_STORAGE"}}}}};
 
     find_query.put("query", request);
     if (LSCallOneReply(sh,"luna://com.webos.service.db/find",
@@ -1211,7 +1231,12 @@ bool PdmLunaService::notifySubscribers(int eventDeviceType, const int &eventID, 
 
     if(eventDeviceType == STORAGE_DEVICE) {
         payload = createJsonGetAttachedStorageDeviceList(nullptr);
+
     }else if(eventDeviceType == VIDEO_DEVICE) {
+        payload = createJsonGetAttachedNonStorageDeviceList(nullptr, "VideoSubDevices");
+        bRetVal = LSSubscriptionReply(mServiceHandle, PDM_EVENT_NON_STORAGE_SUB_DEVICES_VIDEO, payload.stringify(NULL).c_str(), &error);
+        LSERROR_CHECK_AND_PRINT(bRetVal, error);
+
         payload = createJsonGetAttachedNonStorageDeviceList(nullptr, "Video");
     }
     else if(eventDeviceType != ALL_DEVICE) {

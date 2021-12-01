@@ -1,4 +1,4 @@
-// Copyright (c) 2019-2020 LG Electronics, Inc.
+// Copyright (c) 2019-2021 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -29,6 +29,8 @@ VideoDeviceHandler::VideoDeviceHandler(PdmConfig* const pConfObj, PluginAdapter*
                                                                                     GET_NONSTORAGEDEVICELIST);
     lunaHandler->registerLunaCallback(std::bind(&VideoDeviceHandler::GetAttachedVideoDeviceList, this, _1, _2),
                                                                                     GET_VIDEODEVICELIST);
+    lunaHandler->registerLunaCallback(std::bind(&VideoDeviceHandler::GetAttachedVideoSubDeviceList, this, _1, _2),
+                                                                                    GET_VIDEOSUBDEVICELIST);
 }
 
 VideoDeviceHandler::~VideoDeviceHandler() {
@@ -156,5 +158,10 @@ bool VideoDeviceHandler::GetAttachedNonStorageDeviceList(pbnjson::JValue &payloa
 
 bool VideoDeviceHandler::GetAttachedVideoDeviceList(pbnjson::JValue &payload, LSMessage *message)
 {
-    return getAttachedVideoDeviceList< VideoDevice >( sList, payload );
+       return getAttachedVideoDeviceList< VideoDevice >( sList, payload, false);
+}
+
+bool VideoDeviceHandler::GetAttachedVideoSubDeviceList(pbnjson::JValue &payload, LSMessage *message)
+{
+        return getAttachedVideoDeviceList< VideoDevice >( sList, payload, true);
 }

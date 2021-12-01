@@ -26,6 +26,20 @@ VideoDevice::VideoDevice(PdmConfig* const pConfObj, PluginAdapter* const pluginA
                 , m_kernel(""){
 }
 
+void VideoSubDevice::updateInfo(std::string devName, std::string capabilities, std::string productName, std::string version) {
+    m_devPath = "/dev/" + devName;
+    m_capabilities = capabilities;
+    m_productName = productName;
+    m_version = version;
+}
+
+VideoDevice::~VideoDevice() {
+    for (auto subDevice : mSubDeviceList) {
+        delete subDevice;
+    }
+    mSubDeviceList.clear();
+}
+
 void VideoDevice::setDeviceInfo(PdmNetlinkEvent* pNE, bool isCameraReady)
 {
     PDM_LOG_DEBUG("VideoDevice:%s line: %d setDeviceInfo", __FUNCTION__, __LINE__);
@@ -49,16 +63,53 @@ void VideoDevice::updateDeviceInfo(PdmNetlinkEvent* pNE)
         m_devPath = devPath.append(pNE->getDevAttribute(DEVNAME));
     }
 #endif
-    if(pNE->getDevAttribute(SUBSYSTEM) ==  "video4linux" && pNE->getDevAttribute(ID_V4L_CAPABILITIES) ==  ":capture:"){
-        if(!pNE->getDevAttribute(DEVNAME).empty()) {
-            std::string cam_path = "/dev/";
-            m_kernel = cam_path.append(pNE->getDevAttribute(DEVNAME));
-        }
-
+    if (pNE->getDevAttribute(SUBSYSTEM) ==  "video4linux" && pNE->getDevAttribute(ID_V4L_CAPABILITIES) ==  ":capture:") {
         if(!pNE->getDevAttribute(SUBSYSTEM).empty())
             m_subSystem = pNE->getDevAttribute(SUBSYSTEM);
 
         if(!pNE->getDevAttribute(ID_USB_DRIVER).empty())
             m_deviceSubType = pNE->getDevAttribute(ID_USB_DRIVER);
+
+        if (!pNE->getDevAttribute(DEVNAME).empty()) {
+            std::string cam_path = "/dev/";
+            m_kernel = cam_path.append(pNE->getDevAttribute(DEVNAME));
+        }
+
+        VideoSubDevice* subDevice = getSubDevice("/dev/"+pNE->getDevAttribute(DEVNAME));
+        switch (sMapDeviceActions[pNE->getDevAttribute(ACTION)]) {
+            case DeviceActions::USB_DEV_ADD:
+                if (!pNE->getDevAttribute(DEVNAME).empty()) {
+                    if (subDevice) {
+                        subDevice->updateInfo(pNE->getDevAttribute(DEVNAME), pNE->getDevAttribute(ID_V4L_CAPABILITIES), pNE->getDevAttribute(ID_V4L_PRODUCT), pNE->getDevAttribute(ID_V4L_VERSION));
+                    }
+                    else {
+                        subDevice = new (std::nothrow) VideoSubDevice(pNE->getDevAttribute(DEVNAME), pNE->getDevAttribute(ID_V4L_CAPABILITIES), pNE->getDevAttribute(ID_V4L_PRODUCT), pNE->getDevAttribute(ID_V4L_VERSION));
+                        if (!subDevice) {
+                            PDM_LOG_CRITICAL("VideoDevice:%s line: %d Not able to create the sub device", __FUNCTION__, __LINE__);
+                            return;
+                        }
+                        mSubDeviceList.push_back(subDevice);
+                    }
+                }
+                break;
+            case DeviceActions::USB_DEV_REMOVE:
+                if (subDevice) {
+                    mSubDeviceList.remove(subDevice);
+                    delete subDevice;
+                }
+                break;
+            default:
+                //Do nothing
+                break;
+        }
     }
+}
+
+VideoSubDevice* VideoDevice::getSubDevice(std::string devPath) {
+    for (auto videoSubDevice : mSubDeviceList) {
+        if (videoSubDevice->getDevPath() == devPath) {
+            return videoSubDevice;
+        }
+    }
+    return nullptr;
 }

@@ -31,11 +31,12 @@
 
 #define PDM_SERVICE_NAME                  "com.webos.service.pdm"
 
-#define PDM_EVENT_STORAGE_DEVICES            "getAttachedStorageDevicesList"
-#define PDM_EVENT_NON_STORAGE_DEVICES        "getAttachedNonStorageDevicesList"
-#define PDM_EVENT_ALL_ATTACHED_DEVICES       "getAllAttachedDevicesList"
-#define PDM_EVENT_AUDIO_DEVICES              "getAttachedAudioDeviceList"
-#define PDM_EVENT_NON_STORAGE_DEVICES_VIDEO  "getAttachedVideoDeviceList"
+#define PDM_EVENT_STORAGE_DEVICES               "getAttachedStorageDevicesList"
+#define PDM_EVENT_NON_STORAGE_DEVICES           "getAttachedNonStorageDevicesList"
+#define PDM_EVENT_ALL_ATTACHED_DEVICES          "getAllAttachedDevicesList"
+#define PDM_EVENT_AUDIO_DEVICES                 "getAttachedAudioDeviceList"
+#define PDM_EVENT_NON_STORAGE_DEVICES_VIDEO     "getAttachedVideoDeviceList"
+#define PDM_EVENT_NON_STORAGE_SUB_DEVICES_VIDEO "getAttachedVideoSubDeviceList"
 
 //#ifdef WEBOS_SESSION
 #define PDM_EVENT_ALL_ATTACHED_DEVICE_LIST         "getAttachedAllDeviceList"

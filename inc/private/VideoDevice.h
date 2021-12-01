@@ -1,4 +1,4 @@
-// Copyright (c) 2019 LG Electronics, Inc.
+// Copyright (c) 2019-2021 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,21 +19,50 @@
 
 #include "Device.h"
 #include <functional>
+#include <list>
 
+const std::string ID_V4L_CAPABILITIES  =  "ID_V4L_CAPABILITIES";
+const std::string ID_V4L_PRODUCT  =  "ID_V4L_PRODUCT";
+const std::string ID_V4L_VERSION  =  "ID_V4L_VERSION";
 
 class VideoDeviceHandler;
+class VideoSubDevice {
+private:
+    std::string m_capabilities;
+    std::string m_devPath;
+    std::string m_productName;
+    std::string m_version;
+
+public:
+    VideoSubDevice(std::string devName, std::string capabilities, std::string productName, std::string version)
+        : m_devPath("/dev/"+devName),
+        m_capabilities(capabilities),
+        m_productName(productName),
+        m_version(version) {
+    };
+    ~VideoSubDevice() = default;
+
+    void updateInfo(std::string devName, std::string capabilities, std::string productName, std::string version);
+    std::string getDevPath() {return m_devPath;}
+    std::string getCapabilities() {return m_capabilities;}
+    std::string getProductName() {return m_productName;}
+    std::string getVersion() {return m_version;}
+};
 
 class VideoDevice : public Device
 {
     std::string m_subSystem;
     std::string m_kernel;
+    std::list<VideoSubDevice*> mSubDeviceList;
 public:
     VideoDevice(PdmConfig* const pConfObj, PluginAdapter* const pluginAdapter);
-    ~VideoDevice() =  default;
+    ~VideoDevice();
     void setDeviceInfo(PdmNetlinkEvent* pNE, bool isCameraReady);
     void updateDeviceInfo(PdmNetlinkEvent* pNE);
     std::string getSubsystem() {return m_subSystem;}
     std::string getKernel(){return m_kernel;}
+    std::list<VideoSubDevice*> getSubDeviceList() const {return mSubDeviceList;}
+    VideoSubDevice* getSubDevice(std::string devPath);
 };
 
 #endif // VIDEODEVICE_H

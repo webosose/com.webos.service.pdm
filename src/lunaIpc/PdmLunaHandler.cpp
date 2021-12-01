@@ -1,4 +1,4 @@
-// Copyright (c) 2019 LG Electronics, Inc.
+// Copyright (c) 2019-2021 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -109,12 +109,25 @@ bool PdmLunaHandler::getAttachedAudioDeviceList(pbnjson::JValue &payload,LSMessa
 
 bool PdmLunaHandler::getAttachedVideoDeviceList(pbnjson::JValue &payload,LSMessage *message)
 {
-
     pbnjson::JValue videoDeviceList = pbnjson::Array();
 
     for(auto deviceVideoList : mLunafptr[GET_VIDEODEVICELIST])
     {
         deviceVideoList(videoDeviceList,message);
+    }
+
+    payload.put("powerStatus", PdmDevAttributes::DEVICE_POWER_STATUS);
+    payload.put("videoDeviceList", videoDeviceList);
+    return true;
+}
+
+bool PdmLunaHandler::getAttachedVideoSubDeviceList(pbnjson::JValue &payload,LSMessage *message)
+{
+    pbnjson::JValue videoDeviceList = pbnjson::Array();
+
+    for(auto deviceVideoList : mLunafptr[GET_VIDEOSUBDEVICELIST])
+    {
+        deviceVideoList(videoDeviceList, message);
     }
 
     payload.put("powerStatus", PdmDevAttributes::DEVICE_POWER_STATUS);

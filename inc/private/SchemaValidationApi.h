@@ -1,4 +1,4 @@
-// Copyright (c) 2019 LG Electronics, Inc.
+// Copyright (c) 2019-2021 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -58,10 +58,11 @@
     )
 
 #define JSON_SCHEMA_VALIDATE_NON_STORAGE_ATTACH_DEVICE_LIST \
-     SCHEMA_V2_2( \
+     SCHEMA_V2_3( \
         ",\"required\":[\"subscribe\"]" , \
          SCHEMA_V2_PROP(subscribe, boolean), \
-         SCHEMA_V2_PROP(category, string) \
+         SCHEMA_V2_PROP(category, string), \
+         SCHEMA_V2_PROP(groupSubDevices, boolean) \
     )
 
 #define JSON_SCHEMA_IO_PERFORMANCE_VALIDATE_DRIVE_NAME \

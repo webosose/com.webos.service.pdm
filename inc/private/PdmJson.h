@@ -344,20 +344,33 @@ template < class T > bool getAttachedAudioDeviceList(std::list<T*>& sList, pbnjs
    return true;
 }
 
-template < class T > bool getAttachedVideoDeviceList(std::list<T*>& sList, pbnjson::JValue &payload)
+template < class T > bool getAttachedVideoDeviceList(std::list<T*>& sList, pbnjson::JValue &payload, bool groupSubDevices)
 {
    if(sList.empty())
         return false;
 
-    for(auto device: sList)
-    {
-       pbnjson::JValue videoDeviceObj = pbnjson::Object();
-       videoDeviceObj.put("KERNEL", device->getKernel());
-       videoDeviceObj.put("SUBSYSTEM", device->getSubsystem());
-       videoDeviceObj.put("vendorName", device->getVendorName());
-       videoDeviceObj.put("productName", device->getProductName());
-       videoDeviceObj.put("devSpeed", device->getDevSpeed());
-       payload.append(videoDeviceObj);
+    for (auto device: sList) {
+        pbnjson::JValue videoDeviceObj = pbnjson::Object();
+        if(groupSubDevices) {
+            pbnjson::JValue subDeviceList = pbnjson::Array();
+            for (auto subDevice : device->getSubDeviceList()) {
+                pbnjson::JValue subDeviceObj = pbnjson::Object();
+                subDeviceObj.put("devPath", subDevice->getDevPath());
+                subDeviceObj.put("capabilities", subDevice->getCapabilities());
+                subDeviceObj.put("productName", subDevice->getProductName());
+                subDeviceObj.put("version", subDevice->getVersion());
+                subDeviceList.append(subDeviceObj);
+            }
+            videoDeviceObj.put("subDeviceList", subDeviceList);
+            videoDeviceObj.put("deviceType", device->getDeviceType());
+        } else {
+            videoDeviceObj.put("KERNEL", device->getKernel());
+            videoDeviceObj.put("SUBSYSTEM", device->getSubsystem());
+        }
+        videoDeviceObj.put("vendorName", device->getVendorName());
+        videoDeviceObj.put("productName", device->getProductName());
+        videoDeviceObj.put("devSpeed", device->getDevSpeed());
+        payload.append(videoDeviceObj);
     }
    return true;
 }
