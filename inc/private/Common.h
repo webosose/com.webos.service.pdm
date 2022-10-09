@@ -1,4 +1,4 @@
-// Copyright (c) 2019-2021 LG Electronics, Inc.
+// Copyright (c) 2019-2022 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -24,12 +24,12 @@ namespace PdmDevAttributes {
 enum DeviceEventType { STORAGE_DEVICE = 0,
                        NON_STORAGE_DEVICE,
                        ALL_DEVICE,
+                       SOUND_DEVICE,
                        HID_DEVICE,
                        VIDEO_DEVICE,
                        GAMEPAD_DEVICE,
                        MTP_DEVICE,
                        PTP_DEVICE,
-                       SOUND_DEVICE,
                        BLUETOOTH_DEVICE,
                        CDC_DEVICE,
                        AUTO_ANDROID_DEVICE,
@@ -204,6 +204,7 @@ enum DeviceEventType { STORAGE_DEVICE = 0,
     const std::string timeout = "timeout 20 ";
 //Sound device
     const std::string CARD_ID = "CARD_ID";
+    const std::string CARD_NAME = "CARD_NAME";
     const std::string CARD_NUMBER = "CARD_NUMBER";
 
 #ifdef WEBOS_SESSION

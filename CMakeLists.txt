@@ -1,4 +1,4 @@
-# Copyright (c) 2019-2021 LG Electronics, Inc.
+# Copyright (c) 2019-2022 LG Electronics, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -66,9 +66,11 @@ endif()
 
 pkg_check_modules(UDEV REQUIRED libudev)
 
+add_subdirectory(snd-ctl)
+
 set(BIN_NAME physical-device-manager)
 
-file(GLOB_RECURSE SRC_FILES ${CMAKE_SOURCE_DIR} *.cpp)
+file(GLOB_RECURSE SRC_FILES ${CMAKE_SOURCE_DIR}/src/*.cpp)
 
 add_executable(${BIN_NAME} ${SRC_FILES})
 
