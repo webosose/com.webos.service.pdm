@@ -1,4 +1,4 @@
-// Copyright (c) 2019-2021 LG Electronics, Inc.
+// Copyright (c) 2019-2022 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -326,22 +326,33 @@ template < class T > bool getExampleAttachedUsbStorageDeviceList (std::list<T*>&
     return true;
 }
 
-template < class T > bool getAttachedAudioDeviceList(std::list<T*>& sList, pbnjson::JValue &payload)
+template < class T > bool getAttachedAudioDeviceList(std::list<T*>& sList, pbnjson::JValue &payload, bool groupSubDevices)
 {
-   if(sList.empty())
+    if(sList.empty())
         return false;
 
     for(auto device: sList)
     {
-       pbnjson::JValue audioDeviceObj = pbnjson::Object();
-       audioDeviceObj.put("cardName", device->getCardName());
-       audioDeviceObj.put("cardId", device->getCardId());
-       audioDeviceObj.put("cardNumber", device->getCardNumber());
-       audioDeviceObj.put("usbPortNum", (int64_t)device->getUsbPortNumber());
-       audioDeviceObj.put("devSpeed", device->getDevSpeed());
-       payload.append(audioDeviceObj);
-   }
-   return true;
+        pbnjson::JValue audioDeviceObj = pbnjson::Object();
+        if(groupSubDevices) {
+            pbnjson::JValue subDeviceList = pbnjson::Array();
+            for (auto subDevice : device->getSubDeviceList()) {
+                pbnjson::JValue subDeviceObj = pbnjson::Object();
+                subDeviceObj.put("devPath", subDevice->getDevPath());
+                subDeviceObj.put("deviceType", subDevice->getDevType());
+                subDeviceList.append(subDeviceObj);
+            }
+            audioDeviceObj.put("subDeviceList", subDeviceList);
+        }
+        audioDeviceObj.put("cardName", device->getCardName());
+        audioDeviceObj.put("cardId", device->getCardId());
+        audioDeviceObj.put("builtin", device->getBuiltIn());
+        audioDeviceObj.put("cardNumber", device->getCardNumber());
+        audioDeviceObj.put("usbPortNum", (int64_t)device->getUsbPortNumber());
+        audioDeviceObj.put("devSpeed", device->getDevSpeed());
+        payload.append(audioDeviceObj);
+    }
+    return true;
 }
 
 template < class T > bool getAttachedVideoDeviceList(std::list<T*>& sList, pbnjson::JValue &payload, bool groupSubDevices)

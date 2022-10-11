@@ -1,4 +1,4 @@
-// Copyright (c) 2019 LG Electronics, Inc.
+// Copyright (c) 2019-2022 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -117,8 +117,6 @@ bool PdmNotificationManager::isToastRequired(int eventDeviceType)
 {
     switch(eventDeviceType)
     {
-        case PdmDevAttributes::SOUND_DEVICE:
-            return false;
         default:
         //Except above devices,Toast is required for all other device.
             return true;
@@ -138,6 +136,7 @@ void PdmNotificationManager::showConnectedToast(int eventDeviceType)
         case PdmDevAttributes::STORAGE_DEVICE: message = m_pLocHandler->getLocString("Storage device is connected.");break;
         case PdmDevAttributes::HID_DEVICE: message = m_pLocHandler->getLocString("HID device is connected.");break;
         case PdmDevAttributes::VIDEO_DEVICE: message = m_pLocHandler->getLocString("Camera device is connected.");break;
+        case PdmDevAttributes::SOUND_DEVICE: message = m_pLocHandler->getLocString("Sound device is connected.");break;
         case PdmDevAttributes::GAMEPAD_DEVICE: message = m_pLocHandler->getLocString("XPAD device is connected.");break;
         case PdmDevAttributes::MTP_DEVICE: message = m_pLocHandler->getLocString("MTP device is connected.");break;
         case PdmDevAttributes::PTP_DEVICE: message = m_pLocHandler->getLocString("PTP device is connected.");break;
@@ -162,6 +161,7 @@ void PdmNotificationManager::showDisconnectedToast(int eventDeviceType)
         case PdmDevAttributes::STORAGE_DEVICE: message = m_pLocHandler->getLocString("Storage device is disconnected.");break;
         case PdmDevAttributes::HID_DEVICE: message = m_pLocHandler->getLocString("HID device is disconnected.");break;
         case PdmDevAttributes::VIDEO_DEVICE: message = m_pLocHandler->getLocString("Camera device is disconnected.");break;
+        case PdmDevAttributes::SOUND_DEVICE: message = m_pLocHandler->getLocString("Sound device is disconnected.");break;
         case PdmDevAttributes::GAMEPAD_DEVICE: message = m_pLocHandler->getLocString("XPAD device is disconnected.");break;
         case PdmDevAttributes::MTP_DEVICE: message = m_pLocHandler->getLocString("MTP device is disconnected.");break;
         case PdmDevAttributes::PTP_DEVICE: message = m_pLocHandler->getLocString("PTP device is disconnected.");break;
