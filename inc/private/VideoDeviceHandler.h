@@ -20,7 +20,6 @@
 #include "DeviceHandler.h"
 #include "VideoDevice.h"
 #include "PdmDeviceFactory.h"
-#include "PdmNetlinkEvent.h"
 #include "PdmLogUtils.h"
 #include "DeviceClass.h"
 

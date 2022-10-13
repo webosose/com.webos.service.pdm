@@ -20,15 +20,29 @@
 #include <string>
 #include <unordered_map>
 #include "DeviceClass.h"
+#include "DeviceClassFactory.h"
 
 class VideoSubsystem :public DeviceClass
 {
 	std::string mDevType;
 	std::unordered_map<std::string, std::string> mDevPropMap;
-	void init();	
+	// void init();
+	static bool mIsObjRegistered;
+	static bool RegisterSubSystem() {
+		DeviceClassFactory::getInstance().Register("video4linux", std::bind(&VideoSubsystem::create, std::placeholders::_1));
+		return true;
+	}
+
+	static bool canProcessEvent(std::unordered_map<std::string, std::string> mDevPropMap)
+	{
+		const std::string iClass = ":0e";
+		if((mDevPropMap[PdmDevAttributes::ID_USB_INTERFACES].find(iClass) == std::string::npos) && (mDevPropMap[PdmDevAttributes::SUBSYSTEM] !=  "video4linux"))
+			return false;
+		return true;
+	}
 public:
     VideoSubsystem(std::unordered_map<std::string, std::string>& devPropMap);
-    virtual ~VideoSubsystem();
+	virtual ~VideoSubsystem();
 	std::string getCapabilities();
 	std::string getProductName();
 	std::string getVersion();

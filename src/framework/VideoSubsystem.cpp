@@ -18,6 +18,9 @@
 #include "Common.h"
 #include "VideoSubsystem.h"
 #include "DeviceClassFactory.h"
+#include "PdmLogUtils.h"
+
+bool VideoSubsystem::mIsObjRegistered = VideoSubsystem::RegisterSubSystem();
 
 VideoSubsystem::VideoSubsystem(std::unordered_map<std::string, std::string>& devPropMap)
 	: mDevType("video4linux")  /*ToDo*/, DeviceClass(devPropMap)
@@ -28,12 +31,13 @@ VideoSubsystem::VideoSubsystem(std::unordered_map<std::string, std::string>& dev
 
 VideoSubsystem::~VideoSubsystem() {}
 
-void VideoSubsystem::init()
-{
-	// ToDo : init method needs to be removed and Register call should be made from correct place
-	DeviceClassFactory::getInstance().Register(mDevType,
-		std::bind(&VideoSubsystem::create, std::placeholders::_1));
-}
+// void VideoSubsystem::RegisterSubSystem()
+// {
+// 	PDM_LOG_DEBUG("VideoSubsystem:%s line: %d", __FUNCTION__, __LINE__);
+// 	// ToDo : init method needs to be removed and Register call should be made from correct place
+// 	DeviceClassFactory::getInstance().Register(mDevType,
+// 		std::bind(&VideoSubsystem::create, std::placeholders::_1));
+// }
 
 std::string VideoSubsystem::getCapabilities()
 {
@@ -62,7 +66,12 @@ std::string VideoSubsystem::getUsbDriverId()
 
 VideoSubsystem* VideoSubsystem::create(std::unordered_map<std::string, std::string>& devProMap)
 {
+	PDM_LOG_DEBUG("VideoSubsystem:%s line: %d", __FUNCTION__, __LINE__);
+	bool canProcessEve = VideoSubsystem::canProcessEvent(devProMap);
+	if(!canProcessEve)
+		return nullptr;
+
 	VideoSubsystem* ptr = new (std::nothrow) VideoSubsystem(devProMap);
+	PDM_LOG_DEBUG("SoundSubsystem:%s line: %d VideoSubsystem object created", __FUNCTION__, __LINE__);
 	return ptr;
 }
-
