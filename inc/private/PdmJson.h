@@ -1,4 +1,4 @@
-// Copyright (c) 2019-2021 LG Electronics, Inc.
+// Copyright (c) 2019-2022 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@
 
 #include <list>
 #include "PdmLunaHandler.h"
-// #include "CdcDevice.h"
+#include "CdcDevice.h"
 
 template < class T > bool getAttachedDeviceStatus(std::list<T*>& sList, pbnjson::JValue &payload)
 {
@@ -326,22 +326,33 @@ template < class T > bool getExampleAttachedUsbStorageDeviceList (std::list<T*>&
     return true;
 }
 
-template < class T > bool getAttachedAudioDeviceList(std::list<T*>& sList, pbnjson::JValue &payload)
+template < class T > bool getAttachedAudioDeviceList(std::list<T*>& sList, pbnjson::JValue &payload, bool groupSubDevices)
 {
-   if(sList.empty())
+    if(sList.empty())
         return false;
 
     for(auto device: sList)
     {
-       pbnjson::JValue audioDeviceObj = pbnjson::Object();
-       audioDeviceObj.put("cardName", device->getCardName());
-       audioDeviceObj.put("cardId", device->getCardId());
-       audioDeviceObj.put("cardNumber", device->getCardNumber());
-       audioDeviceObj.put("usbPortNum", (int64_t)device->getUsbPortNumber());
-       audioDeviceObj.put("devSpeed", device->getDevSpeed());
-       payload.append(audioDeviceObj);
-   }
-   return true;
+        pbnjson::JValue audioDeviceObj = pbnjson::Object();
+        if(groupSubDevices) {
+            pbnjson::JValue subDeviceList = pbnjson::Array();
+            for (auto subDevice : device->getSubDeviceList()) {
+                pbnjson::JValue subDeviceObj = pbnjson::Object();
+                subDeviceObj.put("devPath", subDevice->getDevPath());
+                subDeviceObj.put("deviceType", subDevice->getDevType());
+                subDeviceList.append(subDeviceObj);
+            }
+            audioDeviceObj.put("subDeviceList", subDeviceList);
+        }
+        audioDeviceObj.put("cardName", device->getCardName());
+        audioDeviceObj.put("cardId", device->getCardId());
+        audioDeviceObj.put("builtin", device->getBuiltIn());
+        audioDeviceObj.put("cardNumber", device->getCardNumber());
+        audioDeviceObj.put("usbPortNum", (int64_t)device->getUsbPortNumber());
+        audioDeviceObj.put("devSpeed", device->getDevSpeed());
+        payload.append(audioDeviceObj);
+    }
+    return true;
 }
 
 template < class T > bool getAttachedVideoDeviceList(std::list<T*>& sList, pbnjson::JValue &payload, bool groupSubDevices)
@@ -382,19 +393,18 @@ template < class T > bool getAttachedNetDeviceList(std::list<T*>& sList, pbnjson
 
     for(auto device: sList)
     {
-        //MM: TODO: uncomment below code for cdc Devices net device
-    //    if(device->getDeviceType() == "CDC"){
-    //     pbnjson::JValue netDeviceObj = pbnjson::Object();
-    //     netDeviceObj.put("operstate", device->getOperstate());
-    //     netDeviceObj.put("ifindex", device->getDeviceifindex());
-    //     netDeviceObj.put("linkmode", device->getDeviceLinkMode());
-    //     netDeviceObj.put("duplex", device->getDuplex());
-    //     netDeviceObj.put("address", device->getDeviceAddress());
-    //     netDeviceObj.put("vendorName", device->getVendorName());
-    //     netDeviceObj.put("productName", device->getProductName());
-    //     netDeviceObj.put("devSpeed", device->getDevSpeed());
-    //     payload.append(netDeviceObj);
-    //    }
+       if(device->getDeviceType() == "CDC"){
+        pbnjson::JValue netDeviceObj = pbnjson::Object();
+        netDeviceObj.put("operstate", device->getOperstate());
+        netDeviceObj.put("ifindex", device->getDeviceifindex());
+        netDeviceObj.put("linkmode", device->getDeviceLinkMode());
+        netDeviceObj.put("duplex", device->getDuplex());
+        netDeviceObj.put("address", device->getDeviceAddress());
+        netDeviceObj.put("vendorName", device->getVendorName());
+        netDeviceObj.put("productName", device->getProductName());
+        netDeviceObj.put("devSpeed", device->getDevSpeed());
+        payload.append(netDeviceObj);
+       }
     }
    return true;
 }

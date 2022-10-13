@@ -18,7 +18,6 @@
 #define _PDMNETLINKHANDLER_H
 
 #include "CommandManager.h"
-// #include "PdmNetlinkEvent.h"
 #include "PdmNetlinkListener.h"
 #include "DeviceClass.h"
 

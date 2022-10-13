@@ -29,6 +29,7 @@
 #include "DeviceManager.h"
 #include "DeviceTracker.h"
 #include "PluginAdapter.h"
+#include "PdmNetlinkClassAdapter.h"
 
 #define PLUGIN_PATH "/usr/lib/libpdm-plugin.so.1"
 
@@ -79,6 +80,8 @@ int main(int argc, char *argv[])
         if(!PdmLocaleHandler::getInstance()->init())
             throw std::runtime_error("PdmLocaleHandler init fail");
 
+        PdmNetlinkClassAdapter::getInstance().setCommandManager(pCommandManager);
+        
         PdmNetlinkManager::getInstance()->start(pCommandManager);
         g_main_loop_run(mainLoop);
         DeviceNotification::getInstance()->deInit();

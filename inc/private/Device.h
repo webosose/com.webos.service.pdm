@@ -22,7 +22,6 @@
 #include "Common.h"
 #include "IDevice.h"
 #include "PdmConfig.h"
-// #include "PdmNetlinkEvent.h"
 #include "PluginAdapter.h"
 #include "DeviceClass.h"
 

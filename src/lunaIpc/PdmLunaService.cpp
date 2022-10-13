@@ -1,4 +1,4 @@
-// Copyright (c) 2019-2021 LG Electronics, Inc.
+// Copyright (c) 2019-2022 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -37,7 +37,7 @@ extern "C" {
 #include "PdmLunaService.h"
 #include "SchemaValidationApi.h"
 #include "PdmUtils.h"
-// #include "DiskFormat.h"
+#include "DiskFormat.h"
 
 #include <luna-service2/lunaservice.hpp>
 #include <luna-service2++/handle.hpp>
@@ -71,9 +71,11 @@ const char* DeviceEventTable[] =
     PDM_EVENT_STORAGE_DEVICES,
     PDM_EVENT_NON_STORAGE_DEVICES,
     PDM_EVENT_ALL_ATTACHED_DEVICES,
+    PDM_EVENT_AUDIO_DEVICES,
     PDM_EVENT_ALL_ATTACHED_DEVICE_LIST,
     PDM_EVENT_NON_STORAGE_DEVICES_VIDEO,
-    PDM_EVENT_NON_STORAGE_SUB_DEVICES_VIDEO
+    PDM_EVENT_NON_STORAGE_SUB_DEVICES_VIDEO,
+    PDM_EVENT_AUDIO_SUB_DEVICES
 };
 
 using namespace std;
@@ -268,6 +270,13 @@ pbnjson::JValue PdmLunaService::createJsonGetAttachedNonStorageDeviceList(LSMess
             }
     }else if(deviceType.compare("Audio") == 0) {
         if(PdmLunaHandler::getInstance()->getAttachedAudioDeviceList(payload,message))
+        {
+            payload.put("returnValue", true);
+        }else{
+            appendErrorResponse(payload, PdmPayload::PDM_RESPONSE_FAILURE, PdmErrors::mPdmErrorTextTable[PdmPayload::PDM_RESPONSE_FAILURE]);
+        }
+    }else if(deviceType.compare("AudioSubDevices") == 0) {
+        if(PdmLunaHandler::getInstance()->getAttachedAudioSubDeviceList(payload,message))
         {
             payload.put("returnValue", true);
         }else{
@@ -489,17 +498,27 @@ bool PdmLunaService::cbGetAttachedNonStorageDeviceList(LSHandle *sh, LSMessage *
         payload = createJsonGetAttachedNonStorageDeviceList(message, "VideoSubDevices");
     else if (category.compare("Video") == 0)
         payload = createJsonGetAttachedNonStorageDeviceList(message, "Video");
+    if(groupSubDevices && category.compare("Audio") == 0)
+        payload = createJsonGetAttachedNonStorageDeviceList(message, "AudioSubDevices");
+    else if (category.compare("Audio") == 0)
+        payload = createJsonGetAttachedNonStorageDeviceList(message, "Audio");
     else
         payload = createJsonGetAttachedNonStorageDeviceList(message, category);
 
     PDM_LOG_DEBUG("PdmLunaService::cbgetAttachedNonStorageDeviceList");
     if(LSMessageIsSubscription(message)){
         const char* event = PDM_EVENT_NON_STORAGE_DEVICES;
-        if(!category.empty()) {
+        if(!category.empty() && category.compare("Video") == 0) {
             if(groupSubDevices) {
                 event = PDM_EVENT_NON_STORAGE_SUB_DEVICES_VIDEO;
             } else {
                 event = PDM_EVENT_NON_STORAGE_DEVICES_VIDEO;
+            }
+        } else if(!category.empty() && category.compare("Audio") == 0) {
+            if(groupSubDevices) {
+                event = PDM_EVENT_AUDIO_SUB_DEVICES;
+            } else {
+                event = PDM_EVENT_AUDIO_DEVICES;
             }
         }
         subscribed = subscriptionAdd(sh, event, message);
@@ -1238,8 +1257,13 @@ bool PdmLunaService::notifySubscribers(int eventDeviceType, const int &eventID, 
         LSERROR_CHECK_AND_PRINT(bRetVal, error);
 
         payload = createJsonGetAttachedNonStorageDeviceList(nullptr, "Video");
-    }
-    else if(eventDeviceType != ALL_DEVICE) {
+    } else if (eventDeviceType == SOUND_DEVICE) {
+        payload = createJsonGetAttachedNonStorageDeviceList(nullptr, "AudioSubDevices");
+        bRetVal = LSSubscriptionReply(mServiceHandle, PDM_EVENT_AUDIO_SUB_DEVICES, payload.stringify(NULL).c_str(), &error);
+        LSERROR_CHECK_AND_PRINT(bRetVal, error);
+
+        payload = createJsonGetAttachedNonStorageDeviceList(nullptr, "Audio");
+    } else if(eventDeviceType != ALL_DEVICE) {
         payload = createJsonGetAttachedNonStorageDeviceList(nullptr);
     }
 

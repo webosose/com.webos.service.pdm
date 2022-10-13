@@ -18,7 +18,6 @@
 #define PDMNETLINKCOMMAND_H_
 
 #include "Command.h"
-// #include "PdmNetlinkEvent.h"
 #include "DeviceClass.h"
 
 class PdmNetLinkCommand : public Command {
