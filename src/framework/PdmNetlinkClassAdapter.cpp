@@ -19,7 +19,6 @@
 #include "DeviceClass.h"
 #include "DeviceClassCommand.h"
 #include "DeviceClassFactory.h"
-#include "PdmNetlinkEvent.h"
 
 PdmNetlinkClassAdapter::PdmNetlinkClassAdapter() : mCmdManager(nullptr) {}
 
@@ -32,15 +31,20 @@ PdmNetlinkClassAdapter& PdmNetlinkClassAdapter::getInstance() {
 
 void PdmNetlinkClassAdapter::setCommandManager(CommandManager* cmdMgr)
 {
+	PDM_LOG_DEBUG("PdmNetlinkClassAdapter:%s line: %d", __FUNCTION__, __LINE__);
 	mCmdManager = cmdMgr;
 }
 
 void PdmNetlinkClassAdapter::handleEvent(struct udev_device* device)
 {
+	PDM_LOG_DEBUG("PdmNetlinkClassAdapter:%s line: %d", __FUNCTION__, __LINE__);
 	DeviceClass* devClasPtr = DeviceClassFactory::getInstance().create(device);
+	
 	if (mCmdManager && devClasPtr) {
+		PDM_LOG_DEBUG("PdmNetlinkClassAdapter:%s line: %d", __FUNCTION__, __LINE__);
 		DeviceClassCommand *devClassCmd = new (std::nothrow) DeviceClassCommand(devClasPtr);
 		mCmdManager->sendCommand(devClassCmd);
 	}
+	PDM_LOG_DEBUG("PdmNetlinkClassAdapter:%s line: %d", __FUNCTION__, __LINE__);
 }
 

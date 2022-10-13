@@ -37,6 +37,7 @@ PdmNetlinkManager::~PdmNetlinkManager()
 
 int PdmNetlinkManager::start(CommandManager *cmdManager)
 {
+    PDM_LOG_DEBUG("PdmNetlinkManager:%s line: %d Starting NetlinkHandler...", __FUNCTION__, __LINE__);
     m_handler = new (std::nothrow) PdmNetlinkHandler(cmdManager);
 
     if( m_handler && m_handler->start() ) {

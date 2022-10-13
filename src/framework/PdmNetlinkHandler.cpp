@@ -31,17 +31,20 @@ PdmNetlinkHandler::~PdmNetlinkHandler()
 
 bool PdmNetlinkHandler::start()
 {
+    PDM_LOG_DEBUG("PdmNetlinkHandler:%s line: %d", __FUNCTION__, __LINE__);
     return this->startListener();
 }
 
 bool PdmNetlinkHandler::stop()
 {
+    PDM_LOG_DEBUG("PdmNetlinkHandler:%s line: %d", __FUNCTION__, __LINE__);
     return this->stopListener();
 }
 
 // void PdmNetlinkHandler::onEvent(PdmNetlinkEvent *event)
 void PdmNetlinkHandler::onEvent(DeviceClass *deviceClassEvent)
 {
+    PDM_LOG_DEBUG("######### PdmNetlinkHandler:%s line: %d", __FUNCTION__, __LINE__);
     PdmNetLinkCommand *netLinkCmd = new (std::nothrow) PdmNetLinkCommand(deviceClassEvent);
     if(netLinkCmd)
         m_commandManager->sendCommand(netLinkCmd);
