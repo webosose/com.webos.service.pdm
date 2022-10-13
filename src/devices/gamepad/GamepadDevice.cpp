@@ -20,6 +20,20 @@
 
 using namespace PdmDevAttributes;
 
+void GamepadDevice::setDeviceInfo(DeviceClass* devClass)
+{
+    PDM_LOG_DEBUG("GamepadDevice:%s line: %d setDeviceInfo", __FUNCTION__, __LINE__);
+    if(devClass->getAction() == DEVICE_ADD ) {
+        PDM_LOG_DEBUG("GamepadDevice:%s line: %d setDeviceInfo: DEVICE_ADD", __FUNCTION__, __LINE__);
+        if(!devClass->getSpeed().empty()) {
+            m_devSpeed = getDeviceSpeed(stoi(devClass->getSpeed(), nullptr));
+        }
+        Device::setDeviceInfo(devClass);
+        m_deviceSubType = devClass->getIdModel();
+    }
+}
+
+#if 0
 void GamepadDevice::setDeviceInfo(PdmNetlinkEvent* pNE)
 {
     PDM_LOG_DEBUG("GamepadDevice:%s line: %d setDeviceInfo", __FUNCTION__, __LINE__);
@@ -32,3 +46,5 @@ void GamepadDevice::setDeviceInfo(PdmNetlinkEvent* pNE)
         m_deviceSubType = pNE->getDevAttribute(ID_MODEL);
     }
 }
+#endif
+

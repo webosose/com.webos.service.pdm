@@ -34,6 +34,25 @@ MTPDevice::~MTPDevice()
 {
 }
 
+void MTPDevice::setDeviceInfo(DeviceClass* devClass)
+{
+    if( devClass->getDevType() == USB_DEVICE){
+        if(!devClass->getSpeed().empty()) {
+            m_devSpeed = getDeviceSpeed(stoi(devClass->getSpeed()));
+        }
+        driveName = devClass->getDevLinks();
+        if(!driveName.empty())
+        {
+            driveName.erase(0,8);
+            //Example: "rootPath": "/tmp/usb/MTP-4-15"; "mountName": "/tmp/usb/MTP-4-15/MTP-4-15"
+            rootPath.append(driveName);
+            mountName = rootPath + "/" + driveName ;
+        }
+    }
+    Device::setDeviceInfo(devClass);
+}
+
+#if 0
 void MTPDevice::setDeviceInfo(PdmNetlinkEvent* pNE)
 {
     if( pNE->getDevAttribute(DEVTYPE) == USB_DEVICE){
@@ -51,6 +70,7 @@ void MTPDevice::setDeviceInfo(PdmNetlinkEvent* pNE)
     }
     Device::setDeviceInfo(pNE);
 }
+#endif
 
 PdmDevStatus MTPDevice::mtpMount( const std::string &mtpDeviceName){
     PdmDevStatus mountStatus = PdmDevStatus::PDM_DEV_UMOUNT_FAIL;

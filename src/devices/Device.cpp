@@ -64,43 +64,81 @@ void Device::getBasicUsbInfo(std::string devPath)
 }
 #endif
 
-void Device::setDeviceInfo(PdmNetlinkEvent* pNE)
+void Device::setDeviceInfo(DeviceClass* deviceClassEve)
 {
-    m_serialNumber = pNE->getDevAttribute(ID_SERIAL_SHORT);
-    m_deviceSubType = pNE->getDevAttribute(ID_USB_DRIVER);
-    m_productName = pNE->getDevAttribute(ID_MODEL);
+    m_serialNumber = deviceClassEve->getIdSerilShort();
+    m_deviceSubType = deviceClassEve->getUsbDriver();
+    m_productName = deviceClassEve->getIdModel();
 
 #ifdef WEBOS_SESSION
-    if(pNE->getDevAttribute(DEVTYPE) == USB_DEVICE)
-        m_hubPortNumber = pNE->getDevAttribute(USB_PORT);
+    if(deviceClassEve->getDevType() == USB_DEVICE)
+        m_hubPortNumber = deviceClassEve->getUsbPort();
 #endif
 
-    if (!m_pluginAdapter->getPowerState() || pNE->getDevAttribute(IS_POWER_ON_CONNECT) == "true")
+    if (!m_pluginAdapter->getPowerState() || deviceClassEve->getIsPowerOnConnect() == "true")
       m_isPowerOnConnect = true;
 
-    if(pNE->getDevAttribute(DEVTYPE) == USB_DEVICE){
-      m_devicePath = pNE->getDevAttribute(DEVPATH);
+    if(deviceClassEve->getDevType() == USB_DEVICE){
+      m_devicePath = deviceClassEve->getDevPath();
 #ifdef WEBOS_SESSION
       std::string delimeter = "/";
       std::string usbInfoString = m_devicePath.substr(m_devicePath.rfind(delimeter) + delimeter.size());
       getBasicUsbInfo(usbInfoString);
 #endif
     }
-    if(!pNE->getDevAttribute(ID_VENDOR_FROM_DATABASE).empty()){
-        m_vendorName = pNE->getDevAttribute(ID_VENDOR_FROM_DATABASE);
+    if(!deviceClassEve->getIdVendorFromDataBase().empty()){
+        m_vendorName = deviceClassEve->getIdVendorFromDataBase();
     } else {
-        m_vendorName = pNE->getDevAttribute(ID_VENDOR);
+        m_vendorName = deviceClassEve->getIdVendor();
     }
-    if(!pNE->getDevAttribute(DEVNUM).empty())
-        m_deviceNum = std::stoi(pNE->getDevAttribute(DEVNUM),nullptr);
+    if(!deviceClassEve->getDevNumber().empty())
+        m_deviceNum = std::stoi(deviceClassEve->getDevNumber(),nullptr);
 
 #ifdef WEBOS_SESSION
-    if (!pNE->getDevAttribute(DEVNAME).empty()) {
+    if (!deviceClassEve->getDevName().empty()) {
         std::string devPath = "/dev/";
-        m_devPath = devPath.append(pNE->getDevAttribute(DEVNAME));
+        m_devPath = devPath.append(deviceClassEve->getDevName());
     }
 #endif
 }
+
+// void Device::setDeviceInfo(PdmNetlinkEvent* pNE)
+// {
+//     m_serialNumber = pNE->getDevAttribute(ID_SERIAL_SHORT);
+//     m_deviceSubType = pNE->getDevAttribute(ID_USB_DRIVER);
+//     m_productName = pNE->getDevAttribute(ID_MODEL);
+
+// #ifdef WEBOS_SESSION
+//     if(pNE->getDevAttribute(DEVTYPE) == USB_DEVICE)
+//         m_hubPortNumber = pNE->getDevAttribute(USB_PORT);
+// #endif
+
+//     if (!m_pluginAdapter->getPowerState() || pNE->getDevAttribute(IS_POWER_ON_CONNECT) == "true")
+//       m_isPowerOnConnect = true;
+
+//     if(pNE->getDevAttribute(DEVTYPE) == USB_DEVICE){
+//       m_devicePath = pNE->getDevAttribute(DEVPATH);
+// #ifdef WEBOS_SESSION
+//       std::string delimeter = "/";
+//       std::string usbInfoString = m_devicePath.substr(m_devicePath.rfind(delimeter) + delimeter.size());
+//       getBasicUsbInfo(usbInfoString);
+// #endif
+//     }
+//     if(!pNE->getDevAttribute(ID_VENDOR_FROM_DATABASE).empty()){
+//         m_vendorName = pNE->getDevAttribute(ID_VENDOR_FROM_DATABASE);
+//     } else {
+//         m_vendorName = pNE->getDevAttribute(ID_VENDOR);
+//     }
+//     if(!pNE->getDevAttribute(DEVNUM).empty())
+//         m_deviceNum = std::stoi(pNE->getDevAttribute(DEVNUM),nullptr);
+
+// #ifdef WEBOS_SESSION
+//     if (!pNE->getDevAttribute(DEVNAME).empty()) {
+//         std::string devPath = "/dev/";
+//         m_devPath = devPath.append(pNE->getDevAttribute(DEVNAME));
+//     }
+// #endif
+// }
 
 #ifdef WEBOS_SESSION
 void Device::setDeviceSetId(std::string hubPortPath)

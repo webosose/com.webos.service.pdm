@@ -18,6 +18,19 @@
 
 using namespace PdmDevAttributes;
 
+void NfcDevice::setDeviceInfo(DeviceClass* devClass)
+{
+    PDM_LOG_DEBUG("NfcDevice:%s line: %d setDeviceInfo", __FUNCTION__, __LINE__);
+    if(devClass->getAction() == DEVICE_ADD ) {
+        PDM_LOG_DEBUG("NfcDevice:%s line: %d setDeviceInfo: DEVICE_ADD", __FUNCTION__, __LINE__);
+        if (!devClass->getSpeed().empty()) {
+            m_devSpeed = getDeviceSpeed(stoi(devClass->getSpeed(), nullptr));
+        }
+        Device::setDeviceInfo(devClass);
+    }
+}
+
+#if 0
 void NfcDevice::setDeviceInfo(PdmNetlinkEvent* pNE)
 {
     PDM_LOG_DEBUG("NfcDevice:%s line: %d setDeviceInfo", __FUNCTION__, __LINE__);
@@ -29,6 +42,7 @@ void NfcDevice::setDeviceInfo(PdmNetlinkEvent* pNE)
         Device::setDeviceInfo(pNE);
     }
 }
+#endif
 
 void NfcDevice::registerCallback(handlerCb nfcDeviceHandlerCb) {
     mnfcDeviceHandlerCb = nfcDeviceHandlerCb;

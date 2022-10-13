@@ -25,10 +25,12 @@
 #include "CommandManager.h"
 #include "CommandTypes.h"
 #include "PluginAdapter.h"
+#include "DeviceClass.h"
 
 class DeviceHandler;
-class PdmNetlinkEvent;
+// class PdmNetlinkEvent;
 class PdmConfig;
+class DeviceClass;
 
 class DeviceManager {
 
@@ -42,7 +44,8 @@ public:
     DeviceManager();
     ~DeviceManager();
     bool init(PdmConfig* const pConfObj, PluginAdapter* const pluginAdapter);
-    bool HandlePdmDevice(PdmNetlinkEvent *evn);
+    // bool HandlePdmDevice(PdmNetlinkEvent *evn);
+	bool HandlePdmDevice(DeviceClass *deviceClass);
     bool HandlePdmCommand(CommandType *cmdtypes, CommandResponse *cmdResponse);
     bool HandlePluginEvent(int eventType);
     std::list<DeviceHandler*> getDeviceHandlerList();

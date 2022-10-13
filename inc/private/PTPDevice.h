@@ -20,6 +20,7 @@
 #include <functional>
 #include "Storage.h"
 #include "PdmErrors.h"
+#include "DeviceClass.h"
 
 class PTPDevice : public Storage
 {
@@ -35,7 +36,8 @@ private:
 public:
     PTPDevice(PdmConfig* const pConfObj, PluginAdapter* const pluginAdapter);
     ~PTPDevice() = default;
-    void setDeviceInfo(PdmNetlinkEvent* pNE);
+    void setDeviceInfo(DeviceClass*);
+	//void setDeviceInfo(PdmNetlinkEvent* pNE);
     void onDeviceRemove();
     void resumeRequest(const int &eventType);
     PdmDevStatus eject();

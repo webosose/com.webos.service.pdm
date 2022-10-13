@@ -1,4 +1,4 @@
-// Copyright (c) 2019-2022 LG Electronics, Inc.
+// Copyright (c) 2019-2020 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -32,6 +32,34 @@ HIDDeviceHandler::HIDDeviceHandler(PdmConfig* const pConfObj, PluginAdapter* con
 HIDDeviceHandler::~HIDDeviceHandler() {
 }
 
+bool HIDDeviceHandler::HandlerEvent(DeviceClass* devClass){
+
+    PDM_LOG_DEBUG("HIDDeviceHandler::HandlerEvent");
+    if (devClass->getAction()== "remove")
+    {
+        m_deviceRemoved = false;
+        ProcessHIDDevice(devClass);
+        if(m_deviceRemoved) {
+            PDM_LOG_DEBUG("HIDDeviceHandler:%s line: %d  DEVTYPE=usb_device removed", __FUNCTION__, __LINE__);
+            return true;
+        }
+    }
+
+    std::string interfaceClass = devClass->getInterfaceClass();
+    if(interfaceClass.find(iClass) == std::string::npos)
+        return false;
+    if(devClass->getDevType()==  USB_DEVICE){
+        ProcessHIDDevice(devClass);
+        return false;
+    }
+    else if(devClass->getSubsystemName()==  "input") {
+        ProcessHIDDevice(devClass);
+        return true;
+    }
+    return false;
+}
+
+#if 0
 bool HIDDeviceHandler::HandlerEvent(PdmNetlinkEvent* pNE){
 
     PDM_LOG_DEBUG("HIDDeviceHandler::HandlerEvent");
@@ -52,13 +80,13 @@ bool HIDDeviceHandler::HandlerEvent(PdmNetlinkEvent* pNE){
         ProcessHIDDevice(pNE);
         return false;
     }
-    else if(pNE->getDevAttribute(SUBSYSTEM) ==  "input" && interfaceClass.find(iClass) != std::string::npos) {
+    else if(pNE->getDevAttribute(SUBSYSTEM) ==  "input") {
         ProcessHIDDevice(pNE);
         return true;
     }
     return false;
-
 }
+#endif
 
 void HIDDeviceHandler::removeDevice(HIDDevice* hidDevice)
 {
@@ -73,6 +101,44 @@ void HIDDeviceHandler::removeDevice(HIDDevice* hidDevice)
 
 }
 
+void HIDDeviceHandler::ProcessHIDDevice(DeviceClass* devClass){
+    HIDDevice *hidDevice;
+    PDM_LOG_INFO("HIDDeviceHandler:",0,"%s line: %d DEVTYPE: %s ACTION: %s", __FUNCTION__, __LINE__, devClass->getDevType().c_str(), devClass->getAction().c_str());
+
+   try {
+            switch(sMapDeviceActions.at(devClass->getAction()))
+            {
+                case DeviceActions::USB_DEV_ADD:
+                    hidDevice = getDeviceWithPath< HIDDevice >(sList, devClass->getDevPath());
+                    if(!hidDevice)
+                    {
+                        hidDevice = new (std::nothrow) HIDDevice(m_pConfObj, m_pluginAdapter);
+                        if(!hidDevice)
+                            break;
+                        hidDevice->setDeviceInfo(devClass);
+                        hidDevice->registerCallback(std::bind(&HIDDeviceHandler::commandNotification, this, _1, _2));
+                        sList.push_back(hidDevice);
+                    }else
+                        hidDevice->setDeviceInfo(devClass);
+                    break;
+                case DeviceActions::USB_DEV_REMOVE:
+                    hidDevice = getDeviceWithPath< HIDDevice >(sList, devClass->getDevPath());
+                    if(hidDevice) {
+                       removeDevice(hidDevice);
+                       m_deviceRemoved = true;
+                    }
+                    break;
+                default:
+                //Do nothing
+                   break;
+            }
+       }
+      catch (const std::out_of_range& err) {
+         PDM_LOG_INFO("HIDDeviceHandler:",0,"%s line: %d out of range : %s", __FUNCTION__, __LINE__, err.what());
+   }
+}
+
+#if 0
 void HIDDeviceHandler::ProcessHIDDevice(PdmNetlinkEvent* pNE){
     HIDDevice *hidDevice;
     PDM_LOG_INFO("HIDDeviceHandler:",0,"%s line: %d DEVTYPE: %s ACTION: %s", __FUNCTION__,__LINE__,pNE->getDevAttribute(DEVTYPE).c_str(),pNE->getDevAttribute(ACTION).c_str());
@@ -109,6 +175,7 @@ void HIDDeviceHandler::ProcessHIDDevice(PdmNetlinkEvent* pNE){
          PDM_LOG_INFO("HIDDeviceHandler:",0,"%s line: %d out of range : %s", __FUNCTION__,__LINE__,err.what());
    }
 }
+#endif
 
 bool HIDDeviceHandler::HandlerCommand(CommandType *cmdtypes, CommandResponse *cmdResponse) {
 

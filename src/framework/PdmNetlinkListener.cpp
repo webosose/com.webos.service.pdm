@@ -25,6 +25,7 @@
 #include "PdmNetlinkListener.h"
 #include "PdmNetlinkEvent.h"
 #include "PdmLogUtils.h"
+#include "PdmNetlinkClassAdapter.h"
 
 #define memzero(x,l) (std::memset((x), 0, (l)))
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
@@ -98,9 +99,10 @@ void PdmNetlinkListener::enumerate_devices(struct udev* udev)
         const char* path = udev_list_entry_get_name(entry);
         struct udev_device* device = udev_device_new_from_syspath(udev, path);
         if (device != NULL) {
-            PdmNetlinkEvent *pNE = new PdmNetlinkEvent;
-            pNE->pdmParser(device, true);
-            onEvent(pNE);
+            // PdmNetlinkEvent *pNE = new PdmNetlinkEvent;
+            // pNE->pdmParser(device, true);
+            // onEvent(pNE);
+            PdmNetlinkClassAdapter::getInstance().handleEvent(device);
         }
         udev_device_unref(device);
     }
@@ -161,6 +163,7 @@ void PdmNetlinkListener::threadStart(){
     for (int i = 0; i < fdcount; i++) {
         if (ev[i].data.fd == fd_udev && ev[i].events & EPOLLIN) {
             device = udev_monitor_receive_device(monitor);
+#if 0 /**/
             if (device == NULL) {
                 PDM_LOG_WARNING("PdmNetlinkListener: %s line: %d no device from socket", __FUNCTION__, __LINE__);
                 continue;
@@ -172,6 +175,8 @@ void PdmNetlinkListener::threadStart(){
             } else {
                 PDM_LOG_ERROR("PdmNetlinkListener: %s line: %d memory failure for PdmNetlinkEvent",__FUNCTION__, __LINE__);
             }
+#endif
+			PdmNetlinkClassAdapter::getInstance().handleEvent(device);
             udev_device_unref(device);
             }
         }

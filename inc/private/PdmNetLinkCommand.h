@@ -18,16 +18,21 @@
 #define PDMNETLINKCOMMAND_H_
 
 #include "Command.h"
-#include "PdmNetlinkEvent.h"
+// #include "PdmNetlinkEvent.h"
+#include "DeviceClass.h"
 
 class PdmNetLinkCommand : public Command {
 
 private:
-    PdmNetlinkEvent *m_netLinkEvent;
+    // PdmNetlinkEvent *m_netLinkEvent;
+    DeviceClass *m_deviceClassEvent;
 public:
-    PdmNetLinkCommand(PdmNetlinkEvent *event);
-    PdmNetLinkCommand(const PdmNetlinkEvent&) = delete;
-    PdmNetLinkCommand& operator=(const PdmNetlinkEvent&) = delete;
+    // PdmNetLinkCommand(PdmNetlinkEvent *event);
+    // PdmNetLinkCommand(const PdmNetlinkEvent&) = delete;
+    // PdmNetLinkCommand& operator=(const PdmNetlinkEvent&) = delete;
+    PdmNetLinkCommand(DeviceClass *deviceClassEvent);
+    PdmNetLinkCommand(const DeviceClass&) = delete;
+    PdmNetLinkCommand& operator=(const DeviceClass&) = delete;
     ~PdmNetLinkCommand();
     void execute();
 

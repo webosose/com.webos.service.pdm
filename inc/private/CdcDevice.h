@@ -19,6 +19,7 @@
 
 #include "Common.h"
 #include "Device.h"
+#include "DeviceClass.h"
 
 class CdcDevice : public Device
 {
@@ -30,8 +31,10 @@ class CdcDevice : public Device
 public:
     CdcDevice(PdmConfig* const pConfObj, PluginAdapter* const pluginAdapter);
     ~CdcDevice(){}
-    void setDeviceInfo(PdmNetlinkEvent* pNE);
-    void updateDeviceInfo(PdmNetlinkEvent* pNE);
+    void setDeviceInfo(DeviceClass*);
+	//void setDeviceInfo(PdmNetlinkEvent* pNE);
+    void updateDeviceInfo(DeviceClass*);
+	//void updateDeviceInfo(PdmNetlinkEvent* pNE);
     std::string& getDuplex(){return m_duplex;}
     std::string& getDeviceAddress(){return m_address;}
     std::string& getOperstate(){return m_operstate;}

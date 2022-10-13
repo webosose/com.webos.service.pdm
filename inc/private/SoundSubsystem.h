@@ -14,23 +14,27 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-#ifndef _GAMEPADDEVICE_H_
-#define _GAMEPADDEVICE_H_
+#ifndef _SOUND_SUSBSYSTEM_H_
+#define _SOUND_SUSBSYSTEM_H_
 
-#include "Device.h"
+#include <unordered_map>
+#include <string>
 #include "DeviceClass.h"
 
-class GamepadDeviceHandler;
-
-class GamepadDevice : public Device
+class SoundSubsystem : public DeviceClass
 {
+	std::string mDevType;
+	std::unordered_map<std::string, std::string> mDevPropMap;
+	void init();
 public:
-    GamepadDevice(PdmConfig* const pConfObj, PluginAdapter* const pluginAdapter)
-                   : Device(pConfObj, pluginAdapter, "XPAD", PdmDevAttributes::PDM_ERR_NOTHING){}
-    ~GamepadDevice(){}
-	void setDeviceInfo(DeviceClass*);
-	//void setDeviceInfo(PdmNetlinkEvent* pNE);
+    SoundSubsystem(std::unordered_map<std::string, std::string>&);
+    virtual ~SoundSubsystem();
+	virtual std::string getDevType();
+	virtual std::string getDevSpeed();
+	virtual std::string getCardId();
+	virtual std::string getCardName();
+	virtual std::string getCardNumber();
+	static SoundSubsystem* create(std::unordered_map<std::string, std::string>&);
 };
 
-#endif // GAMEPADDEVICE_H
-
+#endif /* _SOUND_SUSBSYSTEM_H_ */

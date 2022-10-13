@@ -19,7 +19,8 @@
 
 #include <thread>
 
-class PdmNetlinkEvent;
+// class PdmNetlinkEvent;
+class DeviceClass;
 
 class PdmNetlinkListener {
 
@@ -30,7 +31,8 @@ public:
   virtual ~PdmNetlinkListener();
   bool startListener();
   bool stopListener();
-  virtual void onEvent(PdmNetlinkEvent *evn) = 0;
+  // virtual void onEvent(PdmNetlinkEvent *evn) = 0;
+  virtual void onEvent(DeviceClass *deviceClassEvent) = 0;
 private:
   void init();
   void runListner();

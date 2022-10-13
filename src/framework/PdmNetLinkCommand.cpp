@@ -18,24 +18,35 @@
 #include "PdmNetLinkCommand.h"
 
 
-PdmNetLinkCommand::PdmNetLinkCommand(PdmNetlinkEvent *event)
+// PdmNetLinkCommand::PdmNetLinkCommand(PdmNetlinkEvent *event)
+PdmNetLinkCommand::PdmNetLinkCommand(DeviceClass *deviceClassEvent)
 {
-    m_netLinkEvent = event;
+    // m_netLinkEvent = event;
+    m_deviceClassEvent = deviceClassEvent;
 }
 
 PdmNetLinkCommand::~PdmNetLinkCommand()
 {
-    if(m_netLinkEvent)
-        delete m_netLinkEvent;
-    m_netLinkEvent = nullptr;
+    // if(m_netLinkEvent)
+    //     delete m_netLinkEvent;
+    // m_netLinkEvent = nullptr;
+    if(m_deviceClassEvent)
+        delete m_deviceClassEvent;
+    m_deviceClassEvent = nullptr;
 }
 
 void PdmNetLinkCommand::execute()
 {
-    if (m_netLinkEvent) {
-        DeviceManager::getInstance()->HandlePdmDevice(m_netLinkEvent);
-        if(m_netLinkEvent)
-            delete m_netLinkEvent;
-        m_netLinkEvent = nullptr;
+    // if (m_netLinkEvent) {
+    //     DeviceManager::getInstance()->HandlePdmDevice(m_netLinkEvent);
+    //     if(m_netLinkEvent)
+    //         delete m_netLinkEvent;
+    //     m_netLinkEvent = nullptr;
+    // }
+    if (m_deviceClassEvent) {
+        DeviceManager::getInstance()->HandlePdmDevice(m_deviceClassEvent);
+        if(m_deviceClassEvent)
+            delete m_deviceClassEvent;
+        m_deviceClassEvent = nullptr;
     }
 }

@@ -27,6 +27,7 @@
 #include "DiskPartitionInfo.h"
 #include "PdmFs.h"
 #include "Storage.h"
+#include "DeviceClass.h"
 
 class StorageDeviceHandler;
 
@@ -54,10 +55,14 @@ private:
    int countPartitions(const std::string &devName);
    void deletePartitionData();
    void removeRootDir();
-   void updateDeviceInfo(PdmNetlinkEvent* pNE);
-   void updateDiskInfo(PdmNetlinkEvent* pNE);
-   void updateMultiSdCard(PdmNetlinkEvent* pNE);
-   void handleCardReaderDeviceChange(PdmNetlinkEvent* pNE);
+   void updateDeviceInfo(DeviceClass*);
+   void updateDiskInfo(DeviceClass*);
+   void updateMultiSdCard(DeviceClass*);
+   void handleCardReaderDeviceChange(DeviceClass*);
+   //void updateDeviceInfo(PdmNetlinkEvent* pNE);
+   //void updateDiskInfo(PdmNetlinkEvent* pNE);
+   //void updateMultiSdCard(PdmNetlinkEvent* pNE);
+   //void handleCardReaderDeviceChange(PdmNetlinkEvent* pNE);
    void storageDeviceNotification();
    void fsckOnDeviceAddThread(DiskPartitionInfo *partition);
    DiskPartitionInfo* findPartition(const std::string &drivename);
@@ -65,22 +70,26 @@ private:
    PdmDevStatus umountPartition(DiskPartitionInfo &partition, const bool lazyUnmount);
    PdmDevStatus mountPartition(DiskPartitionInfo &partition, const bool readOnly);
    PdmDevStatus fsckPartition(DiskPartitionInfo &partition, const std::string &fsckMode);
-   void checkSdCardAddRemove(PdmNetlinkEvent* pNE);
+   void checkSdCardAddRemove(DeviceClass*);
+   //void checkSdCardAddRemove(PdmNetlinkEvent* pNE);
    bool triggerUevent();
 
 protected:
    int getPartitionCount() {return m_partitionCount;}
    int getdiskPartitionListSize() {return m_diskPartitionList.size();}
-   void setStorageInterfaceType(PdmNetlinkEvent* pNE);
+   void setStorageInterfaceType(DeviceClass*);
+   //void setStorageInterfaceType(PdmNetlinkEvent* pNE);
 
 public:
    StorageDevice(PdmConfig* const pConfObj, PluginAdapter* const pluginAdapter);
    ~StorageDevice();
    bool getIsMounted(){ return m_deviceIsMounted;}
    void registerCallback(handlerCb storageDeviceHandlerCb);
-   void setDeviceInfo(PdmNetlinkEvent* pNE);
+   void setDeviceInfo(DeviceClass*);
+   //void setDeviceInfo(PdmNetlinkEvent* pNE);
    PdmDevStatus setPartitionVolumeLabel(const std::string &drivename,const std::string &volumeLabel);
-   void setPartitionInfo(PdmNetlinkEvent* pNE);
+   void setPartitionInfo(DeviceClass*);
+   //void setPartitionInfo(PdmNetlinkEvent* pNE);
    PdmDevStatus umountAllPartition(const bool lazyUnmount);
    PdmDevStatus mountAllPartition();
    PdmDevStatus fsck(const std::string driveName);

@@ -14,23 +14,27 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-#ifndef _GAMEPADDEVICE_H_
-#define _GAMEPADDEVICE_H_
+#ifndef _VIDEO_SUSBSYSTEM_H_
+#define _VIDEO_SUSBSYSTEM_H_
 
-#include "Device.h"
+#include <string>
+#include <unordered_map>
 #include "DeviceClass.h"
 
-class GamepadDeviceHandler;
-
-class GamepadDevice : public Device
+class VideoSubsystem :public DeviceClass
 {
+	std::string mDevType;
+	std::unordered_map<std::string, std::string> mDevPropMap;
+	void init();	
 public:
-    GamepadDevice(PdmConfig* const pConfObj, PluginAdapter* const pluginAdapter)
-                   : Device(pConfObj, pluginAdapter, "XPAD", PdmDevAttributes::PDM_ERR_NOTHING){}
-    ~GamepadDevice(){}
-	void setDeviceInfo(DeviceClass*);
-	//void setDeviceInfo(PdmNetlinkEvent* pNE);
+    VideoSubsystem(std::unordered_map<std::string, std::string>& devPropMap);
+    virtual ~VideoSubsystem();
+	std::string getCapabilities();
+	std::string getProductName();
+	std::string getVersion();
+	std::string getDevSpeed();
+	std::string getUsbDriverId();
+	static VideoSubsystem* create(std::unordered_map<std::string, std::string>& devPropMap);
 };
 
-#endif // GAMEPADDEVICE_H
-
+#endif /* _VIDEO_SUSBSYSTEM_H_ */

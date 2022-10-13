@@ -20,10 +20,10 @@
 #include "DeviceHandler.h"
 #include "PdmDeviceFactory.h"
 #include "PdmLogUtils.h"
-#include "PdmNetlinkEvent.h"
+// #include "PdmNetlinkEvent.h"
 #include "PdmUtils.h"
 #include "DeviceManager.h"
-#include "StorageDeviceHandler.h"
+// #include "StorageDeviceHandler.h"
 
 using namespace PdmDevAttributes;
 
@@ -73,26 +73,49 @@ bool DeviceManager::createPdmdeviceList() {
     return true;
 }
 
-bool DeviceManager::HandlePdmDevice(PdmNetlinkEvent *event) {
+// bool DeviceManager::HandlePdmDevice(PdmNetlinkEvent *event) {
 
-    PDM_LOG_DEBUG("DeviceManager::HandlePdmDevice");
+//     PDM_LOG_DEBUG("DeviceManager::HandlePdmDevice");
 
-    if (!(event->getDevAttribute(ID_BLACKLIST)).empty() && std::stoi(event->getDevAttribute(ID_BLACKLIST),nullptr)) {
-        PDM_LOG_DEBUG("Blacklist device detcted");
-        BlackListDeviceHandler blackListDeviceHandler(event);
-        return true;
-    }
+//     if (!(event->getDevAttribute(ID_BLACKLIST)).empty() && std::stoi(event->getDevAttribute(ID_BLACKLIST),nullptr)) {
+//         PDM_LOG_DEBUG("Blacklist device detcted");
+//         BlackListDeviceHandler blackListDeviceHandler(event);
+//         return true;
+//     }
+
+//     for(auto handler : mHandlerList)
+//     {
+//         bool result = handler->HandlerEvent(event);
+//         if(event->getDevAttribute(DEVTYPE) ==  "usb_device")
+//             continue;
+//         if(result)
+//             return true;
+//     }
+
+//     return false;
+// }
+
+bool DeviceManager::HandlePdmDevice(DeviceClass *devClassPtr)
+{
+	(void)devClassPtr;
+    // devClassPtr->
+    //TODO: MM:
+    // if (!(event->getDevAttribute(ID_BLACKLIST)).empty() && std::stoi(event->getDevAttribute(ID_BLACKLIST),nullptr)) {
+    //     PDM_LOG_DEBUG("Blacklist device detcted");
+    //     BlackListDeviceHandler blackListDeviceHandler(event);
+    //     return true;
+    // }
 
     for(auto handler : mHandlerList)
     {
-        bool result = handler->HandlerEvent(event);
-        if(event->getDevAttribute(DEVTYPE) ==  "usb_device")
+        bool result = handler->HandlerEvent(devClassPtr);
+        // if(event->getDevAttribute(DEVTYPE) ==  "usb_device")
+        if(devClassPtr->getDevType() ==  "usb_device")
             continue;
         if(result)
             return true;
     }
-
-    return false;
+	return false;
 }
 
 bool DeviceManager::HandlePdmCommand(CommandType *cmdtypes, CommandResponse *cmdResponse){

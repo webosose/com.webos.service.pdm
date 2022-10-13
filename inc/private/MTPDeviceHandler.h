@@ -23,6 +23,7 @@
 #include "PdmDeviceFactory.h"
 #include "PdmNetlinkEvent.h"
 #include "PdmLogUtils.h"
+#include "DeviceClass.h"
 
 class MTPDeviceHandler : public DeviceHandler
 {
@@ -49,12 +50,14 @@ public:
             return new MTPDeviceHandler(pConfObj, pluginAdapter);
         return nullptr;
     }
-    bool HandlerEvent(PdmNetlinkEvent* pNE) override;
+    bool HandlerEvent(DeviceClass* deviceClass) override;
+    //bool HandlerEvent(PdmNetlinkEvent* pNE) override;
     bool HandlerCommand(CommandType *cmdtypes, CommandResponse *cmdResponse) override;
     bool HandlePluginEvent(int eventType) override;
     bool GetAttachedDeviceStatus(pbnjson::JValue &payload, LSMessage *message) override;
     bool GetAttachedStorageDeviceList (pbnjson::JValue &payload, LSMessage *message);
-    void ProcessMTPDevice(PdmNetlinkEvent* pNE);
+    void ProcessMTPDevice(DeviceClass*);
+	//void ProcessMTPDevice(PdmNetlinkEvent* pNE);
     void commandNotification(EventType event, MTPDevice* device);
 };
 #endif //MTPDEVICEHANDLER_H

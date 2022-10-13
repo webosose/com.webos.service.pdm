@@ -27,8 +27,10 @@
 #include "PdmLunaHandler.h"
 #include "PluginAdapter.h"
 #include "CommandTypes.h"
+#include "DeviceClass.h"
 
-class PdmNetlinkEvent;
+// class PdmNetlinkEvent;
+//class DeviceClass;
 
 class DeviceHandler: public DeviceStateObserver {
 protected:
@@ -42,7 +44,8 @@ public:
         lunaHandler = PdmLunaHandler::getInstance();
     }
     virtual ~DeviceHandler(){}
-    virtual bool HandlerEvent(PdmNetlinkEvent* event) = 0;
+    // virtual bool HandlerEvent(PdmNetlinkEvent* event) = 0;
+    virtual bool HandlerEvent(DeviceClass* deviceClass) = 0;
     virtual bool HandlerCommand(CommandType *cmdtypes, CommandResponse *cmdResponse) = 0;
     virtual bool GetAttachedDeviceStatus(pbnjson::JValue &payload, LSMessage *message) = 0;
     virtual bool HandlePluginEvent(int eventType);

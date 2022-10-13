@@ -45,6 +45,33 @@ CdcDeviceHandler::~CdcDeviceHandler() {
     }
 }
 
+bool CdcDeviceHandler::HandlerEvent(DeviceClass* devClass)
+{
+    PDM_LOG_DEBUG("CdcDeviceHandler:%s line: %d ", __FUNCTION__, __LINE__);
+
+    if (devClass->getAction() == "remove")
+    {
+        m_deviceRemoved = false;
+        ProcessCdcDevice(devClass);
+        if(m_deviceRemoved) {
+            PDM_LOG_DEBUG("CdcDeviceHandler:%s line: %d  DEVTYPE=usb_device removed", __FUNCTION__, __LINE__);
+            return true;
+         }
+    }
+    if(!identifyCdcDevice(devClass))
+        return false;
+    if(devClass->getDevType() ==  USB_DEVICE) {
+        ProcessCdcDevice(devClass);
+        return false;
+    }
+    else if((devClass->getSubsystemName() ==  "net") || (devClass->getSubsystemName() ==  "tty")) {
+        ProcessCdcDevice(devClass);
+        return true;
+    }
+    return false;
+}
+
+#if 0
 bool CdcDeviceHandler::HandlerEvent(PdmNetlinkEvent* pNE)
 {
     PDM_LOG_DEBUG("CdcDeviceHandler:%s line: %d ", __FUNCTION__, __LINE__);
@@ -70,6 +97,7 @@ bool CdcDeviceHandler::HandlerEvent(PdmNetlinkEvent* pNE)
     }
     return false;
 }
+#endif
 
 void CdcDeviceHandler::removeDevice(CdcDevice* cdcDevice)
 {
@@ -81,6 +109,52 @@ void CdcDeviceHandler::removeDevice(CdcDevice* cdcDevice)
     cdcDevice = nullptr;
 }
 
+void CdcDeviceHandler::ProcessCdcDevice(DeviceClass* devClass)
+{
+    CdcDevice *cdcDevice;
+    PDM_LOG_DEBUG("CdcDeviceHandler:%s line: %d CdcDeviceHandler: DEVTYPE: %s ACTION: %s", __FUNCTION__, __LINE__, devClass->getDevType().c_str(), devClass->getAction().c_str());
+     try {
+            switch(sMapDeviceActions.at(devClass->getAction()))
+            {
+                case DeviceActions::USB_DEV_ADD:
+                PDM_LOG_DEBUG("CdcDeviceHandler:%s line: %d  Add CDC device",__FUNCTION__, __LINE__);
+                cdcDevice = getDeviceWithPath< CdcDevice >(sList, devClass->getDevPath());
+                if(!cdcDevice ) {
+                   cdcDevice = new (std::nothrow) CdcDevice(m_pConfObj, m_pluginAdapter);
+                   if(cdcDevice) {
+                      cdcDevice->setDeviceInfo(devClass);
+                      sList.push_back(cdcDevice);
+                      if(devClass->getUsbModemId() == YES) { // In case of modem dongle there is only a single event and no update happens later.
+                          sList.push_back(cdcDevice);
+                          Notify(CDC_DEVICE,ADD); // So notify now itself
+                      }
+                   } else {
+                      PDM_LOG_CRITICAL("CdcDeviceHandler:%s line: %d Unable to create new CDC device", __FUNCTION__, __LINE__);
+                   }
+                } else{
+                   sList.push_back(cdcDevice);
+                   cdcDevice->updateDeviceInfo(devClass);
+                   Notify(CDC_DEVICE,ADD,cdcDevice);
+                }
+                break;
+                case DeviceActions::USB_DEV_REMOVE:
+                    cdcDevice = getDeviceWithPath< CdcDevice >(sList, devClass->getDevPath());
+                if(cdcDevice) {
+                   removeDevice(cdcDevice);
+                   m_deviceRemoved = true;
+                }
+                    break;
+                default:
+                 //Do nothing
+                    break;
+            }
+        }
+        catch (const std::out_of_range& err) {
+         PDM_LOG_INFO("StorageDeviceHandler:",0,"%s line: %d out of range : %s", __FUNCTION__, __LINE__, err.what());
+    }
+}
+
+#if 0
 void CdcDeviceHandler::ProcessCdcDevice(PdmNetlinkEvent* pNE)
 {
     CdcDevice *cdcDevice;
@@ -125,7 +199,22 @@ void CdcDeviceHandler::ProcessCdcDevice(PdmNetlinkEvent* pNE)
          PDM_LOG_INFO("StorageDeviceHandler:",0,"%s line: %d out of range : %s", __FUNCTION__,__LINE__,err.what());
     }
 }
+#endif
 
+bool CdcDeviceHandler::identifyCdcDevice(DeviceClass* devClass)
+{
+    std::string interfaceClass = devClass->getInterfaceClass();
+
+    if((interfaceClass.find(iClass) != std::string::npos) ||
+    (devClass->getUsbSerialId() == YES) ||
+    ((devClass->getUsbInterfaces().find(ethernetInterfaceClass)) != std::string::npos) ||
+    ((devClass->getUsbModemId() == YES) && m_is3g4gDongleSupported))
+        return true;
+
+    return false;
+}
+
+#if 0
 bool CdcDeviceHandler::identifyCdcDevice(PdmNetlinkEvent* pNE)
 {
     std::string interfaceClass = pNE->getInterfaceClass();
@@ -138,6 +227,7 @@ bool CdcDeviceHandler::identifyCdcDevice(PdmNetlinkEvent* pNE)
 
     return false;
 }
+#endif
 
 bool CdcDeviceHandler::HandlerCommand(CommandType *cmdtypes, CommandResponse *cmdResponse)
 {

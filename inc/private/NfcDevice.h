@@ -15,6 +15,7 @@
 #define _nfcDevice_H_
 
 #include "Device.h"
+#include "DeviceClass.h"
 #include <functional>
 
 class nfcDeviceHandler;
@@ -30,7 +31,8 @@ public:
     NfcDevice(PdmConfig* const pConfObj, PluginAdapter* const pluginAdapter)
               : Device(pConfObj, pluginAdapter, "NFC",PdmDevAttributes::PDM_ERR_NOTHING), m_isDevAddNotified(false), m_deviceClass(""){}
     ~NfcDevice() = default;
-    void setDeviceInfo(PdmNetlinkEvent* pNE);
+    void setDeviceInfo(DeviceClass*);
+	//void setDeviceInfo(PdmNetlinkEvent* pNE);
     void registerCallback(handlerCb nfcDeviceHandlerCb);
 	std::string getDeviceClass(){return m_deviceClass;}
 };

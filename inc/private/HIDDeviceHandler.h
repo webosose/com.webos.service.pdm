@@ -23,6 +23,7 @@
 #include "PdmDeviceFactory.h"
 #include "PdmNetlinkEvent.h"
 #include "PdmLogUtils.h"
+#include "DeviceClass.h"
 
 class HIDDeviceHandler : public DeviceHandler
 {
@@ -54,12 +55,14 @@ public:
         }
     }
 
-    bool HandlerEvent(PdmNetlinkEvent* pNE) override;
+    bool HandlerEvent(DeviceClass*) override;
+    //bool HandlerEvent(PdmNetlinkEvent* pNE) override;
     bool HandlerCommand(CommandType *cmdtypes, CommandResponse *cmdResponse) override;
     bool HandlePluginEvent(int eventType) override;
     bool GetAttachedDeviceStatus(pbnjson::JValue &payload, LSMessage *message) override;
     bool GetAttachedNonStorageDeviceList(pbnjson::JValue &payload, LSMessage *message);
-    void ProcessHIDDevice(PdmNetlinkEvent* pNE);
+    void ProcessHIDDevice(DeviceClass*);
+	//void ProcessHIDDevice(PdmNetlinkEvent* pNE);
     void commandNotification(EventType event, HIDDevice* device);
 };
 

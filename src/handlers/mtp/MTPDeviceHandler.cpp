@@ -30,6 +30,22 @@ MTPDeviceHandler::MTPDeviceHandler(PdmConfig* const pConfObj, PluginAdapter* con
 MTPDeviceHandler::~MTPDeviceHandler() {
 }
 
+bool MTPDeviceHandler::HandlerEvent(DeviceClass* devClass){
+#ifndef WEBOS_SESSION
+   PDM_LOG_DEBUG("MTPDeviceHandler::HandlerEvent");
+   if (devClass->getAction()== "remove")
+   {
+      ProcessMTPDevice(devClass);
+      return false;
+   }else if (devClass->getMediaPlayerId()== YES ){
+        ProcessMTPDevice(devClass);
+        return false;
+    }
+#endif
+    return false;
+}
+
+#if 0
 bool MTPDeviceHandler::HandlerEvent(PdmNetlinkEvent* pNE){
 #ifndef WEBOS_SESSION
    PDM_LOG_DEBUG("MTPDeviceHandler::HandlerEvent");
@@ -44,7 +60,7 @@ bool MTPDeviceHandler::HandlerEvent(PdmNetlinkEvent* pNE){
 #endif
     return false;
 }
-
+#endif
 void MTPDeviceHandler::removeDevice(MTPDevice* mtpDevice)
 {
     if(!mtpDevice)
@@ -55,6 +71,49 @@ void MTPDeviceHandler::removeDevice(MTPDevice* mtpDevice)
     mtpDevice = nullptr;
 }
 
+void MTPDeviceHandler::ProcessMTPDevice(DeviceClass *devClass) {
+   MTPDevice *mtpDevice;
+    PDM_LOG_INFO("MTPDeviceHandler:",0,"%s line: %d DEVTYPE: %s ACTION: %s", __FUNCTION__, __LINE__, devClass->getDevType().c_str(), devClass->getAction().c_str());
+   try {
+            switch(sMapDeviceActions.at(devClass->getAction()))
+            {
+                case DeviceActions::USB_DEV_ADD:
+                    PDM_LOG_DEBUG("MTPDeviceHandler:%s line: %d action : %s", __FUNCTION__, __LINE__, devClass->getAction().c_str());
+                    if(!devClass->getDevName().empty()){
+                        mtpDevice = new (std::nothrow) MTPDevice(m_pConfObj, m_pluginAdapter);
+                        if(!mtpDevice)
+                            break;
+                        mtpDevice->setDeviceInfo(devClass);
+                        mtpDevice->registerCallback(std::bind(&MTPDeviceHandler::commandNotification, this, _1, _2));
+                        if(mtpDevice->mtpMount(devClass->getDevName()) == PdmDevStatus::PDM_DEV_SUCCESS){
+                            mMtpList.push_back(mtpDevice);
+                            Notify(MTP_DEVICE,ADD);
+                        } else {
+                      PDM_LOG_CRITICAL("MTPDeviceHandler:%s line: %d Unable to mount MTP Device removing", __FUNCTION__, __LINE__);
+                      mtpDevice->onDeviceRemove();
+                            delete mtpDevice;
+                        }
+                    }
+                    break;
+                case DeviceActions::USB_DEV_REMOVE:
+                    PDM_LOG_DEBUG("MTPDeviceHandler:%s line: %d action : %s", __FUNCTION__, __LINE__, devClass->getAction().c_str());
+                    mtpDevice = getDeviceWithPath<MTPDevice>(mMtpList, devClass->getDevPath());
+                    if(mtpDevice) {
+                        mtpDevice->onDeviceRemove();
+                        removeDevice(mtpDevice);
+                    }
+                    break;
+                default:
+                  //Do nothing
+                    break;
+            }
+        }
+        catch (const std::out_of_range& err) {
+         PDM_LOG_INFO("MTPDeviceHandler:",0,"%s line: %d out of range : %s", __FUNCTION__,__LINE__,err.what());
+    }
+}
+
+#if 0
 void MTPDeviceHandler::ProcessMTPDevice(PdmNetlinkEvent* pNE) {
    MTPDevice *mtpDevice;
     PDM_LOG_INFO("MTPDeviceHandler:",0,"%s line: %d DEVTYPE: %s ACTION: %s", __FUNCTION__,__LINE__,pNE->getDevAttribute(DEVTYPE).c_str(),pNE->getDevAttribute(ACTION).c_str());
@@ -96,6 +155,7 @@ void MTPDeviceHandler::ProcessMTPDevice(PdmNetlinkEvent* pNE) {
          PDM_LOG_INFO("MTPDeviceHandler:",0,"%s line: %d out of range : %s", __FUNCTION__,__LINE__,err.what());
     }
 }
+#endif
 
 bool MTPDeviceHandler::HandlerCommand(CommandType *cmdtypes, CommandResponse *cmdResponse) {
     PDM_LOG_DEBUG("MTPDeviceHandler:%s line: %d", __FUNCTION__, __LINE__);

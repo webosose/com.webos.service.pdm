@@ -19,6 +19,20 @@
 
 using namespace PdmDevAttributes;
 
+void BluetoothDevice::setDeviceInfo(DeviceClass* devClass)
+{
+    PDM_LOG_DEBUG("BluetoothDevice:%s line: %d setDeviceInfo", __FUNCTION__, __LINE__);
+    if(devClass->getAction() == DEVICE_ADD ){
+        PDM_LOG_DEBUG("BluetoothDevice:%s line: %d setDeviceInfo: DEVICE_ADD", __FUNCTION__, __LINE__);
+        if(!devClass->getSpeed().empty())
+            m_devSpeed = getDeviceSpeed(stoi(devClass->getSpeed(), nullptr));
+        Device::setDeviceInfo(devClass);
+        /*m_deviceSubType will be modified once  requirement will be clear*/
+        m_deviceSubType = devClass->getIdModel();
+    }
+}
+
+#if 0
 void BluetoothDevice::setDeviceInfo(PdmNetlinkEvent* pNE)
 {
     PDM_LOG_DEBUG("BluetoothDevice:%s line: %d setDeviceInfo", __FUNCTION__, __LINE__);
@@ -31,7 +45,18 @@ void BluetoothDevice::setDeviceInfo(PdmNetlinkEvent* pNE)
         m_deviceSubType = pNE->getDevAttribute(ID_MODEL);
     }
 }
+#endif
 
+#ifdef WEBOS_SESSION
+void BluetoothDevice::updateDeviceInfo(DeviceClass *devClass)
+{
+    PDM_LOG_DEBUG("BluetoothDevice:%s line: %d updateDeviceInfo", __FUNCTION__, __LINE__);
+    m_deviceName = devClass->getRfKillName();
+    PDM_LOG_DEBUG("BluetoothDevice:%s line: %d m_deviceName: %s", __FUNCTION__, __LINE__, m_deviceName.c_str());
+}
+#endif
+
+#if 0
 #ifdef WEBOS_SESSION
 void BluetoothDevice::updateDeviceInfo(PdmNetlinkEvent* pNE)
 {
@@ -39,4 +64,5 @@ void BluetoothDevice::updateDeviceInfo(PdmNetlinkEvent* pNE)
     m_deviceName = pNE->getDevAttribute(RFKILL_NAME);
     PDM_LOG_DEBUG("BluetoothDevice:%s line: %d m_deviceName: %s", __FUNCTION__, __LINE__, m_deviceName.c_str());
 }
+#endif
 #endif

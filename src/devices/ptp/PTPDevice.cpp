@@ -75,6 +75,26 @@ void PTPDevice::onDeviceRemove()
     PdmUtils::removeDirRecursive(rootPath);
 }
 
+void PTPDevice::setDeviceInfo(DeviceClass* devClass)
+{
+    if (devClass->getDevType() == USB_DEVICE) {
+        if(!devClass->getSpeed().empty()) {
+            m_devSpeed = getDeviceSpeed(stoi(devClass->getSpeed()));
+        }
+        if(!devClass->getBusNum().empty()) {
+            m_busNum = std::stoi(devClass->getBusNum());
+        }
+        if(!devClass->getDevNumber().empty()) {
+            m_ptpDevNum = std::stoi(devClass->getDevNumber(), nullptr);
+        }
+        Device::setDeviceInfo(devClass);
+    }
+    if(m_deviceNum != 0 && m_busNum !=0){
+        ptpMount();
+    }
+}
+
+#if 0
 void PTPDevice::setDeviceInfo(PdmNetlinkEvent* pNE)
 {
     if (pNE->getDevAttribute(DEVTYPE) == USB_DEVICE) {
@@ -93,6 +113,7 @@ void PTPDevice::setDeviceInfo(PdmNetlinkEvent* pNE)
         ptpMount();
     }
 }
+#endif
 
 PdmDevStatus PTPDevice::eject()
 {

@@ -15,6 +15,7 @@
 #define _AUTOANDROIDDEVICE_H_
 
 #include "Device.h"
+#include "DeviceClass.h"
 #include <functional>
 
 class AutoAndroidDeviceHandler;
@@ -29,7 +30,8 @@ public:
     AutoAndroidDevice(PdmConfig* const pConfObj, PluginAdapter* const pluginAdapter)
               : Device(pConfObj, pluginAdapter, "AUTOANDROID",PdmDevAttributes::PDM_ERR_NOTHING), m_isDevAddNotified(false){}
     ~AutoAndroidDevice() = default;
-    void setDeviceInfo(PdmNetlinkEvent* pNE);
+    void setDeviceInfo(DeviceClass*);
+	//void setDeviceInfo(PdmNetlinkEvent* pNE);
     void registerCallback(handlerCb AutoAndroidDeviceHandlerCb);
 };
 

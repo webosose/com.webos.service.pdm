@@ -19,6 +19,7 @@
 #include "PdmDeviceFactory.h"
 #include "PdmNetlinkEvent.h"
 #include "PdmLogUtils.h"
+#include "DeviceClass.h"
 
 class NfcDeviceHandler : public DeviceHandler
 {
@@ -49,12 +50,14 @@ public:
         }
     }
 
-    bool HandlerEvent(PdmNetlinkEvent* pNE) override;
+    bool HandlerEvent(DeviceClass* deviceClass) override;
+    //bool HandlerEvent(PdmNetlinkEvent* pNE) override;
     bool HandlerCommand(CommandType *cmdtypes, CommandResponse *cmdResponse) override;
     bool HandlePluginEvent(int eventType) override;
     bool GetAttachedDeviceStatus(pbnjson::JValue &payload, LSMessage *message) override;
     bool GetAttachedNonStorageDeviceList(pbnjson::JValue &payload, LSMessage *message);
-    void ProcessNfcDevice(PdmNetlinkEvent* pNE);
+    void ProcessNfcDevice(DeviceClass*);
+	//void ProcessNfcDevice(PdmNetlinkEvent* pNE);
     void commandNotification(EventType event, NfcDevice* device);
 };
 

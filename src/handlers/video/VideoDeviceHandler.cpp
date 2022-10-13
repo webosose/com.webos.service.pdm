@@ -16,6 +16,7 @@
 
 #include "VideoDeviceHandler.h"
 #include "PdmJson.h"
+#include "VideoSubsystem.h"
 
 using namespace PdmDevAttributes;
 
@@ -36,6 +37,33 @@ VideoDeviceHandler::VideoDeviceHandler(PdmConfig* const pConfObj, PluginAdapter*
 VideoDeviceHandler::~VideoDeviceHandler() {
 }
 
+bool VideoDeviceHandler::HandlerEvent(DeviceClass* devClass){
+
+    PDM_LOG_DEBUG("VideoDeviceHandler::HandlerEvent");
+    if (devClass->getAction() == "remove")
+    {
+        mdeviceRemoved = false;
+        ProcessVideoDevice(devClass);
+        if(mdeviceRemoved) {
+            PDM_LOG_DEBUG("VideoDeviceHandler:%s line: %d  DEVTYPE=usb_device removed", __FUNCTION__, __LINE__);
+            return true;
+        }
+    }
+    std::string interfaceClass = devClass->getInterfaceClass();
+    if((interfaceClass.find(iClass) == std::string::npos) && (devClass->getSubsystemName() !=  "video4linux"))
+        return false;
+    if(devClass->getDevType() ==  USB_DEVICE) {
+        ProcessVideoDevice(devClass);
+        return false;
+    }
+    else if(devClass->getSubsystemName() ==  "video4linux") {
+        ProcessVideoDevice(devClass);
+        return true;
+    }
+    return false;
+}
+
+#if 0
 bool VideoDeviceHandler::HandlerEvent(PdmNetlinkEvent* pNE){
 
     PDM_LOG_DEBUG("VideoDeviceHandler::HandlerEvent");
@@ -61,6 +89,7 @@ bool VideoDeviceHandler::HandlerEvent(PdmNetlinkEvent* pNE){
     }
     return false;
 }
+#endif
 
 void VideoDeviceHandler::removeDevice(VideoDevice* videoDevice)
 {
@@ -75,6 +104,57 @@ void VideoDeviceHandler::removeDevice(VideoDevice* videoDevice)
     videoDevice = nullptr;
 }
 
+void VideoDeviceHandler::ProcessVideoDevice(DeviceClass* devClass){
+    VideoDevice *videoDevice;
+    PDM_LOG_INFO("VideoDeviceHandler:",0,"%s line: %d DEVTYPE: %s SUBSYSTEM:%s ACTION: %s", __FUNCTION__,__LINE__, devClass->getDevType().c_str(), devClass->getSubsystemName().c_str(), devClass->getAction().c_str());
+    try {
+            switch(sMapDeviceActions.at(devClass->getAction()))
+            {
+                case DeviceActions::USB_DEV_ADD:
+                    PDM_LOG_DEBUG("VideoDeviceHandler:%s line: %d action : %s", __FUNCTION__, __LINE__, devClass->getAction().c_str());
+                    videoDevice = getDeviceWithPath< VideoDevice >(sList, devClass->getDevPath());
+                    if(!videoDevice ){
+                        if(devClass->getDevType() ==  USB_DEVICE) {
+                            PDM_LOG_INFO("VideoDeviceHandler",0," Created New device.");
+                            videoDevice = new (std::nothrow) VideoDevice(m_pConfObj, m_pluginAdapter);
+                        }
+                        if(!videoDevice){
+                            return;
+                        }
+                        videoDevice->setDeviceInfo(devClass, mIsCameraReady);
+                        sList.push_back(videoDevice);
+                    } else {
+                        PDM_LOG_INFO("VideoDeviceHandler",0," update the video device info.");
+                        videoDevice->updateDeviceInfo(devClass);
+                        if(!mIsCameraReady)
+                            Notify(UNKNOWN_DEVICE, ADD);
+                        else {
+                            if(devClass->getSubsystemName() == "video4linux" && 
+								((VideoSubsystem*)devClass)->getCapabilities() == ":capture:"){
+                                Notify(VIDEO_DEVICE, ADD);
+                            }
+                        }
+                    }
+                    break;
+                case DeviceActions::USB_DEV_REMOVE:
+                   PDM_LOG_DEBUG("VideoDeviceHandler:%s line: %d action : %s", __FUNCTION__, __LINE__, devClass->getAction().c_str());
+                   videoDevice = getDeviceWithPath< VideoDevice >(sList, devClass->getDevPath());
+                   if(videoDevice) {
+                       removeDevice(videoDevice);
+                       mdeviceRemoved = true;
+                    }
+                    break;
+                default:
+                 //Do nothing
+                break;
+            }
+        }
+        catch (const std::out_of_range& err) {
+        PDM_LOG_INFO("VideoDeviceHandler:",0,"%s line: %d out of range : %s", __FUNCTION__,__LINE__,err.what());
+    }
+}
+
+#if 0
 void VideoDeviceHandler::ProcessVideoDevice(PdmNetlinkEvent* pNE){
     VideoDevice *videoDevice;
     PDM_LOG_INFO("VideoDeviceHandler:",0,"%s line: %d DEVTYPE: %s SUBSYSTEM:%s ACTION: %s", __FUNCTION__,__LINE__,pNE->getDevAttribute(DEVTYPE).c_str(),pNE->getDevAttribute(SUBSYSTEM).c_str(),pNE->getDevAttribute(ACTION).c_str());
@@ -123,6 +203,7 @@ void VideoDeviceHandler::ProcessVideoDevice(PdmNetlinkEvent* pNE){
         PDM_LOG_INFO("VideoDeviceHandler:",0,"%s line: %d out of range : %s", __FUNCTION__,__LINE__,err.what());
     }
 }
+#endif
 
 bool VideoDeviceHandler::HandlerCommand(CommandType *cmdtypes, CommandResponse *cmdResponse) {
 

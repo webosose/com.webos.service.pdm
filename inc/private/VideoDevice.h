@@ -17,13 +17,14 @@
 #ifndef _VIDEODEVICE_H_
 #define _VIDEODEVICE_H_
 
-#include "Device.h"
 #include <functional>
 #include <list>
+#include "Device.h"
+#include "DeviceClass.h"
 
-const std::string ID_V4L_CAPABILITIES  =  "ID_V4L_CAPABILITIES";
-const std::string ID_V4L_PRODUCT  =  "ID_V4L_PRODUCT";
-const std::string ID_V4L_VERSION  =  "ID_V4L_VERSION";
+//const std::string ID_V4L_CAPABILITIES  =  "ID_V4L_CAPABILITIES";
+//const std::string ID_V4L_PRODUCT  =  "ID_V4L_PRODUCT";
+//const std::string ID_V4L_VERSION  =  "ID_V4L_VERSION";
 
 class VideoDeviceHandler;
 class VideoSubDevice {
@@ -57,8 +58,12 @@ class VideoDevice : public Device
 public:
     VideoDevice(PdmConfig* const pConfObj, PluginAdapter* const pluginAdapter);
     ~VideoDevice();
+#if 0 /* ToDo */
     void setDeviceInfo(PdmNetlinkEvent* pNE, bool isCameraReady);
     void updateDeviceInfo(PdmNetlinkEvent* pNE);
+#endif
+	void setDeviceInfo(DeviceClass*, bool);
+    void updateDeviceInfo(DeviceClass*);
     std::string getSubsystem() {return m_subSystem;}
     std::string getKernel(){return m_kernel;}
     std::list<VideoSubDevice*> getSubDeviceList() const {return mSubDeviceList;}

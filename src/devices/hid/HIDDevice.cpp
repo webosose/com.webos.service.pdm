@@ -19,6 +19,21 @@
 
 using namespace PdmDevAttributes;
 
+void HIDDevice::setDeviceInfo(DeviceClass* devClass)
+{
+    if(devClass->getAction() == DEVICE_ADD ) {
+        Device::setDeviceInfo(devClass);
+        if(devClass->getDevType() == USB_DEVICE ){
+            if(!devClass->getSpeed().empty()) {
+                m_devSpeed = getDeviceSpeed(stoi(devClass->getSpeed(), nullptr));
+            }
+        }else if(devClass->getProcessed() == YES ) {
+            mHidDeviceHandlerCb(ADD,nullptr);
+        }
+    }
+}
+
+#if 0
 void HIDDevice::setDeviceInfo(PdmNetlinkEvent* pNE)
 {
     if(pNE->getDevAttribute(ACTION) == DEVICE_ADD ) {
@@ -32,6 +47,7 @@ void HIDDevice::setDeviceInfo(PdmNetlinkEvent* pNE)
         }
     }
 }
+#endif
 
 void HIDDevice::registerCallback(handlerCb hidDeviceHandlerCb) {
     mHidDeviceHandlerCb = hidDeviceHandlerCb;

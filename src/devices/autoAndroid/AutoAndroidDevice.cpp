@@ -18,6 +18,19 @@
 
 using namespace PdmDevAttributes;
 
+void AutoAndroidDevice::setDeviceInfo(DeviceClass* devClass)
+{
+    PDM_LOG_DEBUG("AutoAndroidDevice:%s line: %d setDeviceInfo", __FUNCTION__, __LINE__);
+    if(devClass->getAction()== DEVICE_ADD ) {
+        PDM_LOG_DEBUG("AutoAndroidDevice:%s line: %d setDeviceInfo: DEVICE_ADD", __FUNCTION__, __LINE__);
+        if(!devClass->getSpeed().empty()) {
+            m_devSpeed = getDeviceSpeed(stoi(devClass->getSpeed(), nullptr));
+        }
+        Device::setDeviceInfo(devClass);
+    }
+}
+
+#if 0
 void AutoAndroidDevice::setDeviceInfo(PdmNetlinkEvent* pNE)
 {
     PDM_LOG_DEBUG("AutoAndroidDevice:%s line: %d setDeviceInfo", __FUNCTION__, __LINE__);
@@ -30,6 +43,7 @@ void AutoAndroidDevice::setDeviceInfo(PdmNetlinkEvent* pNE)
     }
 
 }
+#endif
 
 void AutoAndroidDevice::registerCallback(handlerCb AutoAndroidDeviceHandlerCb) {
     mAutoAndroidDeviceHandlerCb = AutoAndroidDeviceHandlerCb;

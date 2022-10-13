@@ -18,8 +18,9 @@
 #define _PDMNETLINKHANDLER_H
 
 #include "CommandManager.h"
-#include "PdmNetlinkEvent.h"
+// #include "PdmNetlinkEvent.h"
 #include "PdmNetlinkListener.h"
+#include "DeviceClass.h"
 
 class PdmNetlinkHandler: public PdmNetlinkListener
 {
@@ -31,7 +32,8 @@ public:
     bool start();
     bool stop();
 protected:
-    void onEvent(PdmNetlinkEvent *event) override;
+    // void onEvent(PdmNetlinkEvent *event) override;
+    void onEvent(DeviceClass *deviceClassEvent) override;
 };
 
 #endif //_PDMNETLINKMANAGER_H

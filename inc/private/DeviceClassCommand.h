@@ -14,23 +14,21 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-#ifndef _GAMEPADDEVICE_H_
-#define _GAMEPADDEVICE_H_
-
-#include "Device.h"
+#ifndef DEVICECLASSCOMMAND_H_
+#define DEVICECLASSCOMMAND_H_
+#include "Command.h"
 #include "DeviceClass.h"
 
-class GamepadDeviceHandler;
+class DeviceClassCommand : public Command {
 
-class GamepadDevice : public Device
-{
+private:
+    DeviceClass *mDevClassPtr;
 public:
-    GamepadDevice(PdmConfig* const pConfObj, PluginAdapter* const pluginAdapter)
-                   : Device(pConfObj, pluginAdapter, "XPAD", PdmDevAttributes::PDM_ERR_NOTHING){}
-    ~GamepadDevice(){}
-	void setDeviceInfo(DeviceClass*);
-	//void setDeviceInfo(PdmNetlinkEvent* pNE);
+    DeviceClassCommand(DeviceClass *event);
+    DeviceClassCommand(const DeviceClass&) = delete;
+    DeviceClassCommand& operator=(const DeviceClass&) = delete;
+    virtual ~DeviceClassCommand();
+    void execute();
 };
 
-#endif // GAMEPADDEVICE_H
-
+#endif /* DEVICECLASSCOMMAND_H_ */

@@ -1,4 +1,4 @@
-// Copyright (c) 2019-2022 LG Electronics, Inc.
+// Copyright (c) 2019-2021 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -24,12 +24,12 @@ namespace PdmDevAttributes {
 enum DeviceEventType { STORAGE_DEVICE = 0,
                        NON_STORAGE_DEVICE,
                        ALL_DEVICE,
-                       SOUND_DEVICE,
                        HID_DEVICE,
                        VIDEO_DEVICE,
                        GAMEPAD_DEVICE,
                        MTP_DEVICE,
                        PTP_DEVICE,
+                       SOUND_DEVICE,
                        BLUETOOTH_DEVICE,
                        CDC_DEVICE,
                        AUTO_ANDROID_DEVICE,
@@ -85,6 +85,7 @@ enum DeviceEventType { STORAGE_DEVICE = 0,
     const std::string ID_VENDOR_ENC  =  "ID_VENDOR_ENC";
     const std::string ID_VENDOR  =  "ID_VENDOR";
     const std::string ID_VENDOR_ID  =  "ID_VENDOR_ID";
+	const std::string ID_PRODUCT_ID  =  "ID_PRODUCT_ID";
     const std::string ID_FS_LABEL_ENC = "ID_FS_LABEL_ENC";
     const std::string MAJOR  =  "MAJOR";
     const std::string MINOR  =  "MINOR";
@@ -113,11 +114,18 @@ enum DeviceEventType { STORAGE_DEVICE = 0,
     const std::string IS_POWER_ON_CONNECT = "isPowerOnConnect";
 // Black listed super speed devices
     const std::string ID_BLACK_LISTED_SUPER_SPEED_DEVICE = "ID_BLACK_LISTED_SUPER_SPEED_DEVICE";
+//USB2ETHERNET
+	const std::string NET_IFIINDEX = "NET_IFIINDEX";
+	const std::string NET_LINK_MODE = "NET_LINK_MODE";
+	const std::string NET_DUPLEX = "NET_DUPLEX";
+	const std::string NET_ADDRESS = "NET_ADDRESS";
+	const std::string NET_OPERSTATE = "NET_OPERSTATE";
 
 //device categorisation
     const std::string USB_DEVICE = "usb_device";
     const std::string USB_HID    = "hid";
     const std::string USB_PARTITION = "partition";
+	const std::string USB_SERIAL_SUB_TYPE = "USB_SERIAL_SUB_TYPE";
     const std::string DISK = "disk";
 
 // Unknown device
@@ -204,7 +212,6 @@ enum DeviceEventType { STORAGE_DEVICE = 0,
     const std::string timeout = "timeout 20 ";
 //Sound device
     const std::string CARD_ID = "CARD_ID";
-    const std::string CARD_NAME = "CARD_NAME";
     const std::string CARD_NUMBER = "CARD_NUMBER";
 
 #ifdef WEBOS_SESSION

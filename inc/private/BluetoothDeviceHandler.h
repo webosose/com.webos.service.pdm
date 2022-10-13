@@ -22,6 +22,7 @@
 #include "BluetoothDevice.h"
 #include "PdmDeviceFactory.h"
 #include "PdmLogUtils.h"
+#include "DeviceClass.h"
 
 class BluetoothDeviceHandler : public DeviceHandler
 {
@@ -45,11 +46,13 @@ public:
         }
         return nullptr;
     }
-    bool HandlerEvent(PdmNetlinkEvent* pNE) override;
+    bool HandlerEvent(DeviceClass*) override;
+    //bool HandlerEvent(PdmNetlinkEvent* pNE) override;
     bool HandlerCommand(CommandType *cmdtypes, CommandResponse *cmdResponse) override;
     bool GetAttachedDeviceStatus(pbnjson::JValue &payload, LSMessage *message) override;
     bool GetAttachedNonStorageDeviceList(pbnjson::JValue &payload, LSMessage *message);
-    void ProcessBluetoothDevice(PdmNetlinkEvent* pNE);
+    void ProcessBluetoothDevice(DeviceClass*);
+    //void ProcessBluetoothDevice(PdmNetlinkEvent* pNE);
 };
 
 #endif // _BLUETOOTHDEVICEHANDLER_H_

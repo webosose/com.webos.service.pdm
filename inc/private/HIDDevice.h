@@ -18,6 +18,7 @@
 #define _HIDDEVICE_H_
 
 #include "Device.h"
+#include "DeviceClass.h"
 #include <functional>
 
 class HIDDeviceHandler;
@@ -32,7 +33,8 @@ public:
     HIDDevice(PdmConfig* const pConfObj, PluginAdapter* const pluginAdapter)
               : Device(pConfObj, pluginAdapter, "HID",PdmDevAttributes::PDM_ERR_NOTHING){}
     ~HIDDevice() = default;
-    void setDeviceInfo(PdmNetlinkEvent* pNE);
+	void setDeviceInfo(DeviceClass*);
+    //void setDeviceInfo(PdmNetlinkEvent* pNE);
     void registerCallback(handlerCb hidDeviceHandlerCb);
 
 };

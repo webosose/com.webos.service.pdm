@@ -22,6 +22,7 @@
 #include "PdmDeviceFactory.h"
 #include "PdmNetlinkEvent.h"
 #include "PdmLogUtils.h"
+#include "DeviceClass.h"
 
 class VideoDeviceHandler : public DeviceHandler
 {
@@ -54,12 +55,14 @@ public:
         }
     }
 
-    bool HandlerEvent(PdmNetlinkEvent* pNE) override;
+    bool HandlerEvent(DeviceClass*) override;
+    //bool HandlerEvent(PdmNetlinkEvent* pNE) override;
     bool HandlerCommand(CommandType *cmdtypes, CommandResponse *cmdResponse) override;
     bool HandlePluginEvent(int eventType) override;
     bool GetAttachedDeviceStatus(pbnjson::JValue &payload, LSMessage *message) override;
     bool GetAttachedNonStorageDeviceList(pbnjson::JValue &payload, LSMessage *message);
-    void ProcessVideoDevice(PdmNetlinkEvent* pNE);
+    void ProcessVideoDevice(DeviceClass*);
+	//void ProcessVideoDevice(PdmNetlinkEvent* pNE);
     bool GetAttachedVideoDeviceList(pbnjson::JValue &payload, LSMessage *message);
     bool GetAttachedVideoSubDeviceList(pbnjson::JValue &payload, LSMessage *message);
 };

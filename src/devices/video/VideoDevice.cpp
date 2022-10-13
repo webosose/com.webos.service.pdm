@@ -17,6 +17,8 @@
 #include "VideoDevice.h"
 #include "Common.h"
 #include "PdmLogUtils.h"
+#include "DeviceClass.h"
+#include "VideoSubsystem.h"
 
 using namespace PdmDevAttributes;
 
@@ -40,6 +42,80 @@ VideoDevice::~VideoDevice() {
     mSubDeviceList.clear();
 }
 
+void VideoDevice::setDeviceInfo(DeviceClass* devClassPtr, bool isCameraReady)
+{
+    PDM_LOG_DEBUG("VideoDevice:%s line: %d setDeviceInfo", __FUNCTION__, __LINE__);
+	if (devClassPtr->getDevType() != "Video")	return;
+
+	VideoSubsystem* videoSubSystem = (VideoSubsystem*)devClassPtr;
+	if (videoSubSystem == nullptr) return;
+
+    if(videoSubSystem->getAction() == DEVICE_ADD ) {
+        PDM_LOG_DEBUG("VideoDevice:%s line: %d setDeviceInfo: DEVICE_ADD", __FUNCTION__, __LINE__);
+        if(!videoSubSystem->getDevSpeed().empty()) {
+            m_devSpeed = getDeviceSpeed(stoi(videoSubSystem->getDevSpeed(), nullptr));
+        }
+        if(!isCameraReady) {
+            m_deviceType = DEV_TYPE_UNKNOWN;
+        }
+        Device::setDeviceInfo(devClassPtr);
+    }
+}
+
+void VideoDevice::updateDeviceInfo(DeviceClass* devClassPtr)
+{
+	VideoSubsystem* videoSubSystem = (VideoSubsystem*)devClassPtr;
+	if (videoSubSystem == nullptr) return;
+
+#ifdef WEBOS_SESSION
+    if (!videoSubSystem->getDevName().empty()) {
+        std::string devPath = "/dev/";
+        m_devPath = devPath.append(videoSubSystem->getDevName());
+    }
+#endif
+    if (videoSubSystem->getSubsystemName() ==  "video4linux" && videoSubSystem->getCapabilities() ==  ":capture:") {
+        if(!videoSubSystem->getSubsystemName().empty())
+            m_subSystem = videoSubSystem->getSubsystemName();
+
+        if(!videoSubSystem->getUsbDriverId().empty())
+            m_deviceSubType = videoSubSystem->getUsbDriverId();
+
+        if (!videoSubSystem->getDevName().empty()) {
+            std::string cam_path = "/dev/";
+            m_kernel = cam_path.append(videoSubSystem->getDevName());
+        }
+
+        VideoSubDevice* subDevice = getSubDevice("/dev/" + videoSubSystem->getDevName());
+        switch (sMapDeviceActions[videoSubSystem->getAction()]) {
+            case DeviceActions::USB_DEV_ADD:
+                if (!videoSubSystem->getDevName().empty()) {
+                    if (subDevice) {
+                        subDevice->updateInfo(videoSubSystem->getDevName(), videoSubSystem->getCapabilities(), videoSubSystem->getProductName(), videoSubSystem->getVersion());
+                    }
+                    else {
+                        subDevice = new (std::nothrow) VideoSubDevice(videoSubSystem->getDevName(), videoSubSystem->getCapabilities(), videoSubSystem->getProductName(), videoSubSystem->getVersion());
+                        if (!subDevice) {
+                            PDM_LOG_CRITICAL("VideoDevice:%s line: %d Not able to create the sub device", __FUNCTION__, __LINE__);
+                            return;
+                        }
+                        mSubDeviceList.push_back(subDevice);
+                    }
+                }
+                break;
+            case DeviceActions::USB_DEV_REMOVE:
+                if (subDevice) {
+                    mSubDeviceList.remove(subDevice);
+                    delete subDevice;
+                }
+                break;
+            default:
+                //Do nothing
+                break;
+        }
+    }
+}
+
+#if 0
 void VideoDevice::setDeviceInfo(PdmNetlinkEvent* pNE, bool isCameraReady)
 {
     PDM_LOG_DEBUG("VideoDevice:%s line: %d setDeviceInfo", __FUNCTION__, __LINE__);
@@ -104,6 +180,7 @@ void VideoDevice::updateDeviceInfo(PdmNetlinkEvent* pNE)
         }
     }
 }
+#endif
 
 VideoSubDevice* VideoDevice::getSubDevice(std::string devPath) {
     for (auto videoSubDevice : mSubDeviceList) {

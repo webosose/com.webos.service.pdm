@@ -20,6 +20,7 @@
 #include <functional>
 #include "Storage.h"
 #include "PdmErrors.h"
+#include "DeviceClass.h"
 
 class MTPDevice : public Storage
 {
@@ -32,7 +33,8 @@ private:
 public:
     MTPDevice(PdmConfig* const pConfObj, PluginAdapter* const pluginAdapter);
     ~MTPDevice();
-    void setDeviceInfo(PdmNetlinkEvent* pNE);
+    void setDeviceInfo(DeviceClass*);
+	//void setDeviceInfo(PdmNetlinkEvent* pNE);
     void setMountPath(std::string newMountName) {
         mountName = newMountName;
     }

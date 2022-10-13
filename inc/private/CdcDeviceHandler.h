@@ -23,6 +23,7 @@
 #include "PdmDeviceFactory.h"
 #include "PdmLogUtils.h"
 #include "PdmNetlinkEvent.h"
+#include "DeviceClass.h"
 
 class CdcDeviceHandler : public DeviceHandler
 {
@@ -55,13 +56,16 @@ public:
         return nullptr;
     }
 
-    bool HandlerEvent(PdmNetlinkEvent* pNE) override;
+    bool HandlerEvent(DeviceClass*) override;
+    //bool HandlerEvent(PdmNetlinkEvent* pNE) override;
     bool HandlerCommand(CommandType *cmdtypes, CommandResponse *cmdResponse) override;
     bool HandlePluginEvent(int eventType) override;
     bool GetAttachedDeviceStatus(pbnjson::JValue &payload, LSMessage *message) override;
     bool GetAttachedNonStorageDeviceList(pbnjson::JValue &payload, LSMessage *message);
-    void ProcessCdcDevice(PdmNetlinkEvent* pNE);
-    bool identifyCdcDevice(PdmNetlinkEvent* pNE);
+    void ProcessCdcDevice(DeviceClass*);
+	//void ProcessCdcDevice(PdmNetlinkEvent* pNE);
+    bool identifyCdcDevice(DeviceClass*);
+	//bool identifyCdcDevice(PdmNetlinkEvent* pNE);
     bool GetAttachedNetDeviceList(pbnjson::JValue &payload, LSMessage *message);
 };
 

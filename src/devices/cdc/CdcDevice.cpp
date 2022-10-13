@@ -22,15 +22,9 @@ using namespace PdmDevAttributes;
 
 //USB2SERIAL
 const std::string USB2SERIAL = "USB2SERIAL";
-const std::string USB_SERIAL_SUB_TYPE = "USB_SERIAL_SUB_TYPE";
+//const std::string USB_SERIAL_SUB_TYPE = "USB_SERIAL_SUB_TYPE";
 //Modem dongle
 const std::string MODEM_DONGLE = "USBMODEM";
-//USB2ETHERNET
-const std::string NET_IFIINDEX = "NET_IFIINDEX";
-const std::string NET_LINK_MODE = "NET_LINK_MODE";
-const std::string NET_DUPLEX = "NET_DUPLEX";
-const std::string NET_ADDRESS = "NET_ADDRESS";
-const std::string NET_OPERSTATE = "NET_OPERSTATE";
 
 CdcDevice::CdcDevice(PdmConfig* const pConfObj, PluginAdapter* const pluginAdapter)
                 : Device(pConfObj, pluginAdapter, "CDC", PDM_ERR_NOTHING)
@@ -42,7 +36,28 @@ CdcDevice::CdcDevice(PdmConfig* const pConfObj, PluginAdapter* const pluginAdapt
 }
 
 
+void CdcDevice::setDeviceInfo(DeviceClass* devClass)
+{
+    PDM_LOG_DEBUG("CdcDevice:%s line: %d setDeviceInfo", __FUNCTION__, __LINE__);
+    if( (devClass->getDevType() == USB_DEVICE) || (devClass->getUsbModemId() == YES) ) {
+        if(!devClass->getSpeed().empty())
+            m_devSpeed = getDeviceSpeed(stoi(devClass->getSpeed(), nullptr));
+        Device::setDeviceInfo(devClass);
+        if ("1" == devClass->getUsbSerialId()){
+            PDM_LOG_DEBUG("CdcDevice:%s line: %d It is USB to serial device", __FUNCTION__, __LINE__);
+            m_deviceType = USB2SERIAL;
+            m_deviceSubType = devClass->getUsbSerialSubType();
+        }
+        if((devClass->getUsbModemId() == YES))
+        {
+            PDM_LOG_DEBUG("CdcDevice:%s line: %d It is modem dongle device", __FUNCTION__, __LINE__);
+            m_deviceType = MODEM_DONGLE;
+            m_devSpeed = USB_HIGH_SPEED;
+        }
+    }
+}
 
+#if 0
 void CdcDevice::setDeviceInfo(PdmNetlinkEvent* pNE)
 {
     PDM_LOG_DEBUG("CdcDevice:%s line: %d setDeviceInfo", __FUNCTION__, __LINE__);
@@ -63,7 +78,35 @@ void CdcDevice::setDeviceInfo(PdmNetlinkEvent* pNE)
         }
     }
 }
+#endif
 
+void CdcDevice::updateDeviceInfo(DeviceClass* devClass)
+{
+    if((devClass->getSubsystemName()== "net") && (m_deviceType != MODEM_DONGLE)){
+        PDM_LOG_DEBUG("CdcDevice:%s line: %d It is Net device", __FUNCTION__, __LINE__);
+        if(!(devClass->getUsbDriver().empty()))
+            m_deviceSubType = devClass->getUsbDriver();
+
+        if(!(devClass->getNetIfIndex().empty()))
+            m_ifindex = devClass->getNetIfIndex();
+
+        if(!(devClass->getNetLinkMode().empty()))
+            m_linkMode = devClass->getNetLinkMode();
+
+        if(!(devClass->getNetDuplex().empty()))
+            m_duplex = devClass->getNetDuplex();
+
+        if(!(devClass->getNetAddress().empty()))
+            m_address = devClass->getNetAddress();
+
+        if(!(devClass->getNetOperState().empty()))
+            m_operstate = devClass->getNetOperState();
+
+         m_isToastRequired = false;
+    }
+}
+
+#if 0
 void CdcDevice::updateDeviceInfo(PdmNetlinkEvent* pNE)
 {
     if((pNE->getDevAttribute(SUBSYSTEM) == "net") && (m_deviceType != MODEM_DONGLE)){
@@ -89,3 +132,5 @@ void CdcDevice::updateDeviceInfo(PdmNetlinkEvent* pNE)
          m_isToastRequired = false;
     }
 }
+#endif
+

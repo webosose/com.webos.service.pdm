@@ -19,6 +19,7 @@
 #include "PdmDeviceFactory.h"
 #include "PdmNetlinkEvent.h"
 #include "PdmLogUtils.h"
+#include "DeviceClass.h"
 #include <libusb.h>
 
 #define ACCESSORY_STRING_MANUFACTURER 0
@@ -59,12 +60,15 @@ private:
         return (PdmDeviceFactory::getInstance()->Register("AUTOANDROID",
                                                           &AutoAndroidDeviceHandler::CreateObject));
     }
-    bool isAOAInterface(PdmNetlinkEvent* pNE);
-    bool isAOAProductId(PdmNetlinkEvent* pNE);
+    bool isAOAInterface(DeviceClass*);
+	//bool isAOAInterface(PdmNetlinkEvent* pNE);
+    bool isAOAProductId(DeviceClass*);
+	//bool isAOAProductId(PdmNetlinkEvent* pNE);
     int startAccessoryMode();
     int getAOAPProtocol();
     void removeDevice(AutoAndroidDevice* Device);
-    bool openDevice(PdmNetlinkEvent* pNE);
+    bool openDevice(DeviceClass*);
+	//bool openDevice(PdmNetlinkEvent* pNE);
 
 public:
     ~AutoAndroidDeviceHandler();
@@ -78,12 +82,14 @@ public:
         }
     }
 
-    bool HandlerEvent(PdmNetlinkEvent* pNE) override;
+    bool HandlerEvent(DeviceClass* deviceClass) override;
+    //bool HandlerEvent(PdmNetlinkEvent* pNE) override;
     bool HandlerCommand(CommandType *cmdtypes, CommandResponse *cmdResponse) override;
     bool HandlePluginEvent(int eventType) override;
     bool GetAttachedDeviceStatus(pbnjson::JValue &payload, LSMessage *message) override;
     bool GetAttachedNonStorageDeviceList(pbnjson::JValue &payload, LSMessage *message);
-    void ProcessAutoAndroidDevice(PdmNetlinkEvent* pNE);
+    void ProcessAutoAndroidDevice(DeviceClass*);
+	//void ProcessAutoAndroidDevice(PdmNetlinkEvent* pNE);
     void commandNotification(EventType event, AutoAndroidDevice* device);
 };
 

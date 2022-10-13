@@ -39,7 +39,8 @@ public:
     DiskPartitionInfo(PdmConfig* const pConfObj, PluginAdapter* const pluginAdapter);
     ~DiskPartitionInfo() = default;
     bool isMounted(){ return m_isMounted;}
-    void setPartitionInfo(PdmNetlinkEvent* pNE,const std::string &deviceRootPath);
+    void setPartitionInfo(DeviceClass* devClass, const std::string &deviceRootPath);
+    //void setPartitionInfo(PdmNetlinkEvent* pNE,const std::string &deviceRootPath);
     bool isSupportedFs() { return m_isSupportedFS;}
     void setIsSupportedFs(bool isSupported) { m_isSupportedFS = isSupported;}
     const std::string getDriveStatus(){return driveStatus;}

@@ -39,9 +39,10 @@ bool PdmNetlinkHandler::stop()
     return this->stopListener();
 }
 
-void PdmNetlinkHandler::onEvent(PdmNetlinkEvent *event)
+// void PdmNetlinkHandler::onEvent(PdmNetlinkEvent *event)
+void PdmNetlinkHandler::onEvent(DeviceClass *deviceClassEvent)
 {
-    PdmNetLinkCommand *netLinkCmd = new (std::nothrow) PdmNetLinkCommand(event);
+    PdmNetLinkCommand *netLinkCmd = new (std::nothrow) PdmNetLinkCommand(deviceClassEvent);
     if(netLinkCmd)
         m_commandManager->sendCommand(netLinkCmd);
 }

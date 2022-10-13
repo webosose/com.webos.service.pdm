@@ -74,6 +74,17 @@ int StorageDevice::countPartitions(const std::string &devName)
     return count;
 }
 
+void StorageDevice::setStorageInterfaceType(DeviceClass* devClass)
+{
+    if(devClass->isCardReader() == YES)
+        setStorageType(StorageInterfaceTypes::USB_CARD_READER);
+    else if(devClass->isHardDisk() == YES)
+        setStorageType(StorageInterfaceTypes::USB_HDD);
+    else
+        setStorageType(StorageInterfaceTypes::USB_STICK);
+}
+
+#if 0
 void StorageDevice::setStorageInterfaceType(PdmNetlinkEvent* pNE)
 {
     if(pNE->getDevAttribute(CARD_READER) == YES)
@@ -83,13 +94,43 @@ void StorageDevice::setStorageInterfaceType(PdmNetlinkEvent* pNE)
     else
         setStorageType(StorageInterfaceTypes::USB_STICK);
 }
-
+#endif
 
 /*
  setDeviceInfo
  @return
  Set the device info on device detections
 */
+
+void StorageDevice::setDeviceInfo(DeviceClass* devClass)
+{
+    if(triggerUevent()) {
+        PDM_LOG_DEBUG("StorageDevice:%s line: %d ACTION: %s uevent triggered", __FUNCTION__, __LINE__, devClass->getAction().c_str());
+        return;
+    }
+
+    PDM_LOG_DEBUG("StorageDevice:%s line: %d DEVTYPE: %s ACTION: %s", __FUNCTION__, __LINE__, devClass->getDevType().c_str(), devClass->getAction().c_str());
+    switch(sMapUsbDeviceType[devClass->getDevType()])
+    {
+        case UsbDeviceTypes::TYPE_DEV_USB:
+            updateDeviceInfo(devClass);
+            break;
+        case UsbDeviceTypes::TYPE_DEV_DISK:
+            PDM_LOG_DEBUG("StorageDevice:%s line: %d DEVTYPE: %s ACTION: %s m_storageType: %d", __FUNCTION__, __LINE__, devClass->getDevType().c_str(), devClass->getAction().c_str(), m_storageType);
+            updateDiskInfo(devClass);
+            updateMultiSdCard(devClass);
+            checkSdCardAddRemove(devClass);
+            break;
+        case UsbDeviceTypes::TYPE_DEV_PARTITION:
+            setPartitionInfo(devClass);
+            break;
+         default:
+             //DO nothing
+             break;
+    }
+}
+
+#if 0
 void StorageDevice::setDeviceInfo(PdmNetlinkEvent* pNE)
 {
     if(triggerUevent()) {
@@ -117,7 +158,36 @@ void StorageDevice::setDeviceInfo(PdmNetlinkEvent* pNE)
              break;
     }
 }
+#endif
 
+void StorageDevice::updateMultiSdCard(DeviceClass* devClass) {
+    PDM_LOG_DEBUG("StorageDevice:%s line: %d NAME : %s", __FUNCTION__, __LINE__, devClass->getDevName().c_str());
+    if(m_devicePath.empty()) {
+        PDM_LOG_DEBUG("StorageDevice:%s line: %d updated NAME: %s", __FUNCTION__, __LINE__, devClass->getDevName().c_str());
+        m_devicePath = devClass->getDevPath();
+        m_serialNumber = devClass->getIdSerilShort();
+        m_deviceSubType = devClass->getUsbDriver();
+        m_productName = devClass->getIdModel();
+        if(!m_pluginAdapter->getPowerState() || devClass->getIsPowerOnConnect() == "true")
+            m_isPowerOnConnect = true;
+        if(!devClass->getIdVendorFromDataBase().empty()){
+            m_vendorName = devClass->getIdVendorFromDataBase();
+        } else {
+            m_vendorName = devClass->getIdVendor();
+        }
+        if(!devClass->getIdInstance().empty()) {
+            std::string instance = devClass->getIdInstance();
+            std::size_t found = instance.find_first_of(":");
+            std::string idInstance =instance.substr(found+1);
+            if(!idInstance.empty()) {
+                int instanceNum = stoi(instance.substr(found+1));
+                m_deviceNum += instanceNum;
+            }
+        }
+    }
+}
+
+#if 0
 void StorageDevice::updateMultiSdCard(PdmNetlinkEvent* pNE) {
     PDM_LOG_DEBUG("StorageDevice:%s line: %d NAME : %s", __FUNCTION__, __LINE__,pNE->getDevAttribute(DEVNAME).c_str());
     if(m_devicePath.empty()) {
@@ -144,7 +214,23 @@ void StorageDevice::updateMultiSdCard(PdmNetlinkEvent* pNE) {
         }
     }
 }
+#endif
 
+void StorageDevice::updateDeviceInfo(DeviceClass* devClass)
+{
+    PDM_LOG_DEBUG("StorageDevice:%s line: %d DEVNAME: %s", __FUNCTION__, __LINE__, devClass->getDevNumber().c_str());
+    Device::setDeviceInfo(devClass);
+    if(!devClass->getSpeed().empty()) {
+        m_devSpeed = getDeviceSpeed(stoi(devClass->getSpeed()));
+    }
+    if((!devClass->getIdBlackListedSuperSpeedDev().empty()) && (devClass->getIdBlackListedSuperSpeedDev() == YES) )
+    {
+            PDM_LOG_INFO("StorageDevice:",0,"%s line: %d This is a black listed super speed device", __FUNCTION__,__LINE__);
+            m_errorReason = USB30_BLACKDEVICE;
+    }
+}
+
+#if 0
 void StorageDevice::updateDeviceInfo(PdmNetlinkEvent* pNE)
 {
     PDM_LOG_DEBUG("StorageDevice:%s line: %d DEVNAME: %s", __FUNCTION__, __LINE__,pNE->getDevAttribute(DEVNUM).c_str());
@@ -158,7 +244,56 @@ void StorageDevice::updateDeviceInfo(PdmNetlinkEvent* pNE)
             m_errorReason = USB30_BLACKDEVICE;
     }
 }
+#endif
 
+void StorageDevice::updateDiskInfo(DeviceClass* devClass)
+{
+    PDM_LOG_DEBUG("StorageDevice:%s line: %d ACTION = %s", __FUNCTION__, __LINE__, devClass->getAction().c_str());
+    switch(sMapDeviceActions[devClass->getAction()])
+    {
+        case DeviceActions::USB_DEV_ADD:
+            m_deviceName = devClass->getDevName();
+            if(devClass->isReadOnly() == YES)
+                isReadOnly = true; // disk is read only, FSCK will not be done
+
+            setStorageInterfaceType(devClass);
+            PDM_LOG_INFO("StorageDevice:",0,"%s line: %d rootPath:%s m_deviceName: %s readRootPath:%s", __FUNCTION__,__LINE__,rootPath.c_str(),m_deviceName.c_str(), readRootPath().c_str());
+            if(!rootPath.empty() && readRootPath() == rootPath) {
+                rootPath.append((m_deviceName.substr(m_deviceName.find_last_of("/") + 1)));
+                PDM_LOG_INFO("StorageDevice:",0,"%s line: %d rootPath: %s ", __FUNCTION__,__LINE__,rootPath.c_str());
+            }
+            m_partitionCount = countPartitions(m_deviceName);
+           PDM_LOG_DEBUG("StorageDevice:%s line: %d rootPath: %s partition count: %d", __FUNCTION__, __LINE__,rootPath.c_str(), m_partitionCount);
+            if(m_partitionCount == 0)
+            {
+                if(getStorageType() != StorageInterfaceTypes::USB_CARD_READER)
+                {
+                    PDM_LOG_DEBUG("StorageDevice:%s line: %d Has disk. But partition count is %d. Could be empty partition device. Set partition data now", __FUNCTION__, __LINE__, m_partitionCount);
+                    setPartitionInfo(devClass);
+                }
+            }
+            break;
+        case DeviceActions::USB_DEV_CHANGE:
+            if(m_storageType == StorageInterfaceTypes::USB_CARD_READER) {
+                handleCardReaderDeviceChange(devClass);
+                return;
+            }
+            if(countPartitions(m_deviceName) == 0 && devClass->isCardReader() != YES)
+            {
+                if(getStorageType() != StorageInterfaceTypes::USB_CARD_READER)
+                {
+                    PDM_LOG_DEBUG("StorageDevice:%s line: %d Has disk. But partition count is %d. Could be empty partition device. Set partition data now", __FUNCTION__, __LINE__, m_partitionCount);
+                    setPartitionInfo(devClass);
+                }
+            }
+            break;
+        default:
+            //Do nothing
+            break;
+    }
+}
+
+#if 0
 void StorageDevice::updateDiskInfo(PdmNetlinkEvent* pNE)
 {
     PDM_LOG_DEBUG("StorageDevice:%s line: %d ACTION = %s", __FUNCTION__, __LINE__,pNE->getDevAttribute(ACTION).c_str());
@@ -205,7 +340,23 @@ void StorageDevice::updateDiskInfo(PdmNetlinkEvent* pNE)
             break;
     }
 }
+#endif
 
+void StorageDevice::handleCardReaderDeviceChange(DeviceClass* devClass)
+{
+    int tempPartitionCount = countPartitions(m_deviceName);
+    PDM_LOG_DEBUG("StorageDevice:%s line: %d ACTION = CHANGE for %s", __FUNCTION__, __LINE__, devClass->getDevName().c_str());
+    if(tempPartitionCount != m_partitionCount) {
+        if(m_partitionCount!=0) {
+            deletePartitionData();
+            m_storageDeviceHandlerCb(REMOVE,nullptr);
+        } else {
+            m_partitionCount = tempPartitionCount;
+        }
+    }
+}
+
+#if 0
 void StorageDevice::handleCardReaderDeviceChange(PdmNetlinkEvent* pNE)
 {
     int tempPartitionCount = countPartitions(m_deviceName);
@@ -219,6 +370,7 @@ void StorageDevice::handleCardReaderDeviceChange(PdmNetlinkEvent* pNE)
         }
     }
 }
+#endif
 
 /*
  setPartitionInfo
@@ -227,6 +379,52 @@ void StorageDevice::handleCardReaderDeviceChange(PdmNetlinkEvent* pNE)
  Called only if its an empty partition case where DEVTYPE is DISK
  and partition count is 0 or if DEVTYPE is USB_PARTITION
  */
+
+void StorageDevice::setPartitionInfo(DeviceClass* devClass)
+{
+	PDM_LOG_DEBUG("StorageDevice:%s line: %d Set the parition info %s", __FUNCTION__, __LINE__, m_deviceName.c_str());
+	   DiskPartitionInfo *partitionInfo = findPartition(devClass->getDevName());
+	/* in some of the card reader add=>remove=>add action is occurring to handle this we need to check
+	* partition before creating it*/
+	  if(partitionInfo)
+		   return;
+	   partitionInfo  = new (std::nothrow) DiskPartitionInfo(m_pConfObj, m_pluginAdapter);
+	   if(nullptr == partitionInfo) {
+		   PDM_LOG_CRITICAL("StorageDevice:%s line: %d Unable to create new DiskPartitionInfo", __FUNCTION__, __LINE__);
+		   return;
+	   }
+	partitionInfo->setStorageType(m_storageType);
+	partitionInfo->setProductName(getProductName());
+	PDM_LOG_INFO("DiskPartitionInfo:",0,"%s line :%d rootPath:%s", __FUNCTION__,__LINE__,rootPath.c_str());
+	partitionInfo->setPartitionInfo(devClass, rootPath);
+	m_pdmFileSystemObj.checkFileSystem(*partitionInfo);
+	m_diskPartitionList.push_back(partitionInfo);
+	if( m_partitionCount == 0 ||  (getdiskPartitionListSize() == getPartitionCount())){
+		if(std::any_of(m_diskPartitionList.begin(), m_diskPartitionList.end(), [&](DiskPartitionInfo* dev){return dev->isSupportedFs();})){
+			if(isReadOnly){
+				mountAllPartition(); // direct mount without FSCK
+				storageDeviceNotification();
+			} else {
+
+				for(auto partitionInfo : m_diskPartitionList){
+					if(partitionInfo->isSupportedFs()){
+						m_fsckThreadArray.push_back(std::thread(&StorageDevice::fsckOnDeviceAddThread, this, partitionInfo));
+						m_fsckThreadCount++;
+				   }
+				}
+				m_timeoutId = g_timeout_add (PDM_STORAGE_DEVICE_CONNECTION_TIME,(GSourceFunc)notifyStorageConnecting, this);
+				}
+		}else{
+			m_errorReason = PDM_ERR_UNSUPPORT_FS;
+			m_hasUnsupportedFs = true;
+			m_storageDeviceHandlerCb(ADD,this);
+			m_isDevAddEventNotified = true;
+			m_storageDeviceHandlerCb(UNSUPPORTED_FS_FORMAT_NEEDED,this);
+		}
+	}
+}
+
+#if 0
 void StorageDevice::setPartitionInfo(PdmNetlinkEvent* pNE)
 {
     PDM_LOG_DEBUG("StorageDevice:%s line: %d Set the parition info %s", __FUNCTION__, __LINE__, m_deviceName.c_str());
@@ -270,6 +468,7 @@ void StorageDevice::setPartitionInfo(PdmNetlinkEvent* pNE)
         }
     }
 }
+#endif
 
 void StorageDevice:: storageDeviceFsckNotification()
 {
@@ -674,6 +873,39 @@ void StorageDevice::resumeRequest(const int &eventType) {
  * Not getting the remove event in this case need to handle it, removing the partition data
  * and notifying it
  */
+
+void StorageDevice::checkSdCardAddRemove(DeviceClass* devClass) {
+
+    PDM_LOG_INFO("StorageDevice:",0,"%s line: %d : m_isSdCardRemoved :  %d", __FUNCTION__,__LINE__,m_isSdCardRemoved);
+
+    if(m_storageType != StorageInterfaceTypes::USB_STICK){
+        PDM_LOG_INFO("StorageDevice:",0,"%s line: %d : not USB stick", __FUNCTION__,__LINE__);
+        return;
+    }
+
+    if(devClass->isDiskMediaChange() != YES){
+        PDM_LOG_INFO("StorageDevice:",0,"%s line: %d : DISK_MEDIA_CHANGE is not preset", __FUNCTION__,__LINE__);
+        return;
+    }
+
+    if(devClass->isCardReader() != YES ) {
+        PDM_LOG_INFO("StorageDevice:",0,"%s line: %d : CARD_READER not a card reader", __FUNCTION__,__LINE__);
+        return;
+    }
+
+    int count = countPartitions(m_deviceName);
+    if(count == 0 ) {
+        deletePartitionData();
+        for(auto partition : m_diskPartitionList){
+            PdmUtils::removeDirRecursive(partition->getMountName());
+        }
+        m_storageDeviceHandlerCb(REMOVE,nullptr);
+        PDM_LOG_INFO("StorageDevice:",0,"%s line: %d : m_isSdCardRemoved :  %d", __FUNCTION__,__LINE__,m_isSdCardRemoved);
+         m_isSdCardRemoved = true;
+    }
+}
+
+#if 0
 void StorageDevice::checkSdCardAddRemove(PdmNetlinkEvent* pNE) {
 
     PDM_LOG_INFO("StorageDevice:",0,"%s line: %d : m_isSdCardRemoved :  %d", __FUNCTION__,__LINE__,m_isSdCardRemoved);
@@ -704,7 +936,7 @@ void StorageDevice::checkSdCardAddRemove(PdmNetlinkEvent* pNE) {
          m_isSdCardRemoved = true;
     }
 }
-
+#endif
 
 bool StorageDevice::triggerUevent() {
 

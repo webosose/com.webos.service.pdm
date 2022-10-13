@@ -33,6 +33,26 @@ DiskPartitionInfo::DiskPartitionInfo(PdmConfig* const pConfObj, PluginAdapter* c
 {
 }
 
+void DiskPartitionInfo::setPartitionInfo(DeviceClass* devClass, const std::string &deviceRootPath)
+{
+    driveName = devClass->getDevName();
+    PDM_LOG_INFO("DiskPartitionInfo:",0,"%s driveName: %s deviceRootPath:%s", __FUNCTION__,driveName.c_str(), deviceRootPath.c_str());
+    if(!driveName.empty() && !deviceRootPath.empty())
+    {
+#ifndef WEBOS_SESSION
+        rootPath = deviceRootPath;
+        mountName = deviceRootPath + "/" + driveName;
+#endif
+    }
+    if(!devClass->getFsType().empty())
+        fsType = devClass->getFsType();
+    if(!devClass->getFsUuid().empty())
+        uuid = devClass->getFsUuid();
+    if(!devClass->getFsLabelEnc().empty())
+        volumeLabel = devClass->getFsLabelEnc();
+}
+
+#if 0
 void DiskPartitionInfo::setPartitionInfo(PdmNetlinkEvent* pNE,const std::string &deviceRootPath)
 {
     driveName = pNE->getDevAttribute(DEVNAME);
@@ -52,6 +72,7 @@ void DiskPartitionInfo::setPartitionInfo(PdmNetlinkEvent* pNE,const std::string 
     if(!pNE->getDevAttribute(ID_FS_LABEL_ENC).empty())
         volumeLabel = pNE->getDevAttribute(ID_FS_LABEL_ENC);
 }
+#endif
 
 void DiskPartitionInfo::setDriveStatus(std::string dStatus)
 {
