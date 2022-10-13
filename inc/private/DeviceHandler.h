@@ -28,6 +28,7 @@
 #include "PluginAdapter.h"
 #include "CommandTypes.h"
 #include "DeviceClass.h"
+#include "PdmLogUtils.h"
 
 // class PdmNetlinkEvent;
 //class DeviceClass;
@@ -68,12 +69,16 @@ template < class T >  T* getDeviceWithPath(std::list<T*>& sList, std::string dev
 
     if(sList.empty())
         return nullptr;
-
+PDM_LOG_DEBUG("DeviceHandler:%s line: %d",__FUNCTION__, __LINE__);
     for (auto deviceList: sList){
+        PDM_LOG_DEBUG("DeviceHandler:%s line: %d",__FUNCTION__, __LINE__);
         std::string devicePath = deviceList->getDevicePath();
+        PDM_LOG_DEBUG("DeviceHandler:%s line: %d",__FUNCTION__, __LINE__);
         if( devPath.compare(0,devicePath.length(),devicePath) == 0 )
             return deviceList;
+        PDM_LOG_DEBUG("DeviceHandler:%s line: %d",__FUNCTION__, __LINE__);
     }
+    PDM_LOG_DEBUG("DeviceHandler:%s line: %d",__FUNCTION__, __LINE__);
     return nullptr;
 }
 //To get the device with name
