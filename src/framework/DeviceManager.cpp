@@ -20,10 +20,9 @@
 #include "DeviceHandler.h"
 #include "PdmDeviceFactory.h"
 #include "PdmLogUtils.h"
-// #include "PdmNetlinkEvent.h"
 #include "PdmUtils.h"
 #include "DeviceManager.h"
-// #include "StorageDeviceHandler.h"
+#include "StorageDeviceHandler.h"
 
 using namespace PdmDevAttributes;
 

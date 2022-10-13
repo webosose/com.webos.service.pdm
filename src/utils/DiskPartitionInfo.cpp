@@ -17,7 +17,6 @@
 #include "Common.h"
 #include "DiskPartitionInfo.h"
 #include "PdmLogUtils.h"
-#include "PdmNetlinkEvent.h"
 #include <luna-service2/lunaservice.hpp>
 #include <luna-service2++/handle.hpp>
 #include "LunaIPC.h"

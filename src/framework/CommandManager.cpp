@@ -27,6 +27,7 @@ CommandManager::~CommandManager() {
 }
 
 bool CommandManager::sendCommand(Command *cmd) {
+    PDM_LOG_DEBUG("CommandManager:%s line: %d", __FUNCTION__, __LINE__);
     auto result = m_cmdPool->enqueue(&CommandManager::executeCommand, cmd);
     return true;
 }

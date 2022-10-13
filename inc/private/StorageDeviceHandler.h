@@ -19,7 +19,6 @@
 
 #include "DeviceHandler.h"
 #include "PdmDeviceFactory.h"
-#include "PdmNetlinkEvent.h"
 #include "StorageDevice.h"
 #include "PdmLogUtils.h"
 #include "DeviceClass.h"

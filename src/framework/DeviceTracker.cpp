@@ -1,4 +1,4 @@
-// Copyright (c) 2019-2021 LG Electronics, Inc.
+// Copyright (c) 2019-2022 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -66,6 +66,8 @@ void DeviceTracker::update(const int &eventDeviceType, const int &eventID, IDevi
 
     if(eventDeviceType == VIDEO_DEVICE) {
         LunaIPC::getInstance()->notifyDeviceChange(VIDEO_DEVICE, eventID);
+    } else if(eventDeviceType == SOUND_DEVICE) {
+        LunaIPC::getInstance()->notifyDeviceChange(SOUND_DEVICE, eventID);
     }
 
     switch(eventID)
