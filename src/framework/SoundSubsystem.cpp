@@ -18,11 +18,14 @@
 #include "SoundSubsystem.h"
 #include "DeviceClassFactory.h"
 #include "Common.h"
+#include "PdmLogUtils.h"
 
 using namespace PdmDevAttributes;
 
+bool SoundSubsystem::mIsObjRegistered = SoundSubsystem::RegisterSubSystem();
+
 SoundSubsystem::SoundSubsystem(std::unordered_map<std::string, std::string>& devPropMap)
-	: mDevType("Sound_Dev"), /*ToDo*/ DeviceClass(devPropMap)
+	: mDevType("sound"), /*ToDo*/ DeviceClass(devPropMap)
 {
 	for (auto &prop : devPropMap)
 		mDevPropMap[prop.first] = prop.second;
@@ -30,22 +33,35 @@ SoundSubsystem::SoundSubsystem(std::unordered_map<std::string, std::string>& dev
 
 SoundSubsystem::~SoundSubsystem() {}
 
-void SoundSubsystem::init()
-{
-	// ToDo : init method needs to be removed and Register call should be made from correct place
-	DeviceClassFactory::getInstance().Register(mDevType,
-		std::bind(&SoundSubsystem::create, std::placeholders::_1));
-}
+// void SoundSubsystem::RegisterSubSystem()
+// {
+// 	PDM_LOG_DEBUG("SoundSubsystem:%s line: %d", __FUNCTION__, __LINE__);
+// 	// ToDo : init method needs to be removed and Register call should be made from correct place
+// 	DeviceClassFactory::getInstance().Register(mDevType,
+// 		std::bind(&SoundSubsystem::create, std::placeholders::_1));
+// }
 
 SoundSubsystem* SoundSubsystem::create(std::unordered_map<std::string, std::string>& devProMap)
 {
+	PDM_LOG_DEBUG("SoundSubsystem:%s line: %d", __FUNCTION__, __LINE__);
+	bool canProcessEve = SoundSubsystem::canProcessEvent(devProMap);
+	
+	if (!canProcessEve)
+		return nullptr;
+	
 	SoundSubsystem* ptr = new (std::nothrow) SoundSubsystem(devProMap);
+	PDM_LOG_DEBUG("SoundSubsystem:%s line: %d SoundSubsystem object created", __FUNCTION__, __LINE__);
 	return ptr;
 }
 
 std::string SoundSubsystem::getDevType()
 {
 	return mDevPropMap[DEVTYPE];
+}
+
+std::string SoundSubsystem::getDevPath()
+{
+	return mDevPropMap[DEVPATH];
 }
 
 std::string SoundSubsystem::getDevSpeed()

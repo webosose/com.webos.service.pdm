@@ -1,4 +1,4 @@
-// Copyright (c) 2019-2021 LG Electronics, Inc.
+// Copyright (c) 2019-2022 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,64 +18,113 @@
 #include "Common.h"
 #include "PdmLogUtils.h"
 #include "SoundSubsystem.h"
+
 using namespace PdmDevAttributes;
 
 SoundDevice::SoundDevice(PdmConfig* const pConfObj, PluginAdapter* const pluginAdapter)
                          :Device(pConfObj, pluginAdapter,  "SOUND", PDM_ERR_NOTHING)
-                          , m_cardName("card")
+                          , m_cardName("")
                           , m_cardNumber(0)
                           , m_soundDeviceName("")
                           , m_cardId("")
+                          , m_builtIn(true)
 {
 
 }
 
-// void SoundDevice::setDeviceInfo(PdmNetlinkEvent* pNE)
-void SoundDevice::setDeviceInfo(DeviceClass* deviceClassEve)
-{
-    if(deviceClassEve->getDevType() == "Sound") {
-        SoundSubsystem *soundSubsystem = (SoundSubsystem*) deviceClassEve;
+void SoundSubDevice::updateInfo(std::string devName, std::string deviceType) {
+    m_devPath = "/dev/" + devName;
+    m_devType = deviceType;
+}
 
-        PDM_LOG_DEBUG("SoundDevice:%s line: %d setDeviceInfo", __FUNCTION__, __LINE__);
-        // if( pNE->getDevAttribute(DEVTYPE) == USB_DEVICE ) {
-        if( soundSubsystem->getDevType() == USB_DEVICE ) {
-            // if(!pNE->getDevAttribute(SPEED).empty()) {
-                // m_devSpeed = getDeviceSpeed(stoi(pNE->getDevAttribute(SPEED),nullptr));
-            // }
-            // Device::setDeviceInfo(pNE);
-            if(!soundSubsystem->getDevSpeed().empty()) {
-                m_devSpeed = getDeviceSpeed(stoi(soundSubsystem->getDevSpeed(), nullptr));
-            }
-            Device::setDeviceInfo((DeviceClass*)soundSubsystem);
+void SoundDevice::setDeviceInfo(DeviceClass* devClassPtr)
+{
+    PDM_LOG_DEBUG("SoundDevice:%s line: %d setDeviceInfo", __FUNCTION__, __LINE__);
+    SoundSubsystem* soundSubSystem = (SoundSubsystem*)devClassPtr;
+	if (soundSubSystem == nullptr) return;
+
+    PDM_LOG_DEBUG("SoundDevice:%s line: %d setDeviceInfo", __FUNCTION__, __LINE__);
+    if(!(soundSubSystem->getSpeed()).empty()) {
+        // m_devSpeed = getDeviceSpeed(stoi(soundSubSystem->getDevSpeed(),nullptr));
+        m_devSpeed = getDeviceSpeed(stoi(soundSubSystem->getSpeed()));
+    }
+    PDM_LOG_DEBUG("SoundDevice:%s line: %d setDeviceInfo", __FUNCTION__, __LINE__);
+    if(!soundSubSystem->getDevPath().empty()) {
+        m_devicePath = soundSubSystem->getDevPath();
+    }
+PDM_LOG_DEBUG("SoundDevice:%s line: %d setDeviceInfo", __FUNCTION__, __LINE__);
+    Device::setDeviceInfo(soundSubSystem);
+}
+
+void SoundDevice::updateDeviceInfo(DeviceClass* devClassPtr)
+{
+    SoundSubsystem* soundSubSystem = (SoundSubsystem*)devClassPtr;
+	if (soundSubSystem == nullptr) return;
+
+    if(soundSubSystem->getSubsystemName() == "sound") {
+        if(!soundSubSystem->getUsbDriver().empty())
+            m_deviceSubType = soundSubSystem->getUsbDriver();
+
+        if(soundSubSystem->getDevPath().find("usb") != std::string::npos)
+            m_builtIn = false;
+
+        if(!soundSubSystem->getCardName().empty())
+            m_soundDeviceName = soundSubSystem->getCardName();
+
+        if(!soundSubSystem->getCardNumber().empty())
+            m_cardNumber = stoi(soundSubSystem->getCardNumber());
+
+        if(!(soundSubSystem->getCardId().empty()))
+            m_cardId = soundSubSystem->getCardId();
+
+        SoundSubDevice* subDevice = getSubDevice(soundSubSystem->getDevName());
+        switch (sMapDeviceActions[soundSubSystem->getAction()]) {
+                case DeviceActions::USB_DEV_ADD:
+                    if (!soundSubSystem->getDevName().empty()) {
+                    if (subDevice) {
+                            subDevice->updateInfo(soundSubSystem->getDevName(), findDeviceType(soundSubSystem->getDevPath()));
+                        }
+                        else {
+                            subDevice = new (std::nothrow) SoundSubDevice(soundSubSystem->getDevName(), findDeviceType(soundSubSystem->getDevPath()));
+                            if (!subDevice) {
+                                PDM_LOG_CRITICAL("SoundDevice:%s line: %d Not able to create the sub device", __FUNCTION__, __LINE__);
+                                return;
+                            }
+                            mSubDeviceList.push_back(subDevice);
+                        }
+                    }
+                    break;
+            case DeviceActions::USB_DEV_REMOVE:
+                    if (subDevice) {
+                        mSubDeviceList.remove(subDevice);
+                        delete subDevice;
+                    }
+                    break;
+                default:
+                    //Do nothing
+                    break;
         }
     }
 }
 
-// void SoundDevice::updateDeviceInfo(PdmNetlinkEvent* pNE)
-// {
-//     if(pNE->getDevAttribute(SUBSYSTEM) == "sound"){
-//         if(!(pNE->getDevAttribute(CARD_ID).empty()))
-//             m_cardId = pNE->getDevAttribute(CARD_ID);
-//         if(!(pNE->getDevAttribute(CARD_NUMBER).empty())){
-//             m_cardNumber = stoi(pNE->getDevAttribute(CARD_NUMBER));
-//             m_soundDeviceName = m_cardName.append(std::to_string(m_cardNumber));
-//         }
-//         if(!pNE->getDevAttribute(ID_USB_DRIVER).empty())
-//             m_deviceSubType = pNE->getDevAttribute(ID_USB_DRIVER);
-//     }
-// }
-
-void SoundDevice::updateDeviceInfo(DeviceClass* deviceClassEve)
+std::string SoundDevice::findDeviceType(std::string devicePath)
 {
-    SoundSubsystem *soundSubsystem = (SoundSubsystem*) deviceClassEve;
-    if(soundSubsystem->getSubsystemName() == "sound"){
-        if(!(soundSubsystem->getCardId().empty()))
-            m_cardId = soundSubsystem->getCardId();
-        if(!(soundSubsystem->getCardNumber().empty())){
-            m_cardNumber = stoi(soundSubsystem->getCardNumber());
-            m_soundDeviceName = m_cardName.append(std::to_string(m_cardNumber));
-        }
-        // if(!soundSubsystem->getUsbDriver DevAttribute(ID_USB_DRIVER).empty())
-        //     m_deviceSubType = soundSubsystem->getDevAttribute(ID_USB_DRIVER);
+    std::string devType = "misc";
+    if (devicePath.find("pcm") != std::string::npos) {
+    if (devicePath[devicePath.length() - 1] == 'c')
+            devType = "capture";
+    else if (devicePath[devicePath.length() - 1] == 'p')
+            devType = "playback";
+    } else if (devicePath.find("control") != std::string::npos)
+        devType = "control";
+
+    return devType;
+}
+
+SoundSubDevice* SoundDevice::getSubDevice(std::string devName) {
+    for (auto soundSubDevice : mSubDeviceList) {
+        if (soundSubDevice->getDevPath() == ("/dev/" + devName))
+            return soundSubDevice;
     }
+    return nullptr;
 }

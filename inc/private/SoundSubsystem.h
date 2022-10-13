@@ -20,17 +20,30 @@
 #include <unordered_map>
 #include <string>
 #include "DeviceClass.h"
+#include "DeviceClassFactory.h"
 
 class SoundSubsystem : public DeviceClass
 {
 	std::string mDevType;
 	std::unordered_map<std::string, std::string> mDevPropMap;
-	void init();
+	// void init();
+	static bool mIsObjRegistered;
+	static bool RegisterSubSystem() {
+		DeviceClassFactory::getInstance().Register("sound", std::bind(&SoundSubsystem::create, std::placeholders::_1));
+		return true;
+	}
+	static bool canProcessEvent(std::unordered_map<std::string, std::string> mDevPropMap) {
+		const std::string iClass = ":01";
+		if((mDevPropMap[PdmDevAttributes::ID_USB_INTERFACES].find(iClass) == std::string::npos) || (mDevPropMap[PdmDevAttributes::SUBSYSTEM] != "sound"))
+			return false;
+		return true;
+	}
 public:
     SoundSubsystem(std::unordered_map<std::string, std::string>&);
     virtual ~SoundSubsystem();
 	virtual std::string getDevType();
 	virtual std::string getDevSpeed();
+	virtual std::string getDevPath();
 	virtual std::string getCardId();
 	virtual std::string getCardName();
 	virtual std::string getCardNumber();
