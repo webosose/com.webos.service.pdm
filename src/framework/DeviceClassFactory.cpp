@@ -17,6 +17,7 @@
 #include <algorithm>
 #include "DeviceClassFactory.h"
 #include "Common.h"
+#include "PdmLogUtils.h"
 
 DeviceClassFactory::DeviceClassFactory() {}
 
@@ -53,17 +54,33 @@ void DeviceClassFactory::parseDevProps(struct udev_device* device)
            if(value.compare(0,dev.length(),dev) == 0)
               value.erase(0,dev.length());
         }
+        PDM_LOG_DEBUG("DeviceClassFactory::parseDevProps - Name: %s Value: %s", name.c_str(), value.c_str());
 		mDevProMap[name] = value;
     }
 }
 
 DeviceClass* DeviceClassFactory::create(struct udev_device* device)
 {
+    PDM_LOG_DEBUG("DeviceClassFactory:%s line: %d mDevMap Siz: %d", __FUNCTION__, __LINE__, mDevMap.size());
 	parseDevProps(device);
-	std::string devType = mDevProMap[PdmDevAttributes::DEVTYPE];
-	DeviceClass* devClasPtr = NULL;
-	if (mDevMap.count(devType) != 0)
-		devClasPtr = mDevMap[devType](mDevProMap);
-	return devClasPtr;
+    PDM_LOG_DEBUG("DeviceClassFactory:%s line: %d mDevMap Siz: %d", __FUNCTION__, __LINE__, mDevMap.size());
+    DeviceClass* subDevClasPtr = NULL;
+
+    PDM_LOG_DEBUG("DeviceClassFactory:%s line: %d mDevMap Siz: %d", __FUNCTION__, __LINE__, mDevMap.size());
+
+    for (auto const& dev : mDevMap) {
+        subDevClasPtr = mDevMap[dev.first](mDevProMap);
+        if(subDevClasPtr) {
+            return subDevClasPtr;
+        }
+    }
+
+	// std::string devType = mDevProMap[PdmDevAttributes::DEVTYPE];
+    // if (mDevMap.count(devType) != 0) {
+    //     devClasPtr = mDevMap[devType](mDevProMap);
+    // }
+
+    PDM_LOG_DEBUG("DeviceClassFactory:%s line: %d", __FUNCTION__, __LINE__);
+	return subDevClasPtr;
 }
 

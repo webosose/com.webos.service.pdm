@@ -24,7 +24,6 @@
 #include <memory>
 #include <functional>
 #include "DeviceClass.h"
-#include "PdmNetlinkEvent.h"
 
 using devCreateFptr =  std::function<DeviceClass* (std::unordered_map<std::string, std::string>&)>;
 using devCreatorMap = std::unordered_map<std::string, devCreateFptr>;
