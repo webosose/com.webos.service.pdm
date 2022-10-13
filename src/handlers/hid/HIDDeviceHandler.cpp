@@ -1,4 +1,4 @@
-// Copyright (c) 2019-2020 LG Electronics, Inc.
+// Copyright (c) 2019-2022 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -104,12 +104,18 @@ void HIDDeviceHandler::removeDevice(HIDDevice* hidDevice)
 void HIDDeviceHandler::ProcessHIDDevice(DeviceClass* devClass){
     HIDDevice *hidDevice;
     PDM_LOG_INFO("HIDDeviceHandler:",0,"%s line: %d DEVTYPE: %s ACTION: %s", __FUNCTION__, __LINE__, devClass->getDevType().c_str(), devClass->getAction().c_str());
+    PDM_LOG_DEBUG("HIDDeviceHandler: %s line: %d DEVPATH: %s", __FUNCTION__, __LINE__, devClass->getDevPath().c_str());
 
    try {
+        PDM_LOG_DEBUG("HIDDeviceHandler: %s line: %d ", __FUNCTION__, __LINE__);
             switch(sMapDeviceActions.at(devClass->getAction()))
             {
+                PDM_LOG_DEBUG("HIDDeviceHandler: %s line: %d ", __FUNCTION__, __LINE__);
                 case DeviceActions::USB_DEV_ADD:
+                PDM_LOG_DEBUG("HIDDeviceHandler: %s line: %d ", __FUNCTION__, __LINE__);
                     hidDevice = getDeviceWithPath< HIDDevice >(sList, devClass->getDevPath());
+                    // hidDevice = getDeviceWithPath< HIDDevice >(sList, m_devicePath);
+                    
                     if(!hidDevice)
                     {
                         hidDevice = new (std::nothrow) HIDDevice(m_pConfObj, m_pluginAdapter);
@@ -122,6 +128,7 @@ void HIDDeviceHandler::ProcessHIDDevice(DeviceClass* devClass){
                         hidDevice->setDeviceInfo(devClass);
                     break;
                 case DeviceActions::USB_DEV_REMOVE:
+                PDM_LOG_DEBUG("HIDDeviceHandler: %s line: %d ", __FUNCTION__, __LINE__);
                     hidDevice = getDeviceWithPath< HIDDevice >(sList, devClass->getDevPath());
                     if(hidDevice) {
                        removeDevice(hidDevice);
@@ -129,6 +136,7 @@ void HIDDeviceHandler::ProcessHIDDevice(DeviceClass* devClass){
                     }
                     break;
                 default:
+                    PDM_LOG_DEBUG("HIDDeviceHandler: %s line: %d ACTION NOT found", __FUNCTION__, __LINE__);
                 //Do nothing
                    break;
             }

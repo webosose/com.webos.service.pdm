@@ -22,7 +22,6 @@
 #include "DeviceHandler.h"
 #include "PdmDeviceFactory.h"
 #include "PdmLogUtils.h"
-#include "PdmNetlinkEvent.h"
 #include "DeviceClass.h"
 
 class CdcDeviceHandler : public DeviceHandler
