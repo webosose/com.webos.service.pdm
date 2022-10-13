@@ -21,7 +21,6 @@
 #include "DeviceHandler.h"
 #include "PTPDevice.h"
 #include "PdmDeviceFactory.h"
-#include "PdmNetlinkEvent.h"
 #include "PdmLogUtils.h"
 #include "DeviceClass.h"
 

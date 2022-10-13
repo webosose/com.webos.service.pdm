@@ -17,7 +17,6 @@
 #include "DeviceHandler.h"
 #include "NfcDevice.h"
 #include "PdmDeviceFactory.h"
-#include "PdmNetlinkEvent.h"
 #include "PdmLogUtils.h"
 #include "DeviceClass.h"
 

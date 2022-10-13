@@ -22,7 +22,6 @@
 #include "GamepadDevice.h"
 #include "PdmDeviceFactory.h"
 #include "PdmLogUtils.h"
-#include "PdmNetlinkEvent.h"
 #include "DeviceClass.h"
 
 class GamepadDeviceHandler : public DeviceHandler
