@@ -15,36 +15,38 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include <functional>
-#include "Common.h"
-#include "HIDSubsystem.h"
+#include "GamepadSubSystem.h"
 #include "DeviceClassFactory.h"
+#include "Common.h"
 #include "PdmLogUtils.h"
 
 using namespace PdmDevAttributes;
-bool HIDSubsystem::mIsObjRegistered = HIDSubsystem::RegisterSubSystem();
 
-HIDSubsystem::HIDSubsystem(std::unordered_map<std::string, std::string>& devPropMap)
-	: mDevType("input"), DeviceClass(devPropMap)
+bool GamepadSubSystem::mIsObjRegistered = GamepadSubSystem::RegisterSubSystem();
+
+GamepadSubSystem::GamepadSubSystem(std::unordered_map<std::string, std::string>& devPropMap)
+	: mDevType("gamepad"), DeviceClass(devPropMap)
 {
 	for (auto &prop : devPropMap)
 		mDevPropMap[prop.first] = prop.second;
 }
 
-HIDSubsystem::~HIDSubsystem() {}
+GamepadSubSystem::~GamepadSubSystem() {}
 
-HIDSubsystem *HIDSubsystem::create(std::unordered_map<std::string, std::string> &devProMap)
+GamepadSubSystem *GamepadSubSystem::create(std::unordered_map<std::string, std::string> &devProMap)
 {
-    bool canProcessEve = HIDSubsystem::canProcessEvent(devProMap);
+    PDM_LOG_DEBUG("GamepadSubSystem:%s line: %d", __FUNCTION__, __LINE__);
+    bool canProcessEve = GamepadSubSystem::canProcessEvent(devProMap);
 
     if (!canProcessEve)
         return nullptr;
 
-    HIDSubsystem *ptr = new (std::nothrow) HIDSubsystem(devProMap);
-    PDM_LOG_DEBUG("HIDSubsystem:%s line: %d HIDSubsystem Object created", __FUNCTION__, __LINE__);
+    GamepadSubSystem *ptr = new (std::nothrow) GamepadSubSystem(devProMap);
+    PDM_LOG_DEBUG("GamepadSubSystem:%s line: %d GamepadSubSystem object created", __FUNCTION__, __LINE__);
     return ptr;
 }
 
-std::string HIDSubsystem::getProcessed()
+std::string GamepadSubSystem::getGamepadId()
 {
-    return mDevPropMap[PROCESSED];
+    return mDevPropMap[ID_GAMEPAD];
 }

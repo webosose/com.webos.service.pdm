@@ -46,8 +46,8 @@ public:
 	std::string getCapabilities();
 	std::string getProductName();
 	std::string getVersion();
-	std::string getDevSpeed();
-	std::string getUsbDriverId();
+	// std::string getDevSpeed();
+	// std::string getUsbDriverId();
 	static VideoSubsystem* create(std::unordered_map<std::string, std::string>& devPropMap);
 };
 

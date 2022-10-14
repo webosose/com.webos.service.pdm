@@ -1,4 +1,4 @@
-// Copyright (c) 2019 LG Electronics, Inc.
+// Copyright (c) 2019-2022 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,9 +16,8 @@
 
 #include "BlackListDeviceHandler.h"
 #include "PdmLogUtils.h"
-#include "PdmNetlinkEvent.h"
 
 
-BlackListDeviceHandler::BlackListDeviceHandler(PdmNetlinkEvent *event) {
+BlackListDeviceHandler::BlackListDeviceHandler(DeviceClass *devClass) {
     PDM_LOG_DEBUG("This is USB 3.0 black list in LG...");
 }

@@ -27,29 +27,26 @@ class HIDSubsystem :public DeviceClass
 {
 	std::string mDevType;
 	std::unordered_map<std::string, std::string> mDevPropMap;
-	// void init();	
 	static bool mIsObjRegistered;
 	static bool RegisterSubSystem() {
 		PDM_LOG_DEBUG("HIDSubsystem:%s line: %d HIDSubsystem Registered", __FUNCTION__, __LINE__);
 		DeviceClassFactory::getInstance().Register("input", std::bind(&HIDSubsystem::create, std::placeholders::_1));
 		return true;
 	}
-	static bool canProcessEvent(std::unordered_map<std::string, std::string> mDevPropMap) {
-		PDM_LOG_DEBUG("HIDSubsystem:%s line: %d HIDSubsystem Object created", __FUNCTION__, __LINE__);
-		const std::string iClass = ":03";
-		if (mDevPropMap[PdmDevAttributes::ID_USB_INTERFACES].find(iClass) == std::string::npos)
-			return false;
-		return true;
-	}
+    static bool canProcessEvent(std::unordered_map<std::string, std::string> mDevPropMap)
+    {
+        const std::string iClass = ":03";
+        if (mDevPropMap[PdmDevAttributes::ID_USB_INTERFACES].find(iClass) != std::string::npos)
+            return true;
+        PDM_LOG_DEBUG("HIDSubsystem:%s line: %d HIDSubsystem Object created", __FUNCTION__, __LINE__);
+        return false;
+    }
+
 public:
     HIDSubsystem(std::unordered_map<std::string, std::string>& devPropMap);
     virtual ~HIDSubsystem();
-	std::string getCapabilities();
-	std::string getProductName();
-	std::string getVersion();
-	std::string getDevSpeed();
-	std::string getUsbDriverId();
 	static HIDSubsystem* create(std::unordered_map<std::string, std::string>& devPropMap);
+	std::string getProcessed();
 };
 
 #endif /* _HID_SUSBSYSTEM_H_ */

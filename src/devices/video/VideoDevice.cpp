@@ -45,15 +45,14 @@ VideoDevice::~VideoDevice() {
 void VideoDevice::setDeviceInfo(DeviceClass* devClassPtr, bool isCameraReady)
 {
     PDM_LOG_DEBUG("VideoDevice:%s line: %d setDeviceInfo", __FUNCTION__, __LINE__);
-	if (devClassPtr->getDevType() != "Video")	return;
 
-	VideoSubsystem* videoSubSystem = (VideoSubsystem*)devClassPtr;
-	if (videoSubSystem == nullptr) return;
+	// VideoSubsystem* devClassPtr = (VideoSubsystem*)devClassPtr;
+	// if (devClassPtr == nullptr) return;
 
-    if(videoSubSystem->getAction() == DEVICE_ADD ) {
+    if(devClassPtr->getAction() == DEVICE_ADD ) {
         PDM_LOG_DEBUG("VideoDevice:%s line: %d setDeviceInfo: DEVICE_ADD", __FUNCTION__, __LINE__);
-        if(!videoSubSystem->getDevSpeed().empty()) {
-            m_devSpeed = getDeviceSpeed(stoi(videoSubSystem->getDevSpeed(), nullptr));
+        if(!devClassPtr->getSpeed().empty()) {
+            m_devSpeed = getDeviceSpeed(stoi(devClassPtr->getSpeed(), nullptr));
         }
         if(!isCameraReady) {
             m_deviceType = DEV_TYPE_UNKNOWN;
@@ -68,32 +67,33 @@ void VideoDevice::updateDeviceInfo(DeviceClass* devClassPtr)
 	if (videoSubSystem == nullptr) return;
 
 #ifdef WEBOS_SESSION
-    if (!videoSubSystem->getDevName().empty()) {
+    if (!devClassPtr->getDevName().empty()) {
         std::string devPath = "/dev/";
-        m_devPath = devPath.append(videoSubSystem->getDevName());
+        m_devPath = devPath.append(devClassPtr->getDevName());
     }
 #endif
-    if (videoSubSystem->getSubsystemName() ==  "video4linux" && videoSubSystem->getCapabilities() ==  ":capture:") {
-        if(!videoSubSystem->getSubsystemName().empty())
-            m_subSystem = videoSubSystem->getSubsystemName();
+    // if (devClassPtr->getSubsystemName() ==  "video4linux" && devClassPtr->getCapabilities() ==  ":capture:") {
+    if (devClassPtr->getSubsystemName() ==  "video4linux" && videoSubSystem->getCapabilities().find(":capture:") !=  std::string::npos) {
+        if(!devClassPtr->getSubsystemName().empty())
+            m_subSystem = devClassPtr->getSubsystemName();
 
-        if(!videoSubSystem->getUsbDriverId().empty())
-            m_deviceSubType = videoSubSystem->getUsbDriverId();
+        if(!devClassPtr->getUsbDriver().empty())
+            m_deviceSubType = devClassPtr->getUsbDriver();
 
-        if (!videoSubSystem->getDevName().empty()) {
+        if (!devClassPtr->getDevName().empty()) {
             std::string cam_path = "/dev/";
-            m_kernel = cam_path.append(videoSubSystem->getDevName());
+            m_kernel = cam_path.append(devClassPtr->getDevName());
         }
 
-        VideoSubDevice* subDevice = getSubDevice("/dev/" + videoSubSystem->getDevName());
-        switch (sMapDeviceActions[videoSubSystem->getAction()]) {
+        VideoSubDevice* subDevice = getSubDevice("/dev/" + devClassPtr->getDevName());
+        switch (sMapDeviceActions[devClassPtr->getAction()]) {
             case DeviceActions::USB_DEV_ADD:
-                if (!videoSubSystem->getDevName().empty()) {
+                if (!devClassPtr->getDevName().empty()) {
                     if (subDevice) {
-                        subDevice->updateInfo(videoSubSystem->getDevName(), videoSubSystem->getCapabilities(), videoSubSystem->getProductName(), videoSubSystem->getVersion());
+                        subDevice->updateInfo(devClassPtr->getDevName(), videoSubSystem->getCapabilities(), videoSubSystem->getProductName(), videoSubSystem->getVersion());
                     }
                     else {
-                        subDevice = new (std::nothrow) VideoSubDevice(videoSubSystem->getDevName(), videoSubSystem->getCapabilities(), videoSubSystem->getProductName(), videoSubSystem->getVersion());
+                        subDevice = new (std::nothrow) VideoSubDevice(devClassPtr->getDevName(), videoSubSystem->getCapabilities(), videoSubSystem->getProductName(), videoSubSystem->getVersion());
                         if (!subDevice) {
                             PDM_LOG_CRITICAL("VideoDevice:%s line: %d Not able to create the sub device", __FUNCTION__, __LINE__);
                             return;

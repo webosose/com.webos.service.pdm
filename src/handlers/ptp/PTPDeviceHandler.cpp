@@ -1,4 +1,4 @@
-// Copyright (c) 2019-2020 LG Electronics, Inc.
+// Copyright (c) 2019-2022 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 #include "PdmJson.h"
 #include "PTPDeviceHandler.h"
+#include "PTPSubsystem.h"
 
 using namespace PdmDevAttributes;
 
@@ -30,24 +31,28 @@ PTPDeviceHandler::PTPDeviceHandler(PdmConfig* const pConfObj, PluginAdapter* con
 PTPDeviceHandler::~PTPDeviceHandler() {
 }
 
-bool PTPDeviceHandler::HandlerEvent(DeviceClass* devClass){
+bool PTPDeviceHandler::HandlerEvent(DeviceClass* devClass)
+{
+    PTPSubsystem *ptpSubsystem = (PTPSubsystem *)devClass;
+    if (ptpSubsystem == nullptr) return false;
+
 #ifndef WEBOS_SESSION
     PDM_LOG_DEBUG("PTPDeviceHandler::HandlerEvent");
 
-   if (devClass->getAction() == "remove")
+   if (ptpSubsystem->getAction() == "remove")
    {
-      ProcessPTPDevice(devClass);
+      ProcessPTPDevice(ptpSubsystem);
       return false;
    }
-    std::string interfaceClass = devClass->getInterfaceClass();
+    std::string interfaceClass = ptpSubsystem->getInterfaceClass();
     if(interfaceClass.find(iClass) == std::string::npos)
         return false;
-    if((devClass->getDevType() ==  USB_DEVICE) && (devClass->getMediaPlayerId() != "1")){
-        ProcessPTPDevice(devClass);
+    if((ptpSubsystem->getDevType() ==  USB_DEVICE) && (ptpSubsystem->getMediaPlayerId() != "1")){
+        ProcessPTPDevice(ptpSubsystem);
         return false;
     }
-    else if((devClass->getSubsystemName() ==  "usb") && (devClass->getMediaPlayerId() != "1")) {
-        ProcessPTPDevice(devClass);
+    else if((ptpSubsystem->getSubsystemName() ==  "usb") && (ptpSubsystem->getMediaPlayerId() != "1")) {
+        ProcessPTPDevice(ptpSubsystem);
         return true;
     }
 #endif

@@ -1,4 +1,4 @@
-// Copyright (c) 2019-2021 LG Electronics, Inc.
+// Copyright (c) 2019-2022 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@
 #include <luna-service2++/handle.hpp>
 #include "LunaIPC.h"
 #include <sys/mount.h>
+#include "StorageSubsystem.h"
 
 using namespace PdmDevAttributes;
 using namespace std::placeholders;
@@ -94,25 +95,28 @@ int StorageDeviceHandler::readMaxUsbStorageDevices()
     return maxUsbStorageDevs;
 }
 
-bool StorageDeviceHandler::HandlerEvent(DeviceClass* devClass){
+bool StorageDeviceHandler::HandlerEvent(DeviceClass* devClass)
+{
+    StorageSubsystem *storageSubsystem = (StorageSubsystem *)devClass;
+    if (storageSubsystem == nullptr) return false;
 
     PDM_LOG_DEBUG("StorageDeviceHandler::HandlerEvent");
-   if (devClass->getAction()== "remove")
+   if (storageSubsystem->getAction()== "remove")
    {
-      if(deleteStorageDevice(devClass)) {
+      if(deleteStorageDevice(storageSubsystem)) {
          PDM_LOG_DEBUG("StorageDeviceHandler:%s line: %d  DEVTYPE=usb_device removed", __FUNCTION__, __LINE__);
          return true;
       }
       return false;
    }
-   if(!isStorageDevice(devClass))
+   if(!isStorageDevice(storageSubsystem))
         return false;
-    if(devClass->getDevType() ==  USB_DEVICE) {
-        ProcessStorageDevice(devClass);
+    if(storageSubsystem->getDevType() ==  USB_DEVICE) {
+        ProcessStorageDevice(storageSubsystem);
         return false;
     }
-    else if(devClass->getSubsystemName() ==  "block") {
-        ProcessStorageDevice(devClass);
+    else if(storageSubsystem->getSubsystemName() ==  "block") {
+        ProcessStorageDevice(storageSubsystem);
         return true;
     }
     return false;
@@ -614,10 +618,13 @@ void StorageDeviceHandler::computeSpaceInfoThread()
 
 bool StorageDeviceHandler::isStorageDevice(DeviceClass* devClass)
 {
+    StorageSubsystem *storageSubsystem = (StorageSubsystem *)devClass;
+    if (storageSubsystem == nullptr) return false;
+
     PDM_LOG_DEBUG("StorageDeviceHandler::isStorageDevice");
     std::string interfaceClass = devClass->getInterfaceClass();
-    if((interfaceClass.find(iClass) != std::string::npos) || (devClass->getHardDisk() == PDM_HDD_ID_ATA) ||
-                                       (devClass->getHardDisk() == PDM_HDD_ID_ATA))
+    if((interfaceClass.find(iClass) != std::string::npos) || (storageSubsystem->getHardDisk() == PDM_HDD_ID_ATA) ||
+                                       (storageSubsystem->getHardDisk() == PDM_HDD_ID_ATA))
         return true;
 
     return false;

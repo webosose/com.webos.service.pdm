@@ -96,19 +96,25 @@ bool DeviceManager::createPdmdeviceList() {
 
 bool DeviceManager::HandlePdmDevice(DeviceClass *devClassPtr)
 {
-	(void)devClassPtr;
-    // devClassPtr->
-    //TODO: MM:
     // if (!(event->getDevAttribute(ID_BLACKLIST)).empty() && std::stoi(event->getDevAttribute(ID_BLACKLIST),nullptr)) {
     //     PDM_LOG_DEBUG("Blacklist device detcted");
     //     BlackListDeviceHandler blackListDeviceHandler(event);
     //     return true;
     // }
 
+    if (!(devClassPtr->getIdBlackList()).empty() && std::stoi(devClassPtr->getIdBlackList(),nullptr)) {
+        PDM_LOG_DEBUG("Blacklist device detected");
+        BlackListDeviceHandler blackListDeviceHandler(devClassPtr);
+        return true;
+    }
+    
+    PDM_LOG_DEBUG("DeviceManager:%s line: %d", __FUNCTION__, __LINE__);
     for(auto handler : mHandlerList)
     {
         bool result = handler->HandlerEvent(devClassPtr);
         // if(event->getDevAttribute(DEVTYPE) ==  "usb_device")
+        PDM_LOG_DEBUG("DeviceManager:%s line: %d", __FUNCTION__, __LINE__);
+        PDM_LOG_DEBUG("DeviceManager:%s line: %d handlerName: %s, result: %d", __FUNCTION__, __LINE__, handler->getHandlerName().c_str(), result);
         if(devClassPtr->getDevType() ==  "usb_device")
             continue;
         if(result)

@@ -1,6 +1,6 @@
 // @@@LICENSE
 //
-// Copyright (c) 2020 LG Electronics, Inc.
+// Copyright (c) 2020-2022 LG Electronics, Inc.
 //
 // Confidential computer software. Valid license from LG required for
 // possession, use or copying. Consistent with FAR 12.211 and 12.212,
@@ -12,6 +12,7 @@
 
 #include "NfcDeviceHandler.h"
 #include "PdmJson.h"
+#include "NfcSubsystem.h"
 
 using namespace PdmDevAttributes;
 
@@ -31,17 +32,20 @@ NfcDeviceHandler::NfcDeviceHandler(PdmConfig* const pConfObj, PluginAdapter* con
 NfcDeviceHandler::~NfcDeviceHandler() {
 }
 
-bool NfcDeviceHandler::HandlerEvent(DeviceClass* devClass){
+bool NfcDeviceHandler::HandlerEvent(DeviceClass* devClass)
+{
+    NfcSubsystem *nfcSubsystem = (NfcSubsystem *)devClass;
+    if (nfcSubsystem == nullptr) return false;
 
-    if (devClass->getAction()== "remove")
+    if (nfcSubsystem->getAction()== "remove")
     {
-      ProcessNfcDevice(devClass);
+      ProcessNfcDevice(nfcSubsystem);
       if(m_deviceRemoved)
           return true;
     }
 
-    if (devClass->getUsbInterfaceId().find(iClass) != std::string::npos) {
-        ProcessNfcDevice(devClass);
+    if (nfcSubsystem->getInterfaceClass().find(iClass) != std::string::npos) {
+        ProcessNfcDevice(nfcSubsystem);
         return true;
     }
     return false;

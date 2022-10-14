@@ -16,18 +16,25 @@
 
 #include "HIDDevice.h"
 #include "Common.h"
+#include "PdmLogUtils.h"
+#include "HIDSubsystem.h"
 
 using namespace PdmDevAttributes;
 
 void HIDDevice::setDeviceInfo(DeviceClass* devClass)
 {
+    HIDSubsystem *hidSubsystem = (HIDSubsystem *)devClass;
+
+    PDM_LOG_DEBUG("HIDDevice:%s line: %d", __FUNCTION__, __LINE__);
     if(devClass->getAction() == DEVICE_ADD ) {
         Device::setDeviceInfo(devClass);
         if(devClass->getDevType() == USB_DEVICE ){
             if(!devClass->getSpeed().empty()) {
+                PDM_LOG_DEBUG("HIDDevice:%s line: %d updated device speed", __FUNCTION__, __LINE__);
                 m_devSpeed = getDeviceSpeed(stoi(devClass->getSpeed(), nullptr));
             }
-        }else if(devClass->getProcessed() == YES ) {
+        }else if(hidSubsystem->getProcessed() == YES ) {
+            PDM_LOG_DEBUG("HIDDevice:%s line: %d", __FUNCTION__, __LINE__);
             mHidDeviceHandlerCb(ADD,nullptr);
         }
     }

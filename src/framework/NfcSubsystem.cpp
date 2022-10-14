@@ -16,35 +16,31 @@
 
 #include <functional>
 #include "Common.h"
-#include "HIDSubsystem.h"
+#include "NfcSubsystem.h"
 #include "DeviceClassFactory.h"
 #include "PdmLogUtils.h"
 
 using namespace PdmDevAttributes;
-bool HIDSubsystem::mIsObjRegistered = HIDSubsystem::RegisterSubSystem();
 
-HIDSubsystem::HIDSubsystem(std::unordered_map<std::string, std::string>& devPropMap)
-	: mDevType("input"), DeviceClass(devPropMap)
+bool NfcSubsystem::mIsObjRegistered = NfcSubsystem::RegisterSubSystem();
+
+NfcSubsystem::NfcSubsystem(std::unordered_map<std::string, std::string> &devPropMap)
+    : mDevType("nfc"), DeviceClass(devPropMap)
 {
-	for (auto &prop : devPropMap)
-		mDevPropMap[prop.first] = prop.second;
+    for (auto &prop : devPropMap)
+        mDevPropMap[prop.first] = prop.second;
 }
 
-HIDSubsystem::~HIDSubsystem() {}
+NfcSubsystem::~NfcSubsystem() {}
 
-HIDSubsystem *HIDSubsystem::create(std::unordered_map<std::string, std::string> &devProMap)
+NfcSubsystem *NfcSubsystem::create(std::unordered_map<std::string, std::string> &devProMap)
 {
-    bool canProcessEve = HIDSubsystem::canProcessEvent(devProMap);
+    bool canProcessEve = NfcSubsystem::canProcessEvent(devProMap);
 
     if (!canProcessEve)
         return nullptr;
 
-    HIDSubsystem *ptr = new (std::nothrow) HIDSubsystem(devProMap);
-    PDM_LOG_DEBUG("HIDSubsystem:%s line: %d HIDSubsystem Object created", __FUNCTION__, __LINE__);
+    NfcSubsystem *ptr = new (std::nothrow) NfcSubsystem(devProMap);
+    PDM_LOG_DEBUG("NfcSubsystem:%s line: %d NfcSubsystem Object created", __FUNCTION__, __LINE__);
     return ptr;
-}
-
-std::string HIDSubsystem::getProcessed()
-{
-    return mDevPropMap[PROCESSED];
 }

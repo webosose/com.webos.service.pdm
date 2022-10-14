@@ -18,6 +18,7 @@
 #include "PdmLogUtils.h"
 #include "PdmUtils.h"
 #include <unistd.h>
+#include "MTPSubsystem.h"
 
 using namespace PdmDevAttributes;
 
@@ -36,11 +37,13 @@ MTPDevice::~MTPDevice()
 
 void MTPDevice::setDeviceInfo(DeviceClass* devClass)
 {
-    if( devClass->getDevType() == USB_DEVICE){
-        if(!devClass->getSpeed().empty()) {
-            m_devSpeed = getDeviceSpeed(stoi(devClass->getSpeed()));
+    MTPSubsystem* mtpSubSystem = (MTPSubsystem*)devClass;
+	if (mtpSubSystem == nullptr) return;
+    if( mtpSubSystem->getDevType() == USB_DEVICE){
+        if(!mtpSubSystem->getSpeed().empty()) {
+            m_devSpeed = getDeviceSpeed(stoi(mtpSubSystem->getSpeed()));
         }
-        driveName = devClass->getDevLinks();
+        driveName = mtpSubSystem->getDevLinks();
         if(!driveName.empty())
         {
             driveName.erase(0,8);
@@ -49,7 +52,7 @@ void MTPDevice::setDeviceInfo(DeviceClass* devClass)
             mountName = rootPath + "/" + driveName ;
         }
     }
-    Device::setDeviceInfo(devClass);
+    Device::setDeviceInfo(mtpSubSystem);
 }
 
 #if 0

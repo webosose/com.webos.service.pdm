@@ -1,4 +1,4 @@
-// Copyright (c) 2019-2020 LG Electronics, Inc.
+// Copyright (c) 2019-2022 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 #include "MTPDeviceHandler.h"
 #include "PdmJson.h"
+#include "MTPSubsystem.h"
 
 using namespace PdmDevAttributes;
 
@@ -31,14 +32,17 @@ MTPDeviceHandler::~MTPDeviceHandler() {
 }
 
 bool MTPDeviceHandler::HandlerEvent(DeviceClass* devClass){
+    MTPSubsystem *mtpSubsystem = (MTPSubsystem *)devClass;
+    if (mtpSubsystem == nullptr) return false;
+    
 #ifndef WEBOS_SESSION
    PDM_LOG_DEBUG("MTPDeviceHandler::HandlerEvent");
-   if (devClass->getAction()== "remove")
+   if (mtpSubsystem->getAction()== "remove")
    {
-      ProcessMTPDevice(devClass);
+      ProcessMTPDevice(mtpSubsystem);
       return false;
-   }else if (devClass->getMediaPlayerId()== YES ){
-        ProcessMTPDevice(devClass);
+   }else if (mtpSubsystem->getMediaPlayerId()== YES ){
+        ProcessMTPDevice(mtpSubsystem);
         return false;
     }
 #endif

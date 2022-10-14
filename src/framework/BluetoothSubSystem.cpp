@@ -15,36 +15,33 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include <functional>
-#include "Common.h"
-#include "HIDSubsystem.h"
+#include "BluetoothSubSystem.h"
 #include "DeviceClassFactory.h"
+#include "Common.h"
 #include "PdmLogUtils.h"
 
 using namespace PdmDevAttributes;
-bool HIDSubsystem::mIsObjRegistered = HIDSubsystem::RegisterSubSystem();
 
-HIDSubsystem::HIDSubsystem(std::unordered_map<std::string, std::string>& devPropMap)
-	: mDevType("input"), DeviceClass(devPropMap)
+bool BluetoothSubSystem::mIsObjRegistered = BluetoothSubSystem::RegisterSubSystem();
+
+BluetoothSubSystem::BluetoothSubSystem(std::unordered_map<std::string, std::string>& devPropMap)
+	: mDevType("bluetooth"), DeviceClass(devPropMap)
 {
 	for (auto &prop : devPropMap)
 		mDevPropMap[prop.first] = prop.second;
 }
 
-HIDSubsystem::~HIDSubsystem() {}
+BluetoothSubSystem::~BluetoothSubSystem() {}
 
-HIDSubsystem *HIDSubsystem::create(std::unordered_map<std::string, std::string> &devProMap)
+BluetoothSubSystem *BluetoothSubSystem::create(std::unordered_map<std::string, std::string> &devProMap)
 {
-    bool canProcessEve = HIDSubsystem::canProcessEvent(devProMap);
+    PDM_LOG_DEBUG("BluetoothSubSystem:%s line: %d", __FUNCTION__, __LINE__);
+    bool canProcessEve = BluetoothSubSystem::canProcessEvent(devProMap);
 
     if (!canProcessEve)
         return nullptr;
 
-    HIDSubsystem *ptr = new (std::nothrow) HIDSubsystem(devProMap);
-    PDM_LOG_DEBUG("HIDSubsystem:%s line: %d HIDSubsystem Object created", __FUNCTION__, __LINE__);
+    BluetoothSubSystem *ptr = new (std::nothrow) BluetoothSubSystem(devProMap);
+    PDM_LOG_DEBUG("BluetoothSubSystem:%s line: %d BluetoothSubSystem object created", __FUNCTION__, __LINE__);
     return ptr;
-}
-
-std::string HIDSubsystem::getProcessed()
-{
-    return mDevPropMap[PROCESSED];
 }

@@ -67,6 +67,7 @@ void Device::getBasicUsbInfo(std::string devPath)
 void Device::setDeviceInfo(DeviceClass* deviceClassEve)
 {
     m_serialNumber = deviceClassEve->getIdSerilShort();
+    PDM_LOG_DEBUG("Device:%s line:%d m_serialNumber:%s", __FUNCTION__, __LINE__, m_serialNumber.c_str());
     m_deviceSubType = deviceClassEve->getUsbDriver();
     m_productName = deviceClassEve->getIdModel();
 
@@ -91,6 +92,7 @@ void Device::setDeviceInfo(DeviceClass* deviceClassEve)
     } else {
         m_vendorName = deviceClassEve->getIdVendor();
     }
+    PDM_LOG_DEBUG("Device:%s line:%d m_vendorName:%s", __FUNCTION__, __LINE__, m_vendorName.c_str());
     if(!deviceClassEve->getDevNumber().empty())
         m_deviceNum = std::stoi(deviceClassEve->getDevNumber(),nullptr);
 

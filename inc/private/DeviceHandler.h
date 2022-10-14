@@ -71,7 +71,10 @@ template < class T >  T* getDeviceWithPath(std::list<T*>& sList, std::string dev
         return nullptr;
 PDM_LOG_DEBUG("DeviceHandler:%s line: %d",__FUNCTION__, __LINE__);
     for (auto deviceList: sList){
-        PDM_LOG_DEBUG("DeviceHandler:%s line: %d",__FUNCTION__, __LINE__);
+        // if(deviceList->getDevicePath().empty()) {
+        //     deviceList->m_devicePath = devPath;
+        // }
+        PDM_LOG_DEBUG("DeviceHandler:%s line: %d Existing Path: %s NewPath: %s",__FUNCTION__, __LINE__, deviceList->getDevicePath().c_str(), devPath.c_str());
         std::string devicePath = deviceList->getDevicePath();
         PDM_LOG_DEBUG("DeviceHandler:%s line: %d",__FUNCTION__, __LINE__);
         if( devPath.compare(0,devicePath.length(),devicePath) == 0 )

@@ -40,57 +40,64 @@ void SoundSubDevice::updateInfo(std::string devName, std::string deviceType) {
 void SoundDevice::setDeviceInfo(DeviceClass* devClassPtr)
 {
     PDM_LOG_DEBUG("SoundDevice:%s line: %d setDeviceInfo", __FUNCTION__, __LINE__);
-    SoundSubsystem* soundSubSystem = (SoundSubsystem*)devClassPtr;
-	if (soundSubSystem == nullptr) return;
+    SoundSubsystem* soundSubsystem = (SoundSubsystem*)devClassPtr;
+	if (soundSubsystem == nullptr) return;
 
     PDM_LOG_DEBUG("SoundDevice:%s line: %d setDeviceInfo", __FUNCTION__, __LINE__);
-    if(!(soundSubSystem->getSpeed()).empty()) {
-        // m_devSpeed = getDeviceSpeed(stoi(soundSubSystem->getDevSpeed(),nullptr));
-        m_devSpeed = getDeviceSpeed(stoi(soundSubSystem->getSpeed()));
+    if(!(soundSubsystem->getSpeed()).empty()) {
+        // m_devSpeed = getDeviceSpeed(stoi(soundSubsystem->getDevSpeed(),nullptr));
+        m_devSpeed = getDeviceSpeed(stoi(soundSubsystem->getSpeed()));
     }
     PDM_LOG_DEBUG("SoundDevice:%s line: %d setDeviceInfo", __FUNCTION__, __LINE__);
-    if(!soundSubSystem->getDevPath().empty()) {
-        m_devicePath = soundSubSystem->getDevPath();
+    if(!soundSubsystem->getDevPath().empty()) {
+        m_devicePath = soundSubsystem->getDevPath();
     }
 PDM_LOG_DEBUG("SoundDevice:%s line: %d setDeviceInfo", __FUNCTION__, __LINE__);
-    Device::setDeviceInfo(soundSubSystem);
+    Device::setDeviceInfo(soundSubsystem);
 }
 
 void SoundDevice::updateDeviceInfo(DeviceClass* devClassPtr)
 {
-    SoundSubsystem* soundSubSystem = (SoundSubsystem*)devClassPtr;
-	if (soundSubSystem == nullptr) return;
-
-    if(soundSubSystem->getSubsystemName() == "sound") {
-        if(!soundSubSystem->getUsbDriver().empty())
-            m_deviceSubType = soundSubSystem->getUsbDriver();
-
-        if(soundSubSystem->getDevPath().find("usb") != std::string::npos)
+    PDM_LOG_DEBUG("SoundDevice:%s line: %d", __FUNCTION__, __LINE__);
+    SoundSubsystem* soundSubsystem = (SoundSubsystem*)devClassPtr;
+	if (soundSubsystem == nullptr) return;
+    PDM_LOG_DEBUG("SoundDevice:%s line: %d", __FUNCTION__, __LINE__);
+    if(soundSubsystem->getSubsystemName() == "sound") {
+        if(!soundSubsystem->getUsbDriver().empty())
+            m_deviceSubType = soundSubsystem->getUsbDriver();
+        PDM_LOG_DEBUG("SoundDevice:%s line: %d", __FUNCTION__, __LINE__);
+        if(soundSubsystem->getDevPath().find("usb") != std::string::npos)
             m_builtIn = false;
 
-        if(!soundSubSystem->getCardName().empty())
-            m_soundDeviceName = soundSubSystem->getCardName();
+        if(!soundSubsystem->getCardName().empty())
+            m_soundDeviceName = soundSubsystem->getCardName();
 
-        if(!soundSubSystem->getCardNumber().empty())
-            m_cardNumber = stoi(soundSubSystem->getCardNumber());
+        if(!soundSubsystem->getCardNumber().empty())
+            m_cardNumber = stoi(soundSubsystem->getCardNumber());
 
-        if(!(soundSubSystem->getCardId().empty()))
-            m_cardId = soundSubSystem->getCardId();
+        if(!(soundSubsystem->getCardId().empty()))
+            m_cardId = soundSubsystem->getCardId();
 
-        SoundSubDevice* subDevice = getSubDevice(soundSubSystem->getDevName());
-        switch (sMapDeviceActions[soundSubSystem->getAction()]) {
+        SoundSubDevice* subDevice = getSubDevice(soundSubsystem->getDevName());
+        PDM_LOG_DEBUG("SoundDevice:%s line: %d", __FUNCTION__, __LINE__);
+        switch (sMapDeviceActions[soundSubsystem->getAction()]) {
+            PDM_LOG_DEBUG("SoundDevice:%s line: %d", __FUNCTION__, __LINE__);
                 case DeviceActions::USB_DEV_ADD:
-                    if (!soundSubSystem->getDevName().empty()) {
+                PDM_LOG_DEBUG("SoundDevice:%s line: %d", __FUNCTION__, __LINE__);
+                    if (!soundSubsystem->getDevName().empty()) {
                     if (subDevice) {
-                            subDevice->updateInfo(soundSubSystem->getDevName(), findDeviceType(soundSubSystem->getDevPath()));
+                        PDM_LOG_DEBUG("SoundDevice:%s line: %d", __FUNCTION__, __LINE__);
+                            subDevice->updateInfo(soundSubsystem->getDevName(), findDeviceType(soundSubsystem->getDevPath()));
                         }
                         else {
-                            subDevice = new (std::nothrow) SoundSubDevice(soundSubSystem->getDevName(), findDeviceType(soundSubSystem->getDevPath()));
+                            PDM_LOG_DEBUG("SoundDevice:%s line: %d", __FUNCTION__, __LINE__);
+                            subDevice = new (std::nothrow) SoundSubDevice(soundSubsystem->getDevName(), findDeviceType(soundSubsystem->getDevPath()));
                             if (!subDevice) {
                                 PDM_LOG_CRITICAL("SoundDevice:%s line: %d Not able to create the sub device", __FUNCTION__, __LINE__);
                                 return;
                             }
                             mSubDeviceList.push_back(subDevice);
+                            PDM_LOG_DEBUG("SoundDevice:%s line: %d", __FUNCTION__, __LINE__);
                         }
                     }
                     break;

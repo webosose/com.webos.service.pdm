@@ -23,6 +23,7 @@
 #include <string>
 #include <memory>
 #include <functional>
+#include "Common.h"
 #include "DeviceClass.h"
 
 using devCreateFptr =  std::function<DeviceClass* (std::unordered_map<std::string, std::string>&)>;
@@ -32,7 +33,7 @@ class DeviceClassFactory {
 private:
 	devCreatorMap mDevMap;
 	std::unordered_map<std::string, std::string> mDevProMap;
-	void parseDevProps(struct udev_device*);
+	void parseDevProps(struct udev_device*, bool isPowerOnConnect);
 	explicit DeviceClassFactory();
 	DeviceClassFactory(const DeviceClassFactory&) = delete;
     DeviceClassFactory& operator=(const DeviceClassFactory&) = delete;
@@ -42,7 +43,7 @@ public:
 	static DeviceClassFactory& getInstance();
 	void Register(std::string, devCreateFptr);
 	void Deregister(std::string);
-	DeviceClass* create(struct udev_device*);
+	DeviceClass* create(struct udev_device*, bool isPowerOnConnect);
 	~DeviceClassFactory();
 };
 

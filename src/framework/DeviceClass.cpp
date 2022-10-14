@@ -17,241 +17,268 @@
 #include "Common.h"
 #include "DeviceClass.h"
 
-DeviceClass::DeviceClass(std::unordered_map<std::string, std::string>& devPropMap)
+DeviceClass::DeviceClass(std::unordered_map<std::string, std::string> &devPropMap)
 {
-	for(auto &prop : devPropMap)
-		mDevPropMap[prop.first] = prop.second;
+    for (auto &prop : devPropMap)
+        mDevPropMap[prop.first] = prop.second;
 }
 
 std::string DeviceClass::getDevType()
 {
-	return mDevPropMap[PdmDevAttributes::DEVTYPE];
+    return mDevPropMap[PdmDevAttributes::DEVTYPE];
 }
 
-std::string DeviceClass::getDevLinks()
-{
-	return mDevPropMap[PdmDevAttributes::DEVLINKS];
-}
+// std::string DeviceClass::getDevLinks()
+// {
+// 	return mDevPropMap[PdmDevAttributes::DEVLINKS];
+// }
 
 std::string DeviceClass::getSubsystemName()
 {
-	return mDevPropMap[PdmDevAttributes::SUBSYSTEM];
+    return mDevPropMap[PdmDevAttributes::SUBSYSTEM];
 }
-	
+
 std::string DeviceClass::getAction()
 {
-	return mDevPropMap[PdmDevAttributes::ACTION];
+    return mDevPropMap[PdmDevAttributes::ACTION];
 }
 
 std::string DeviceClass::getDevPath()
 {
-	return mDevPropMap[PdmDevAttributes::DEVPATH];
+    return mDevPropMap[PdmDevAttributes::DEVPATH];
 }
 
 std::string DeviceClass::getInterfaceClass()
 {
     std::string bInterfaceClass;
-    if(!mDevPropMap[PdmDevAttributes::ID_USB_INTERFACES].empty())
+    if (!mDevPropMap[PdmDevAttributes::ID_USB_INTERFACES].empty())
         bInterfaceClass = mDevPropMap[PdmDevAttributes::ID_USB_INTERFACES];
     return bInterfaceClass;
 }
 
 std::string DeviceClass::getUsbDriver()
 {
-	return mDevPropMap[PdmDevAttributes::ID_USB_DRIVER];
+    return mDevPropMap[PdmDevAttributes::ID_USB_DRIVER];
 }
 
 std::string DeviceClass::getIdSerilShort()
 {
-	return mDevPropMap[PdmDevAttributes::ID_SERIAL_SHORT];
+    return mDevPropMap[PdmDevAttributes::ID_SERIAL_SHORT];
 }
 
 std::string DeviceClass::getIdModel()
 {
-	return mDevPropMap[PdmDevAttributes::ID_MODEL];
+    return mDevPropMap[PdmDevAttributes::ID_MODEL];
 }
 
 std::string DeviceClass::getIsPowerOnConnect()
 {
-	return mDevPropMap[PdmDevAttributes::IS_POWER_ON_CONNECT];
+    return mDevPropMap[PdmDevAttributes::IS_POWER_ON_CONNECT];
 }
 
 std::string DeviceClass::getIdVendorFromDataBase()
 {
-	return mDevPropMap[PdmDevAttributes::ID_VENDOR_FROM_DATABASE];
+    return mDevPropMap[PdmDevAttributes::ID_VENDOR_FROM_DATABASE];
 }
 
 std::string DeviceClass::getIdVendor()
 {
-	return mDevPropMap[PdmDevAttributes::ID_VENDOR];
+    return mDevPropMap[PdmDevAttributes::ID_VENDOR];
 }
 
-std::string DeviceClass::getIdProduct()
-{
-	return mDevPropMap[PdmDevAttributes::ID_PRODUCT_ID];
-}
+// std::string DeviceClass::getIdProduct()
+// {
+//     return mDevPropMap[PdmDevAttributes::ID_PRODUCT_ID];
+// }
 
 std::string DeviceClass::getDevNumber()
 {
-	return mDevPropMap[PdmDevAttributes::DEVNUM];
+    return mDevPropMap[PdmDevAttributes::DEVNUM];
 }
 
 std::string DeviceClass::getDevName()
 {
-	return mDevPropMap[PdmDevAttributes::DEVNAME];
+    return mDevPropMap[PdmDevAttributes::DEVNAME];
 }
 
-std::string DeviceClass::getHardDisk()
-{
-	return mDevPropMap[PdmDevAttributes::ID_ATA];
-}
+// std::string DeviceClass::getHardDisk()
+// {
+//     return mDevPropMap[PdmDevAttributes::ID_ATA];
+// }
 
 std::string DeviceClass::getMediaPlayerId()
 {
-	return mDevPropMap[PdmDevAttributes::ID_MEDIA_PLAYER];
+    return mDevPropMap[PdmDevAttributes::ID_MEDIA_PLAYER];
 }
 
-std::string DeviceClass::getUsbInterfaceId()
-{
-	return mDevPropMap[PdmDevAttributes::ID_USB_INTERFACES];
-}
+// std::string DeviceClass::getGamepadId()
+// {
+//     return mDevPropMap[PdmDevAttributes::ID_GAMEPAD];
+// }
 
-std::string DeviceClass::getGamepadId()
-{
-	return mDevPropMap[PdmDevAttributes::ID_GAMEPAD];
-}
+// std::string DeviceClass::getUsbModemId()
+// {
+//     return mDevPropMap[PdmDevAttributes::ID_USB_MODEM_DONGLE];
+// }
 
-std::string DeviceClass::getUsbModemId()
-{
-	return mDevPropMap[PdmDevAttributes::ID_USB_MODEM_DONGLE];
-}
+// std::string DeviceClass::getUsbSerialId()
+// {
+//     return mDevPropMap[PdmDevAttributes::ID_USB_SERIAL];
+// }
 
-std::string DeviceClass::getUsbSerialId()
-{
-	return mDevPropMap[PdmDevAttributes::ID_USB_SERIAL];
-}
+// std::string DeviceClass::getUsbSerialSubType()
+// {
+//     return mDevPropMap[PdmDevAttributes::USB_SERIAL_SUB_TYPE];
+// }
 
-std::string DeviceClass::getUsbSerialSubType()
-{
-	return mDevPropMap[PdmDevAttributes::USB_SERIAL_SUB_TYPE];
-}
-
-std::string DeviceClass::getUsbInterfaces()
-{
-	return mDevPropMap[PdmDevAttributes::ID_USB_INTERFACES];
-}
+// std::string DeviceClass::getUsbInterfaces()
+// {
+//     return mDevPropMap[PdmDevAttributes::ID_USB_INTERFACES];
+// }
 
 std::string DeviceClass::getBluetoothId()
 {
-	return mDevPropMap[PdmDevAttributes::ID_BLUETOOTH];
+    return mDevPropMap[PdmDevAttributes::ID_BLUETOOTH];
 }
 
 #ifdef WEBOS_SESSION
 std::string DeviceClass::getUsbPort()
 {
-	return mDevPropMap[PdmDevAttributes::USB_PORT];
+    return mDevPropMap[PdmDevAttributes::USB_PORT];
 }
 
 std::string DeviceClass::getRfKillName()
 {
-	return mDevPropMap[PdmDevAttributes::RFKILL_NAME];
+    return mDevPropMap[PdmDevAttributes::RFKILL_NAME];
 }
 #endif
 
 std::string DeviceClass::getBusType()
 {
-	//ToDo
-	return "";
+    return "";
 }
 
-std::string DeviceClass::getBusNum()
-{
-	return mDevPropMap[PdmDevAttributes::BUSNUM];
-}
+// std::string DeviceClass::getBusNum()
+// {
+// 	return mDevPropMap[PdmDevAttributes::BUSNUM];
+// }
 
-
-std::string DeviceClass::getModelId()
-{
-	return mDevPropMap[PdmDevAttributes::ID_MODEL_ID];
-}
+// std::string DeviceClass::getModelId()
+// {
+//     return mDevPropMap[PdmDevAttributes::ID_MODEL_ID];
+// }
 
 std::string DeviceClass::getSpeed()
 {
-	return mDevPropMap[PdmDevAttributes::SPEED];
+    return mDevPropMap[PdmDevAttributes::SPEED];
 }
 
-std::string DeviceClass::getNetIfIndex()
-{
-	return mDevPropMap[PdmDevAttributes::NET_IFIINDEX];
-}
+// std::string DeviceClass::getNetIfIndex()
+// {
+//     return mDevPropMap[PdmDevAttributes::NET_IFIINDEX];
+// }
 
-std::string DeviceClass::getNetLinkMode()
-{
-	return mDevPropMap[PdmDevAttributes::NET_LINK_MODE];
-}
+// std::string DeviceClass::getNetLinkMode()
+// {
+//     return mDevPropMap[PdmDevAttributes::NET_LINK_MODE];
+// }
 
-std::string DeviceClass::getNetDuplex()
-{
-	return mDevPropMap[PdmDevAttributes::NET_DUPLEX];
-}
+// std::string DeviceClass::getNetDuplex()
+// {
+//     return mDevPropMap[PdmDevAttributes::NET_DUPLEX];
+// }
 
-std::string DeviceClass::getNetAddress()
-{
-	return mDevPropMap[PdmDevAttributes::NET_ADDRESS];
-}
+// std::string DeviceClass::getNetAddress()
+// {
+//     return mDevPropMap[PdmDevAttributes::NET_ADDRESS];
+// }
 
-std::string DeviceClass::getNetOperState()
-{
-	return mDevPropMap[PdmDevAttributes::NET_OPERSTATE];
-}
+// std::string DeviceClass::getNetOperState()
+// {
+//     return mDevPropMap[PdmDevAttributes::NET_OPERSTATE];
+// }
 
-std::string DeviceClass::getProcessed()
-{
-	return mDevPropMap[PdmDevAttributes::PROCESSED];
-}
+// std::string DeviceClass::getProcessed()
+// {
+//     return mDevPropMap[PdmDevAttributes::PROCESSED];
+// }
 
-std::string DeviceClass::isCardReader()
-{
-	return mDevPropMap[PdmDevAttributes::CARD_READER];
-}
+// std::string DeviceClass::isCardReader()
+// {
+//     return mDevPropMap[PdmDevAttributes::CARD_READER];
+// }
 
-std::string DeviceClass::isHardDisk()
-{
-	return mDevPropMap[PdmDevAttributes::HARD_DISK];
-}
+// std::string DeviceClass::isHardDisk()
+// {
+//     return mDevPropMap[PdmDevAttributes::HARD_DISK];
+// }
 
-std::string DeviceClass::getIdInstance()
-{
-	return mDevPropMap[PdmDevAttributes::ID_INSTANCE];
-}
+// std::string DeviceClass::getIdInstance()
+// {
+//     return mDevPropMap[PdmDevAttributes::ID_INSTANCE];
+// }
 
-std::string DeviceClass::getIdBlackListedSuperSpeedDev()
-{
-	return mDevPropMap[PdmDevAttributes::ID_BLACK_LISTED_SUPER_SPEED_DEVICE];
-}
+// std::string DeviceClass::getIdBlackListedSuperSpeedDev()
+// {
+//     return mDevPropMap[PdmDevAttributes::ID_BLACK_LISTED_SUPER_SPEED_DEVICE];
+// }
 
-std::string DeviceClass::isReadOnly()
-{
-	return mDevPropMap[PdmDevAttributes::READ_ONLY];
-}
+// std::string DeviceClass::isReadOnly()
+// {
+//     return mDevPropMap[PdmDevAttributes::READ_ONLY];
+// }
 
-std::string DeviceClass::isDiskMediaChange()
-{
-	return mDevPropMap[PdmDevAttributes::DISK_MEDIA_CHANGE];
-}
+// std::string DeviceClass::isDiskMediaChange()
+// {
+//     return mDevPropMap[PdmDevAttributes::DISK_MEDIA_CHANGE];
+// }
 
 std::string DeviceClass::getFsType()
 {
-	return mDevPropMap[PdmDevAttributes::ID_FS_TYPE];
+    return mDevPropMap[PdmDevAttributes::ID_FS_TYPE];
 }
 
 std::string DeviceClass::getFsUuid()
 {
-	return mDevPropMap[PdmDevAttributes::ID_FS_UUID];
+    return mDevPropMap[PdmDevAttributes::ID_FS_UUID];
 }
 
 std::string DeviceClass::getFsLabelEnc()
 {
-	return mDevPropMap[PdmDevAttributes::ID_FS_LABEL_ENC];
+    return mDevPropMap[PdmDevAttributes::ID_FS_LABEL_ENC];
 }
 
+// std::string DeviceClass::getCardId()
+// {
+// 	return mDevPropMap[PdmDevAttributes::CARD_ID];
+// }
+
+// std::string DeviceClass::getCardName()
+// {
+// 	return mDevPropMap[PdmDevAttributes::CARD_NAME];
+// }
+
+// std::string DeviceClass::getCardNumber()
+// {
+// 	return mDevPropMap[PdmDevAttributes::CARD_NUMBER];
+// }
+
+// std::string DeviceClass::getCapabilities()
+// {
+//     return mDevPropMap[PdmDevAttributes::ID_V4L_CAPABILITIES];
+// }
+
+// std::string DeviceClass::getProductName()
+// {
+//     return mDevPropMap[PdmDevAttributes::ID_V4L_PRODUCT];
+// }
+
+// std::string DeviceClass::getVersion()
+// {
+//     return mDevPropMap[PdmDevAttributes::ID_V4L_VERSION];
+// }
+
+std::string DeviceClass::getIdBlackList()
+{
+    return mDevPropMap[PdmDevAttributes::ID_BLACKLIST];
+}

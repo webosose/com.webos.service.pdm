@@ -1,4 +1,4 @@
-// Copyright (c) 2019-2020 LG Electronics, Inc.
+// Copyright (c) 2019-2022 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 #include "BluetoothDeviceHandler.h"
 #include "PdmJson.h"
+#include "BluetoothSubSystem.h"
 
 using namespace PdmDevAttributes;
 
@@ -39,20 +40,23 @@ BluetoothDeviceHandler::~BluetoothDeviceHandler()
 }
 
 bool BluetoothDeviceHandler::HandlerEvent(DeviceClass* devClass){
+    BluetoothSubSystem* bluetoothSubsystem = (BluetoothSubSystem*)devClass;
+	if (bluetoothSubsystem == nullptr) return false;
+
     bool btDeviceProcessed = false;
     PDM_LOG_DEBUG("BluetoothDeviceHandler:%s line: %d", __FUNCTION__, __LINE__);
-   if (devClass->getAction() == "remove")
+   if (bluetoothSubsystem->getAction() == "remove")
     {
-      ProcessBluetoothDevice(devClass);
+      ProcessBluetoothDevice(bluetoothSubsystem);
       return btDeviceProcessed;
     }
 #ifdef WEBOS_SESSION
-    if((devClass->getBluetoothId() == "1") || ((devClass->getSubsystemName() == "rfkill") && (devClass->getRfKillName().find("hci") != std::string::npos)))
+    if((bluetoothSubsystem->getBluetoothId() == "1") || ((bluetoothSubsystem->getSubsystemName() == "rfkill") && (bluetoothSubsystem->getRfKillName().find("hci") != std::string::npos)))
 #else
-    if(devClass->getBluetoothId() == "1")
+    if(bluetoothSubsystem->getBluetoothId() == "1")
 #endif
     {
-      ProcessBluetoothDevice(devClass);
+      ProcessBluetoothDevice(bluetoothSubsystem);
       btDeviceProcessed = true;
     }
     return btDeviceProcessed;

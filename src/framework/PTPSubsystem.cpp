@@ -16,35 +16,36 @@
 
 #include <functional>
 #include "Common.h"
-#include "HIDSubsystem.h"
+#include "PTPSubsystem.h"
 #include "DeviceClassFactory.h"
 #include "PdmLogUtils.h"
 
 using namespace PdmDevAttributes;
-bool HIDSubsystem::mIsObjRegistered = HIDSubsystem::RegisterSubSystem();
 
-HIDSubsystem::HIDSubsystem(std::unordered_map<std::string, std::string>& devPropMap)
-	: mDevType("input"), DeviceClass(devPropMap)
+bool PTPSubsystem::mIsObjRegistered = PTPSubsystem::RegisterSubSystem();
+
+PTPSubsystem::PTPSubsystem(std::unordered_map<std::string, std::string> &devPropMap)
+    : mDevType("ptp"), DeviceClass(devPropMap)
 {
-	for (auto &prop : devPropMap)
-		mDevPropMap[prop.first] = prop.second;
+    for (auto &prop : devPropMap)
+        mDevPropMap[prop.first] = prop.second;
 }
 
-HIDSubsystem::~HIDSubsystem() {}
+PTPSubsystem::~PTPSubsystem() {}
 
-HIDSubsystem *HIDSubsystem::create(std::unordered_map<std::string, std::string> &devProMap)
+PTPSubsystem *PTPSubsystem::create(std::unordered_map<std::string, std::string> &devProMap)
 {
-    bool canProcessEve = HIDSubsystem::canProcessEvent(devProMap);
+    bool canProcessEve = PTPSubsystem::canProcessEvent(devProMap);
 
     if (!canProcessEve)
         return nullptr;
 
-    HIDSubsystem *ptr = new (std::nothrow) HIDSubsystem(devProMap);
-    PDM_LOG_DEBUG("HIDSubsystem:%s line: %d HIDSubsystem Object created", __FUNCTION__, __LINE__);
+    PTPSubsystem *ptr = new (std::nothrow) PTPSubsystem(devProMap);
+    PDM_LOG_DEBUG("PTPSubsystem:%s line: %d PTPSubsystem Object created", __FUNCTION__, __LINE__);
     return ptr;
 }
 
-std::string HIDSubsystem::getProcessed()
+std::string PTPSubsystem::getBusNum()
 {
-    return mDevPropMap[PROCESSED];
+	return mDevPropMap[BUSNUM];
 }

@@ -1,4 +1,4 @@
-// Copyright (c) 2019-2020 LG Electronics, Inc.
+// Copyright (c) 2019-2022 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -84,13 +84,13 @@ void PdmNetlinkListener::enumerate_devices(struct udev* udev)
     struct udev_enumerate* enumerate = udev_enumerate_new(udev);
 
     udev_enumerate_add_match_subsystem(enumerate, SUBSYSTEM);
-    // udev_enumerate_add_match_subsystem(enumerate, "block");
+    udev_enumerate_add_match_subsystem(enumerate, "block");
     udev_enumerate_add_match_subsystem(enumerate, "input");
     udev_enumerate_add_match_subsystem(enumerate, "sound");
     udev_enumerate_add_match_subsystem(enumerate, "video4linux");
-    // udev_enumerate_add_match_subsystem(enumerate, "net");
-    // udev_enumerate_add_match_subsystem(enumerate, "tty");
-    // udev_enumerate_add_match_subsystem(enumerate, "rfkill");
+    udev_enumerate_add_match_subsystem(enumerate, "net");
+    udev_enumerate_add_match_subsystem(enumerate, "tty");
+    udev_enumerate_add_match_subsystem(enumerate, "rfkill");
 
     udev_enumerate_scan_devices(enumerate);
 PDM_LOG_DEBUG("PdmNetlinkListener:%s line: %d", __FUNCTION__, __LINE__);
@@ -106,7 +106,7 @@ PDM_LOG_DEBUG("PdmNetlinkListener:%s line: %d", __FUNCTION__, __LINE__);
             // pNE->pdmParser(device, true);
             // onEvent(pNE);
             PDM_LOG_DEBUG("PdmNetlinkListener:%s line: %d", __FUNCTION__, __LINE__);
-            PdmNetlinkClassAdapter::getInstance().handleEvent(device);
+            PdmNetlinkClassAdapter::getInstance().handleEvent(device, true);
         }
         udev_device_unref(device);
     }
@@ -181,7 +181,7 @@ void PdmNetlinkListener::threadStart(){
             }
 #endif
             PDM_LOG_DEBUG("PdmNetlinkListener:%s line: %d", __FUNCTION__, __LINE__);
-			PdmNetlinkClassAdapter::getInstance().handleEvent(device);
+			PdmNetlinkClassAdapter::getInstance().handleEvent(device, false);
             udev_device_unref(device);
             }
         }

@@ -31,7 +31,7 @@ private:
 public:
 	static PdmNetlinkClassAdapter& getInstance();
 	void setCommandManager(CommandManager*);
-	void handleEvent(struct udev_device*);
+	void handleEvent(struct udev_device*, bool isPowerOnConnect);
    	~PdmNetlinkClassAdapter();
 
 };

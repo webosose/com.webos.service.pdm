@@ -15,36 +15,29 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include <functional>
-#include "Common.h"
-#include "HIDSubsystem.h"
+#include "DefaultSubSystem.h"
 #include "DeviceClassFactory.h"
+#include "Common.h"
 #include "PdmLogUtils.h"
 
 using namespace PdmDevAttributes;
-bool HIDSubsystem::mIsObjRegistered = HIDSubsystem::RegisterSubSystem();
 
-HIDSubsystem::HIDSubsystem(std::unordered_map<std::string, std::string>& devPropMap)
-	: mDevType("input"), DeviceClass(devPropMap)
+bool DefaultSubSystem::mIsObjRegistered = DefaultSubSystem::RegisterSubSystem();
+
+DefaultSubSystem::DefaultSubSystem(std::unordered_map<std::string, std::string>& devPropMap)
+	: mDevType("default"), DeviceClass(devPropMap)
 {
 	for (auto &prop : devPropMap)
 		mDevPropMap[prop.first] = prop.second;
 }
 
-HIDSubsystem::~HIDSubsystem() {}
+DefaultSubSystem::~DefaultSubSystem() {}
 
-HIDSubsystem *HIDSubsystem::create(std::unordered_map<std::string, std::string> &devProMap)
+DefaultSubSystem* DefaultSubSystem::create(std::unordered_map<std::string, std::string>& devProMap)
 {
-    bool canProcessEve = HIDSubsystem::canProcessEvent(devProMap);
+	PDM_LOG_DEBUG("DefaultSubSystem:%s line: %d", __FUNCTION__, __LINE__);
 
-    if (!canProcessEve)
-        return nullptr;
-
-    HIDSubsystem *ptr = new (std::nothrow) HIDSubsystem(devProMap);
-    PDM_LOG_DEBUG("HIDSubsystem:%s line: %d HIDSubsystem Object created", __FUNCTION__, __LINE__);
-    return ptr;
-}
-
-std::string HIDSubsystem::getProcessed()
-{
-    return mDevPropMap[PROCESSED];
+	DefaultSubSystem* ptr = new (std::nothrow) DefaultSubSystem(devProMap);
+	PDM_LOG_DEBUG("DefaultSubSystem:%s line: %d DefaultSubSystem object created", __FUNCTION__, __LINE__);
+	return ptr;
 }

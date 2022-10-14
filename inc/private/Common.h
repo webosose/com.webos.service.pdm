@@ -212,8 +212,12 @@ enum DeviceEventType { STORAGE_DEVICE = 0,
     const std::string timeout = "timeout 20 ";
 //Sound device
     const std::string CARD_ID = "CARD_ID";
+    const std::string CARD_NAME = "CARD_NAME";
     const std::string CARD_NUMBER = "CARD_NUMBER";
-
+//video device
+    const std::string ID_V4L_CAPABILITIES  =  "ID_V4L_CAPABILITIES";
+    const std::string ID_V4L_PRODUCT  =  "ID_V4L_PRODUCT";
+    const std::string ID_V4L_VERSION  =  "ID_V4L_VERSION";
 #ifdef WEBOS_SESSION
 // For port-device mapping
     const std::string USB_PORT = "USB_PORT";

@@ -1,4 +1,4 @@
-// Copyright (c) 2019-2020 LG Electronics, Inc.
+// Copyright (c) 2019-2022 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 #include "GamepadDeviceHandler.h"
 #include "PdmJson.h"
+#include "GamepadSubSystem.h"
 
 using namespace PdmDevAttributes;
 
@@ -29,19 +30,22 @@ GamepadDeviceHandler::GamepadDeviceHandler(PdmConfig* const pConfObj, PluginAdap
                                       GET_NONSTORAGEDEVICELIST);
 }
 
-bool GamepadDeviceHandler::HandlerEvent(DeviceClass* devClass){
+bool GamepadDeviceHandler::HandlerEvent(DeviceClass* devClass)
+{
+    GamepadSubSystem* gamepadSubsystem = (GamepadSubSystem*)devClass;
+	if (gamepadSubsystem == nullptr) return false;
 
-    if (devClass->getAction() == "remove")
+    if (gamepadSubsystem->getAction() == "remove")
     {
       m_deviceRemoved = false;
-      ProcessGamepadDevice(devClass);
+      ProcessGamepadDevice(gamepadSubsystem);
       if(m_deviceRemoved) {
           PDM_LOG_DEBUG("GamepadDeviceHandler:%s line: %d  DEVTYPE=usb_device removed", __FUNCTION__, __LINE__);
           return true;
       }
     }
-    if(devClass->getGamepadId() == "1"){
-        ProcessGamepadDevice(devClass);
+    if(gamepadSubsystem->getGamepadId() == "1"){
+        ProcessGamepadDevice(gamepadSubsystem);
         return true;
     }
     return false;

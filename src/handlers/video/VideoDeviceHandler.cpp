@@ -1,4 +1,4 @@
-// Copyright (c) 2019-2021 LG Electronics, Inc.
+// Copyright (c) 2019-2022 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -37,27 +37,30 @@ VideoDeviceHandler::VideoDeviceHandler(PdmConfig* const pConfObj, PluginAdapter*
 VideoDeviceHandler::~VideoDeviceHandler() {
 }
 
-bool VideoDeviceHandler::HandlerEvent(DeviceClass* devClass){
+bool VideoDeviceHandler::HandlerEvent(DeviceClass* devClass)
+{
+    VideoSubsystem *videoSubsystem = (VideoSubsystem *)devClass;
+    if (videoSubsystem == nullptr) return false;
 
     PDM_LOG_DEBUG("VideoDeviceHandler::HandlerEvent");
-    if (devClass->getAction() == "remove")
+    if (videoSubsystem->getAction() == "remove")
     {
         mdeviceRemoved = false;
-        ProcessVideoDevice(devClass);
+        ProcessVideoDevice(videoSubsystem);
         if(mdeviceRemoved) {
             PDM_LOG_DEBUG("VideoDeviceHandler:%s line: %d  DEVTYPE=usb_device removed", __FUNCTION__, __LINE__);
             return true;
         }
     }
-    std::string interfaceClass = devClass->getInterfaceClass();
-    if((interfaceClass.find(iClass) == std::string::npos) && (devClass->getSubsystemName() !=  "video4linux"))
+    std::string interfaceClass = videoSubsystem->getInterfaceClass();
+    if((interfaceClass.find(iClass) == std::string::npos) && (videoSubsystem->getSubsystemName() !=  "video4linux"))
         return false;
-    if(devClass->getDevType() ==  USB_DEVICE) {
-        ProcessVideoDevice(devClass);
+    if(videoSubsystem->getDevType() ==  USB_DEVICE) {
+        ProcessVideoDevice(videoSubsystem);
         return false;
     }
-    else if(devClass->getSubsystemName() ==  "video4linux") {
-        ProcessVideoDevice(devClass);
+    else if(videoSubsystem->getSubsystemName() ==  "video4linux") {
+        ProcessVideoDevice(videoSubsystem);
         return true;
     }
     return false;
@@ -111,13 +114,13 @@ void VideoDeviceHandler::ProcessVideoDevice(DeviceClass* devClass){
             switch(sMapDeviceActions.at(devClass->getAction()))
             {
                 case DeviceActions::USB_DEV_ADD:
-                    PDM_LOG_DEBUG("VideoDeviceHandler:%s line: %d action : %s", __FUNCTION__, __LINE__, devClass->getAction().c_str());
+                    PDM_LOG_DEBUG("VideoDeviceHandler:%s line: %d action : %s DEVPATH: %s", __FUNCTION__, __LINE__, devClass->getAction().c_str(), devClass->getDevPath().c_str());
                     videoDevice = getDeviceWithPath< VideoDevice >(sList, devClass->getDevPath());
                     if(!videoDevice ){
-                        if(devClass->getDevType() ==  USB_DEVICE) {
+                        // if(devClass->getDevType() ==  USB_DEVICE) {
                             PDM_LOG_INFO("VideoDeviceHandler",0," Created New device.");
                             videoDevice = new (std::nothrow) VideoDevice(m_pConfObj, m_pluginAdapter);
-                        }
+                        // }
                         if(!videoDevice){
                             return;
                         }

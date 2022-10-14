@@ -26,25 +26,33 @@ PdmNetlinkClassAdapter::~PdmNetlinkClassAdapter() {}
 
 PdmNetlinkClassAdapter& PdmNetlinkClassAdapter::getInstance() {
     static PdmNetlinkClassAdapter obj;
-	return obj;
+    return obj;
 }
 
 void PdmNetlinkClassAdapter::setCommandManager(CommandManager* cmdMgr)
 {
-	PDM_LOG_DEBUG("PdmNetlinkClassAdapter:%s line: %d", __FUNCTION__, __LINE__);
-	mCmdManager = cmdMgr;
+    PDM_LOG_DEBUG("PdmNetlinkClassAdapter:%s line: %d", __FUNCTION__, __LINE__);
+    mCmdManager = cmdMgr;
 }
 
-void PdmNetlinkClassAdapter::handleEvent(struct udev_device* device)
+void PdmNetlinkClassAdapter::handleEvent(struct udev_device* device, bool isPowerOnConnect)
 {
-	PDM_LOG_DEBUG("PdmNetlinkClassAdapter:%s line: %d", __FUNCTION__, __LINE__);
-	DeviceClass* devClasPtr = DeviceClassFactory::getInstance().create(device);
-	
-	if (mCmdManager && devClasPtr) {
-		PDM_LOG_DEBUG("PdmNetlinkClassAdapter:%s line: %d", __FUNCTION__, __LINE__);
-		DeviceClassCommand *devClassCmd = new (std::nothrow) DeviceClassCommand(devClasPtr);
-		mCmdManager->sendCommand(devClassCmd);
-	}
-	PDM_LOG_DEBUG("PdmNetlinkClassAdapter:%s line: %d", __FUNCTION__, __LINE__);
+    PDM_LOG_DEBUG("PdmNetlinkClassAdapter:%s line: %d", __FUNCTION__, __LINE__);
+    DeviceClass* devClasPtr;
+
+    if(isPowerOnConnect){
+        PDM_LOG_DEBUG("PdmNetlinkClassAdapter:%s line: %d", __FUNCTION__, __LINE__);
+        devClasPtr = DeviceClassFactory::getInstance().create(device, true);
+    } else {
+        PDM_LOG_DEBUG("PdmNetlinkClassAdapter:%s line: %d", __FUNCTION__, __LINE__);
+        devClasPtr = DeviceClassFactory::getInstance().create(device, false);
+    }
+
+    if (mCmdManager && devClasPtr) {
+        PDM_LOG_DEBUG("PdmNetlinkClassAdapter:%s line: %d", __FUNCTION__, __LINE__);
+        DeviceClassCommand *devClassCmd = new (std::nothrow) DeviceClassCommand(devClasPtr);
+        mCmdManager->sendCommand(devClassCmd);
+    }
+    PDM_LOG_DEBUG("PdmNetlinkClassAdapter:%s line: %d", __FUNCTION__, __LINE__);
 }
 
