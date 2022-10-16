@@ -44,6 +44,7 @@ class DeviceClass
 
 public:
     DeviceClass() = default;
+    virtual ~DeviceClass() = default;
     DeviceClass(std::unordered_map<std::string, std::string> &);
     virtual std::string getDevType();
     virtual std::string getSubsystemName();
