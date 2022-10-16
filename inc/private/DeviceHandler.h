@@ -1,4 +1,4 @@
-// Copyright (c) 2019 LG Electronics, Inc.
+// Copyright (c) 2019-2022 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -30,9 +30,6 @@
 #include "DeviceClass.h"
 #include "PdmLogUtils.h"
 
-// class PdmNetlinkEvent;
-//class DeviceClass;
-
 class DeviceHandler: public DeviceStateObserver {
 protected:
     PdmConfig* const m_pConfObj;
@@ -45,7 +42,6 @@ public:
         lunaHandler = PdmLunaHandler::getInstance();
     }
     virtual ~DeviceHandler(){}
-    // virtual bool HandlerEvent(PdmNetlinkEvent* event) = 0;
     virtual bool HandlerEvent(DeviceClass* deviceClass) = 0;
     virtual bool HandlerCommand(CommandType *cmdtypes, CommandResponse *cmdResponse) = 0;
     virtual bool GetAttachedDeviceStatus(pbnjson::JValue &payload, LSMessage *message) = 0;
@@ -69,19 +65,12 @@ template < class T >  T* getDeviceWithPath(std::list<T*>& sList, std::string dev
 
     if(sList.empty())
         return nullptr;
-PDM_LOG_DEBUG("DeviceHandler:%s line: %d",__FUNCTION__, __LINE__);
+
     for (auto deviceList: sList){
-        // if(deviceList->getDevicePath().empty()) {
-        //     deviceList->m_devicePath = devPath;
-        // }
-        PDM_LOG_DEBUG("DeviceHandler:%s line: %d Existing Path: %s NewPath: %s",__FUNCTION__, __LINE__, deviceList->getDevicePath().c_str(), devPath.c_str());
         std::string devicePath = deviceList->getDevicePath();
-        PDM_LOG_DEBUG("DeviceHandler:%s line: %d",__FUNCTION__, __LINE__);
         if( devPath.compare(0,devicePath.length(),devicePath) == 0 )
             return deviceList;
-        PDM_LOG_DEBUG("DeviceHandler:%s line: %d",__FUNCTION__, __LINE__);
     }
-    PDM_LOG_DEBUG("DeviceHandler:%s line: %d",__FUNCTION__, __LINE__);
     return nullptr;
 }
 //To get the device with name

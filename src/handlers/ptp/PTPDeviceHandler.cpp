@@ -16,7 +16,6 @@
 
 #include "PdmJson.h"
 #include "PTPDeviceHandler.h"
-#include "PTPSubsystem.h"
 
 using namespace PdmDevAttributes;
 
@@ -33,57 +32,28 @@ PTPDeviceHandler::~PTPDeviceHandler() {
 
 bool PTPDeviceHandler::HandlerEvent(DeviceClass* devClass)
 {
-    PTPSubsystem *ptpSubsystem = (PTPSubsystem *)devClass;
-    if (ptpSubsystem == nullptr) return false;
-
 #ifndef WEBOS_SESSION
     PDM_LOG_DEBUG("PTPDeviceHandler::HandlerEvent");
 
-   if (ptpSubsystem->getAction() == "remove")
+   if (devClass->getAction() == "remove")
    {
-      ProcessPTPDevice(ptpSubsystem);
+      ProcessPTPDevice(devClass);
       return false;
    }
-    std::string interfaceClass = ptpSubsystem->getInterfaceClass();
+    std::string interfaceClass = devClass->getInterfaceClass();
     if(interfaceClass.find(iClass) == std::string::npos)
         return false;
-    if((ptpSubsystem->getDevType() ==  USB_DEVICE) && (ptpSubsystem->getMediaPlayerId() != "1")){
-        ProcessPTPDevice(ptpSubsystem);
+    if((devClass->getDevType() ==  USB_DEVICE) && (devClass->getMediaPlayerId() != "1")){
+        ProcessPTPDevice(devClass);
         return false;
     }
-    else if((ptpSubsystem->getSubsystemName() ==  "usb") && (ptpSubsystem->getMediaPlayerId() != "1")) {
-        ProcessPTPDevice(ptpSubsystem);
+    else if((devClass->getSubsystemName() ==  "usb") && (devClass->getMediaPlayerId() != "1")) {
+        ProcessPTPDevice(devClass);
         return true;
     }
 #endif
     return false;
 }
-
-#if 0
-bool PTPDeviceHandler::HandlerEvent(PdmNetlinkEvent* pNE){
-#ifndef WEBOS_SESSION
-    PDM_LOG_DEBUG("PTPDeviceHandler::HandlerEvent");
-
-   if (pNE->getDevAttribute(ACTION) == "remove")
-   {
-      ProcessPTPDevice(pNE);
-      return false;
-   }
-    std::string interfaceClass = pNE->getInterfaceClass();
-    if(interfaceClass.find(iClass) == std::string::npos)
-        return false;
-    if((pNE->getDevAttribute(DEVTYPE) ==  USB_DEVICE) && (pNE->getDevAttribute(ID_MEDIA_PLAYER) != "1")){
-        ProcessPTPDevice(pNE);
-        return false;
-    }
-    else if((pNE->getDevAttribute(SUBSYSTEM) ==  "usb") && (pNE->getDevAttribute(ID_MEDIA_PLAYER) != "1")) {
-        ProcessPTPDevice(pNE);
-        return true;
-    }
-#endif
-    return false;
-}
-#endif
 
 void PTPDeviceHandler::removeDevice(PTPDevice* ptpDevice)
 {
@@ -136,50 +106,6 @@ void PTPDeviceHandler::ProcessPTPDevice(DeviceClass* devClass) {
          PDM_LOG_INFO("PTPDeviceHandler:",0,"%s line: %d out of range : %s", __FUNCTION__,__LINE__,err.what());
     }
 }
-
-#if 0
-void PTPDeviceHandler::ProcessPTPDevice(PdmNetlinkEvent* pNE) {
-    PTPDevice *ptpDevice;
-    PDM_LOG_INFO("PTPDeviceHandler:",0,"%s line: %d DEVTYPE: %s ACTION: %s", __FUNCTION__,__LINE__,pNE->getDevAttribute(DEVTYPE).c_str(),pNE->getDevAttribute(ACTION).c_str());
-    try {
-            switch(sMapDeviceActions.at(pNE->getDevAttribute(ACTION)))
-            {
-                case DeviceActions::USB_DEV_ADD:
-                    PDM_LOG_DEBUG("PTPDeviceHandler:%s line: %d action : %s", __FUNCTION__, __LINE__,pNE->getDevAttribute(ACTION).c_str());
-                    ptpDevice = new (std::nothrow) PTPDevice(m_pConfObj, m_pluginAdapter);
-                    if(!ptpDevice) {
-                        PDM_LOG_CRITICAL("PTPDeviceHandler:%s line: %d Unable to create new PTP Device", __FUNCTION__, __LINE__);
-                        return;
-                    }
-                    ptpDevice->setDeviceInfo(pNE);
-                    if(ptpDevice->getIsMounted()){
-                        ptpDevice->registerCallback(std::bind(&PTPDeviceHandler::commandNotification, this, _1, _2));
-                        sList.push_back(ptpDevice);
-                        Notify(PTP_DEVICE, ADD);
-                    } else {
-                       PDM_LOG_CRITICAL("PTPDeviceHandler:%s line: %d Unable to mount PTP Device removing", __FUNCTION__, __LINE__);
-                       ptpDevice->onDeviceRemove();
-                       delete ptpDevice;
-                    }
-                    break;
-                case DeviceActions::USB_DEV_REMOVE:
-                    PDM_LOG_DEBUG("PTPDeviceHandler:%s line: %d action : %s", __FUNCTION__, __LINE__,pNE->getDevAttribute(ACTION).c_str());
-                    ptpDevice = getDeviceWithPath<PTPDevice>(sList,pNE->getDevAttribute(DEVPATH));
-                    if(ptpDevice) {
-                        ptpDevice->onDeviceRemove();
-                        removeDevice(ptpDevice);
-                    }
-                    break;
-                default:
-                 //Do nothing
-                    break;
-            }
-        }
-        catch (const std::out_of_range& err) {
-         PDM_LOG_INFO("PTPDeviceHandler:",0,"%s line: %d out of range : %s", __FUNCTION__,__LINE__,err.what());
-    }
-}
-#endif
 
 bool PTPDeviceHandler::HandlerCommand(CommandType *cmdtypes, CommandResponse *cmdResponse) {
     PDM_LOG_DEBUG("PTPDeviceHandler:%s line: %d", __FUNCTION__, __LINE__);

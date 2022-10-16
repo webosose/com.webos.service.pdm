@@ -17,7 +17,6 @@
 #include "Common.h"
 #include "SoundDeviceHandler.h"
 #include "PdmJson.h"
-#include "SoundSubsystem.h"
 
 using namespace PdmDevAttributes;
 
@@ -47,44 +46,31 @@ SoundDeviceHandler::~SoundDeviceHandler() {
     }
 }
 
-// bool SoundDeviceHandler::HandlerEvent(PdmNetlinkEvent* pNE){
 bool SoundDeviceHandler::HandlerEvent(DeviceClass* deviceClass)
 {
-    SoundSubsystem *soundSubsystem = (SoundSubsystem *)deviceClass;
-    if (soundSubsystem == nullptr) return false;
-
     PDM_LOG_DEBUG("SoundDeviceHandler:%s line: %d ", __FUNCTION__, __LINE__);
-
-    if (soundSubsystem->getAction() == "remove")
-    // if (pNE->getDevAttribute(ACTION) == "remove")
+    if (deviceClass->getAction() == "remove")
     {
         m_deviceRemoved = false;
-        // ProcessSoundDevice(pNE);
-        ProcessSoundDevice(soundSubsystem);
+        ProcessSoundDevice(deviceClass);
         if(m_deviceRemoved) {
             PDM_LOG_DEBUG("SoundDeviceHandler:%s line: %d  DEVTYPE=usb_device removed", __FUNCTION__, __LINE__);
             return true;
         }
     }
 
-    // if(!isSoundDevice(pNE))
-    if(!isSoundDevice(soundSubsystem))
+    if(!isSoundDevice(deviceClass))
         return false;
 
-    // if(pNE->getDevAttribute(DEVTYPE) ==  USB_DEVICE) {
-    if(soundSubsystem->getDevType() ==  USB_DEVICE) {
-        // ProcessSoundDevice(pNE);
-        ProcessSoundDevice(soundSubsystem);
+    if(deviceClass->getDevType() ==  USB_DEVICE) {
+        ProcessSoundDevice(deviceClass);
         return false;
     }
-    // else if(pNE->getDevAttribute(SUBSYSTEM) ==  "sound") {
-    else if(soundSubsystem->getSubsystemName() ==  "sound") {
-        // ProcessSoundDevice(pNE);
-        ProcessSoundDevice(soundSubsystem);
+    else if(deviceClass->getSubsystemName() ==  "sound") {
+        ProcessSoundDevice(deviceClass);
         return true;
     }
     return false;
-
 }
 
 void SoundDeviceHandler::removeDevice(SoundDevice* soundDevice)
@@ -97,56 +83,28 @@ void SoundDeviceHandler::removeDevice(SoundDevice* soundDevice)
     soundDevice = nullptr;
 }
 
-// void SoundDeviceHandler::ProcessSoundDevice(PdmNetlinkEvent* pNE){
 void SoundDeviceHandler::ProcessSoundDevice(DeviceClass* deviceClass){
     SoundDevice *soundDevice;
-    // PDM_LOG_DEBUG("SoundDeviceHandler:%s line: %d SoundDeviceHandler: DEVTYPE: %s ACTION: %s", __FUNCTION__, __LINE__,pNE->getDevAttribute(DEVTYPE).c_str(),pNE->getDevAttribute(ACTION).c_str());
-    PDM_LOG_DEBUG("SoundDeviceHandler:%s line: %d DEVTYPE: %s ACTION:%s: DEVPATH: %s", __FUNCTION__, __LINE__, deviceClass->getDevType().c_str(), deviceClass->getAction().c_str(), deviceClass->getDevPath().c_str());
     try {
             switch(sMapDeviceActions.at(deviceClass->getAction()))
-
             {
                 case DeviceActions::USB_DEV_ADD:
-                PDM_LOG_DEBUG("SoundDeviceHandler:%s line: %d  Add Sound device",__FUNCTION__, __LINE__);
-                // PDM_LOG_DEBUG("SoundDeviceHandler:%s line: %d  deviceClass->getDevPath(): %s",__FUNCTION__, __LINE__, deviceClass->getDevPath().c_str());
-                // soundDevice = getDeviceWithPath< SoundDevice >(sList,pNE->getDevAttribute(DEVPATH));
                 soundDevice = getDeviceWithPath< SoundDevice >(sList, deviceClass->getDevPath());
-                PDM_LOG_DEBUG("SoundDeviceHandler:%s line: %d  Add Sound device",__FUNCTION__, __LINE__);
                 if (!soundDevice) {
-                    PDM_LOG_DEBUG("SoundDeviceHandler:%s line: %d  Add Sound device",__FUNCTION__, __LINE__);
-                    PDM_LOG_DEBUG("SoundDeviceHandler:%s line: %d  Add Sound device DEVNAME:%s:",__FUNCTION__, __LINE__, deviceClass->getDevName().c_str());
                     if(deviceClass->getDevName().find("timer") == std::string::npos) {
-                        PDM_LOG_DEBUG("SoundDeviceHandler:%s line: %d  Add Sound device",__FUNCTION__, __LINE__);
                         soundDevice = new (std::nothrow) SoundDevice(m_pConfObj, m_pluginAdapter);
-                        PDM_LOG_DEBUG("SoundDeviceHandler:%s line: %d  Add Sound device",__FUNCTION__, __LINE__);
                         if(soundDevice) {
-                            PDM_LOG_DEBUG("SoundDeviceHandler:%s line: %d  Add Sound device",__FUNCTION__, __LINE__);
                             soundDevice->setDeviceInfo(deviceClass);
-                            PDM_LOG_DEBUG("SoundDeviceHandler:%s line: %d  Add Sound device",__FUNCTION__, __LINE__);
                             sList.push_back(soundDevice);
-                            for(auto l : sList) {
-                                PDM_LOG_DEBUG("SoundDeviceHandler:%s line: %d  SoundDveicePath: %s",__FUNCTION__, __LINE__, l->getDevicePath().c_str());
-                            }
-                            PDM_LOG_DEBUG("SoundDeviceHandler:%s line: %d  Add Sound device",__FUNCTION__, __LINE__);
                         } else {
                             PDM_LOG_CRITICAL("SoundDeviceHandler:%s line: %d Unable to create new Sound device", __FUNCTION__, __LINE__);
                         }
                     }
-                   //} else
-                  //PDM_LOG_DEBUG("SoundDeviceHandler:%s line: %d  DEVTYPE is not USB_DEVICE",__FUNCTION__, __LINE__);
                 } else {
-                //   soundDevice->updateDeviceInfo(pNE);
-                    PDM_LOG_DEBUG("SoundDeviceHandler:%s line: %d  Add Sound device",__FUNCTION__, __LINE__);
                     soundDevice->updateDeviceInfo(deviceClass);
-                    PDM_LOG_DEBUG("SoundDeviceHandler:%s line: %d  Add Sound device",__FUNCTION__, __LINE__);
                 }
                 break;
                 case DeviceActions::USB_DEV_REMOVE:
-                    for(auto l : sList) {
-                        PDM_LOG_DEBUG("SoundDeviceHandler:%s line: %d  SoundDveicePath: %s",__FUNCTION__, __LINE__, l->getDevicePath().c_str());
-                    }
-                    PDM_LOG_DEBUG("SoundDeviceHandler:%s line: %d  Remove Sound device", __FUNCTION__, __LINE__);
-                // soundDevice = getDeviceWithPath< SoundDevice >(sList,pNE->getDevAttribute(DEVPATH));
                 soundDevice = getDeviceWithPath< SoundDevice >(sList,deviceClass->getDevPath());
                 if(soundDevice) {
                    removeDevice(soundDevice);
@@ -158,7 +116,6 @@ void SoundDeviceHandler::ProcessSoundDevice(DeviceClass* deviceClass){
                 soundDevice = getDeviceWithPath< SoundDevice >(sList,deviceClass->getDevPath());
                 if(soundDevice){
                    PDM_LOG_DEBUG("SoundDeviceHandlerif:%s line: %d USB_DEV_CHANGE ", __FUNCTION__, __LINE__);
-                //    soundDevice->updateDeviceInfo(pNE);
                    soundDevice->updateDeviceInfo(deviceClass);
                    Notify(SOUND_DEVICE,ADD);
                 }
@@ -204,7 +161,6 @@ bool SoundDeviceHandler::GetAttachedNonStorageDeviceList(pbnjson::JValue &payloa
     return getAttachedNonStorageDeviceList< SoundDevice >( sList, payload );
 }
 
-// bool SoundDeviceHandler::isSoundDevice(PdmNetlinkEvent* pNE)
 bool SoundDeviceHandler::isSoundDevice(DeviceClass* deviceClass)
 {
     if((deviceClass->getInterfaceClass().find(iClass) != std::string::npos) || (deviceClass->getSubsystemName() == "sound"))

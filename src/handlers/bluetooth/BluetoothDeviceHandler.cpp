@@ -41,48 +41,25 @@ BluetoothDeviceHandler::~BluetoothDeviceHandler()
 
 bool BluetoothDeviceHandler::HandlerEvent(DeviceClass* devClass){
     BluetoothSubSystem* bluetoothSubsystem = (BluetoothSubSystem*)devClass;
-	if (bluetoothSubsystem == nullptr) return false;
 
     bool btDeviceProcessed = false;
     PDM_LOG_DEBUG("BluetoothDeviceHandler:%s line: %d", __FUNCTION__, __LINE__);
-   if (bluetoothSubsystem->getAction() == "remove")
+   if (devClass->getAction() == "remove")
     {
-      ProcessBluetoothDevice(bluetoothSubsystem);
+      ProcessBluetoothDevice(devClass);
       return btDeviceProcessed;
     }
 #ifdef WEBOS_SESSION
-    if((bluetoothSubsystem->getBluetoothId() == "1") || ((bluetoothSubsystem->getSubsystemName() == "rfkill") && (bluetoothSubsystem->getRfKillName().find("hci") != std::string::npos)))
+    if((bluetoothSubsystem->getBluetoothId() == "1") || ((devClass->getSubsystemName() == "rfkill") && (devClass->getRfKillName().find("hci") != std::string::npos)))
 #else
     if(bluetoothSubsystem->getBluetoothId() == "1")
 #endif
     {
-      ProcessBluetoothDevice(bluetoothSubsystem);
+      ProcessBluetoothDevice(devClass);
       btDeviceProcessed = true;
     }
     return btDeviceProcessed;
 }
-
-#if 0
-bool BluetoothDeviceHandler::HandlerEvent(PdmNetlinkEvent* pNE){
-    bool btDeviceProcessed = false;
-    PDM_LOG_DEBUG("BluetoothDeviceHandler:%s line: %d", __FUNCTION__, __LINE__);
-   if (pNE->getDevAttribute(ACTION) == "remove")
-    {
-      ProcessBluetoothDevice(pNE);
-      return btDeviceProcessed;
-    }
-#ifdef WEBOS_SESSION
-    if((pNE->getDevAttribute(ID_BLUETOOTH) == "1") || ((pNE->getDevAttribute(SUBSYSTEM) == "rfkill") && (pNE->getDevAttribute(RFKILL_NAME).find("hci") != std::string::npos)))
-#else
-    if(pNE->getDevAttribute(ID_BLUETOOTH) == "1")
-#endif
-    {
-      ProcessBluetoothDevice(pNE);
-      btDeviceProcessed = true;
-    }
-    return btDeviceProcessed;
-}
-#endif
 
 void BluetoothDeviceHandler::removeDevice(BluetoothDevice* bluetoothDevice)
 {
@@ -143,60 +120,6 @@ void BluetoothDeviceHandler::ProcessBluetoothDevice(DeviceClass* devClass){
     }
 
 }
-
-#if 0
-void BluetoothDeviceHandler::ProcessBluetoothDevice(PdmNetlinkEvent* pNE){
-    BluetoothDevice *bluetoothDevice = nullptr;
-    std::string deviceAction = pNE->getDevAttribute(ACTION);
-    std::string deviceType = pNE->getDevAttribute(DEVTYPE);
-    std::string devicePath = pNE->getDevAttribute(DEVPATH);
-    PDM_LOG_INFO("BluetoothDeviceHandler:",0,"%s line: %d DEVTYPE: %s ACTION: %s", __FUNCTION__,__LINE__,deviceType.c_str(),deviceAction.c_str());
- try {
-        switch(sMapDeviceActions.at(pNE->getDevAttribute(ACTION)))
-        {
-            case DeviceActions::USB_DEV_ADD:
-            bluetoothDevice = getDeviceWithPath< BluetoothDevice >(sList,devicePath);
-            if(bluetoothDevice){
-#ifdef WEBOS_SESSION
-                PDM_LOG_DEBUG("BluetoothDeviceHandler:%s line: %d ACTION: DEVICE_ADD. Already present SUBSYSTEM: %s", __FUNCTION__, __LINE__, pNE->getDevAttribute(SUBSYSTEM).c_str());
-                if (pNE->getDevAttribute(SUBSYSTEM) == "rfkill")
-                {
-                    bluetoothDevice->updateDeviceInfo(pNE);
-                    Notify(BLUETOOTH_DEVICE,ADD, bluetoothDevice);
-                }
-#else
-                PDM_LOG_DEBUG("BluetoothDeviceHandler:%s line: %d ACTION: DEVICE_ADD. Already present", __FUNCTION__, __LINE__);
-                bluetoothDevice->setDeviceInfo(pNE);
-#endif
-            } else {
-                bluetoothDevice = new(std::nothrow) BluetoothDevice(m_pConfObj, m_pluginAdapter);
-                if(bluetoothDevice){
-                    bluetoothDevice->setDeviceInfo(pNE);
-                    sList.push_back(bluetoothDevice);
-#ifndef WEBOS_SESSION
-                    Notify(BLUETOOTH_DEVICE,ADD);
-#endif
-            } else {
-                PDM_LOG_ERROR("BluetoothDeviceHandler:%s line: %d Unable to instantiate the BluetoothDevice", __FUNCTION__, __LINE__);
-            }
-        }
-      break;
-        case DeviceActions::USB_DEV_REMOVE:
-             bluetoothDevice = getDeviceWithPath< BluetoothDevice >(sList,devicePath);
-          if(bluetoothDevice)
-            removeDevice(bluetoothDevice);
-             break;
-        default:
-            //Do nothing
-            break;
-        }
-    }
-    catch (const std::out_of_range& err) {
-         PDM_LOG_INFO("BluetoothDeviceHandler:",0,"%s line: %d out of range : %s", __FUNCTION__,__LINE__,err.what());
-    }
-
-}
-#endif
 
 bool BluetoothDeviceHandler::HandlerCommand(CommandType *cmdtypes, CommandResponse *cmdResponse){
 

@@ -41,7 +41,6 @@ private:
     }
 
     void removeDevice(SoundDevice* hdl);
-    // bool isSoundDevice(PdmNetlinkEvent* pNE);
     bool isSoundDevice(DeviceClass* deviceClass);
 
 public:
@@ -56,7 +55,6 @@ public:
         }
     }
 
-    // bool HandlerEvent(PdmNetlinkEvent* pNE) override;
     bool HandlerEvent(DeviceClass* deviceClass) override;
     bool HandlerCommand(CommandType *cmdtypes, CommandResponse *cmdResponse) override;
     bool HandlePluginEvent(int eventType);

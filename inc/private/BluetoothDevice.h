@@ -28,10 +28,8 @@ public:
                     : Device(pConfObj, pluginAdapter, "BLUETOOTH", PdmDevAttributes::PDM_ERR_NOTHING){}
     ~BluetoothDevice() = default;
     void setDeviceInfo(DeviceClass*);
-	//void setDeviceInfo(PdmNetlinkEvent* pNE);
 #ifdef WEBOS_SESSION
     void updateDeviceInfo(DeviceClass*);
-	//void updateDeviceInfo(PdmNetlinkEvent* pNE);
 
 #endif
 };

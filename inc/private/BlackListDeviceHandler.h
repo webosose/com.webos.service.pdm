@@ -19,8 +19,6 @@
 
 #include "DeviceClass.h"
 
-class PdmNetlinkEvent;
-
 class BlackListDeviceHandler {
 
 public:

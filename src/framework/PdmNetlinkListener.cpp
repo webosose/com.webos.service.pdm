@@ -50,7 +50,6 @@ PdmNetlinkListener::~PdmNetlinkListener(){
 
 
 bool PdmNetlinkListener::startListener(){
-    PDM_LOG_DEBUG("PdmNetlinkListener:%s line: %d", __FUNCTION__, __LINE__);
     init();
     runListner();
     return true;
@@ -65,8 +64,6 @@ bool PdmNetlinkListener::stopListener(){
 /*  To get the new udev instances
 */
 void PdmNetlinkListener::init(){
-    PDM_LOG_DEBUG("PdmNetlinkListener:%s line: %d", __FUNCTION__, __LINE__);
-
     udev = udev_new();
     if (!udev) {
         fprintf(stderr, "udev_new() failed\n");
@@ -79,8 +76,6 @@ void PdmNetlinkListener::init(){
 
 void PdmNetlinkListener::enumerate_devices(struct udev* udev)
 {
-    PDM_LOG_DEBUG("PdmNetlinkListener:%s line: %d", __FUNCTION__, __LINE__);
-
     struct udev_enumerate* enumerate = udev_enumerate_new(udev);
 
     udev_enumerate_add_match_subsystem(enumerate, SUBSYSTEM);
@@ -93,19 +88,13 @@ void PdmNetlinkListener::enumerate_devices(struct udev* udev)
     udev_enumerate_add_match_subsystem(enumerate, "rfkill");
 
     udev_enumerate_scan_devices(enumerate);
-PDM_LOG_DEBUG("PdmNetlinkListener:%s line: %d", __FUNCTION__, __LINE__);
     struct udev_list_entry* devices = udev_enumerate_get_list_entry(enumerate);
     struct udev_list_entry* entry;
 
     udev_list_entry_foreach(entry, devices) {
-        PDM_LOG_DEBUG("PdmNetlinkListener:%s line: %d", __FUNCTION__, __LINE__);
         const char* path = udev_list_entry_get_name(entry);
         struct udev_device* device = udev_device_new_from_syspath(udev, path);
         if (device != NULL) {
-            // PdmNetlinkEvent *pNE = new PdmNetlinkEvent;
-            // pNE->pdmParser(device, true);
-            // onEvent(pNE);
-            PDM_LOG_DEBUG("PdmNetlinkListener:%s line: %d", __FUNCTION__, __LINE__);
             PdmNetlinkClassAdapter::getInstance().handleEvent(device, true);
         }
         udev_device_unref(device);
@@ -115,7 +104,6 @@ PDM_LOG_DEBUG("PdmNetlinkListener:%s line: %d", __FUNCTION__, __LINE__);
 }
 
 void PdmNetlinkListener::threadStart(){
-    PDM_LOG_DEBUG("PdmNetlinkListener:%s line: %d", __FUNCTION__, __LINE__);
     struct udev_monitor* monitor = NULL;
     int fd_ep;
     int fd_udev = -1;
@@ -143,7 +131,7 @@ void PdmNetlinkListener::threadStart(){
         PDM_LOG_ERROR("PdmNetlinkListener: %s line: %d filter failed\n", __FUNCTION__, __LINE__);
         goto out;
     }
-    PDM_LOG_DEBUG("PdmNetlinkListener:%s line: %d", __FUNCTION__, __LINE__);
+
    if (udev_monitor_enable_receiving(monitor) < 0) {
         PDM_LOG_ERROR("PdmNetlinkListener: %s line: %d bind failed\n", __FUNCTION__, __LINE__);
         goto out;
@@ -167,20 +155,6 @@ void PdmNetlinkListener::threadStart(){
     for (int i = 0; i < fdcount; i++) {
         if (ev[i].data.fd == fd_udev && ev[i].events & EPOLLIN) {
             device = udev_monitor_receive_device(monitor);
-#if 0 /**/
-            if (device == NULL) {
-                PDM_LOG_WARNING("PdmNetlinkListener: %s line: %d no device from socket", __FUNCTION__, __LINE__);
-                continue;
-            }
-            PdmNetlinkEvent *pNE = new (std::nothrow) PdmNetlinkEvent;
-            if(pNE){
-                pNE->pdmParser(device, false);
-                onEvent(pNE);
-            } else {
-                PDM_LOG_ERROR("PdmNetlinkListener: %s line: %d memory failure for PdmNetlinkEvent",__FUNCTION__, __LINE__);
-            }
-#endif
-            PDM_LOG_DEBUG("PdmNetlinkListener:%s line: %d", __FUNCTION__, __LINE__);
 			PdmNetlinkClassAdapter::getInstance().handleEvent(device, false);
             udev_device_unref(device);
             }
@@ -194,6 +168,5 @@ void PdmNetlinkListener::threadStart(){
 }
 
 void PdmNetlinkListener::runListner(){
-    PDM_LOG_DEBUG("PdmNetlinkListener:%s line: %d", __FUNCTION__, __LINE__);
     m_listenerThread = std::thread(&PdmNetlinkListener::threadStart,this);
 }

@@ -1,4 +1,4 @@
-// Copyright (c) 2019 LG Electronics, Inc.
+// Copyright (c) 2019 -2022 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -60,29 +60,6 @@ void CdcDevice::setDeviceInfo(DeviceClass* devClass)
     }
 }
 
-#if 0
-void CdcDevice::setDeviceInfo(PdmNetlinkEvent* pNE)
-{
-    PDM_LOG_DEBUG("CdcDevice:%s line: %d setDeviceInfo", __FUNCTION__, __LINE__);
-    if( (pNE->getDevAttribute(DEVTYPE) == USB_DEVICE) || (pNE->getDevAttribute(ID_USB_MODEM_DONGLE) == YES) ) {
-        if(!pNE->getDevAttribute(SPEED).empty())
-            m_devSpeed = getDeviceSpeed(stoi(pNE->getDevAttribute(SPEED),nullptr));
-        Device::setDeviceInfo(pNE);
-        if ("1" == pNE->getDevAttribute(ID_USB_SERIAL)){
-            PDM_LOG_DEBUG("CdcDevice:%s line: %d It is USB to serial device", __FUNCTION__, __LINE__);
-            m_deviceType = USB2SERIAL;
-            m_deviceSubType = pNE->getDevAttribute(USB_SERIAL_SUB_TYPE);
-        }
-        if((pNE->getDevAttribute(ID_USB_MODEM_DONGLE) == YES))
-        {
-            PDM_LOG_DEBUG("CdcDevice:%s line: %d It is modem dongle device", __FUNCTION__, __LINE__);
-            m_deviceType = MODEM_DONGLE;
-            m_devSpeed = USB_HIGH_SPEED;
-        }
-    }
-}
-#endif
-
 void CdcDevice::updateDeviceInfo(DeviceClass* devClass)
 {
     CdcSubSystem *cdcSubsystem = (CdcSubSystem *)devClass;
@@ -109,32 +86,3 @@ void CdcDevice::updateDeviceInfo(DeviceClass* devClass)
          m_isToastRequired = false;
     }
 }
-
-#if 0
-void CdcDevice::updateDeviceInfo(PdmNetlinkEvent* pNE)
-{
-    if((pNE->getDevAttribute(SUBSYSTEM) == "net") && (m_deviceType != MODEM_DONGLE)){
-        PDM_LOG_DEBUG("CdcDevice:%s line: %d It is Net device", __FUNCTION__, __LINE__);
-        if(!(pNE->getDevAttribute(ID_USB_DRIVER).empty()))
-            m_deviceSubType = pNE->getDevAttribute(ID_USB_DRIVER);
-
-        if(!(pNE->getDevAttribute(NET_IFIINDEX).empty()))
-            m_ifindex = pNE->getDevAttribute(NET_IFIINDEX);
-
-        if(!(pNE->getDevAttribute(NET_LINK_MODE).empty()))
-            m_linkMode = pNE->getDevAttribute(NET_LINK_MODE);
-
-        if(!(pNE->getDevAttribute(NET_DUPLEX).empty()))
-            m_duplex = pNE->getDevAttribute(NET_DUPLEX);
-
-        if(!(pNE->getDevAttribute(NET_ADDRESS).empty()))
-            m_address = pNE->getDevAttribute(NET_ADDRESS);
-
-        if(!(pNE->getDevAttribute(NET_OPERSTATE).empty()))
-            m_operstate = pNE->getDevAttribute(NET_OPERSTATE);
-
-         m_isToastRequired = false;
-    }
-}
-#endif
-

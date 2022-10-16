@@ -12,7 +12,6 @@
 
 #include "NfcDeviceHandler.h"
 #include "PdmJson.h"
-#include "NfcSubsystem.h"
 
 using namespace PdmDevAttributes;
 
@@ -34,40 +33,19 @@ NfcDeviceHandler::~NfcDeviceHandler() {
 
 bool NfcDeviceHandler::HandlerEvent(DeviceClass* devClass)
 {
-    NfcSubsystem *nfcSubsystem = (NfcSubsystem *)devClass;
-    if (nfcSubsystem == nullptr) return false;
-
-    if (nfcSubsystem->getAction()== "remove")
+    if (devClass->getAction()== "remove")
     {
-      ProcessNfcDevice(nfcSubsystem);
+      ProcessNfcDevice(devClass);
       if(m_deviceRemoved)
           return true;
     }
 
-    if (nfcSubsystem->getInterfaceClass().find(iClass) != std::string::npos) {
-        ProcessNfcDevice(nfcSubsystem);
+    if (devClass->getInterfaceClass().find(iClass) != std::string::npos) {
+        ProcessNfcDevice(devClass);
         return true;
     }
     return false;
 }
-
-#if 0
-bool NfcDeviceHandler::HandlerEvent(PdmNetlinkEvent* pNE){
-
-    if (pNE->getDevAttribute(ACTION) == "remove")
-    {
-      ProcessNfcDevice(pNE);
-      if(m_deviceRemoved)
-          return true;
-    }
-
-    if (pNE->getDevAttribute(ID_USB_INTERFACES).find(iClass) != std::string::npos) {
-        ProcessNfcDevice(pNE);
-        return true;
-    }
-    return false;
-}
-#endif
 
 void NfcDeviceHandler::removeDevice(NfcDevice* device)
 {
@@ -117,46 +95,6 @@ void NfcDeviceHandler::ProcessNfcDevice(DeviceClass* devClass){
          PDM_LOG_INFO("NfcDeviceHandler:",0,"%s line: %d out of range : %s", __FUNCTION__,__LINE__,err.what());
     }
 }
-
-#if 0
-void NfcDeviceHandler::ProcessNfcDevice(PdmNetlinkEvent* pNE){
-
-    PDM_LOG_INFO("NfcDeviceHandler:",0,"%s line: %d DEVTYPE: %s ACTION: %s", __FUNCTION__,__LINE__,pNE->getDevAttribute(DEVTYPE).c_str(),pNE->getDevAttribute(ACTION).c_str());
-    NfcDevice* nfcDevice = nullptr;
-    try {
-        switch(sMapDeviceActions.at(pNE->getDevAttribute(ACTION)))
-        {
-            case DeviceActions::USB_DEV_ADD:
-                nfcDevice = getDeviceWithPath< NfcDevice >(sList,pNE->getDevAttribute(DEVPATH));
-                if(!nfcDevice)
-                {
-                    nfcDevice = new (std::nothrow) NfcDevice(m_pConfObj, m_pluginAdapter);
-                    if(!nfcDevice)
-                        break;
-                    nfcDevice->setDeviceInfo(pNE);
-                    nfcDevice->registerCallback(std::bind(&NfcDeviceHandler::commandNotification, this, _1, _2));
-                    sList.push_back(nfcDevice);
-                    Notify(NFC_DEVICE,ADD, nfcDevice);
-                }else
-                    nfcDevice->setDeviceInfo(pNE);
-                break;
-            case DeviceActions::USB_DEV_REMOVE:
-                nfcDevice = getDeviceWithPath< NfcDevice >(sList,pNE->getDevAttribute(DEVPATH));
-                if(nfcDevice) {
-                    removeDevice(nfcDevice);
-                    m_deviceRemoved = true;
-                }
-                break;
-            default:
-                //Do nothing
-                break;
-        }
-    }
-    catch (const std::out_of_range& err) {
-         PDM_LOG_INFO("NfcDeviceHandler:",0,"%s line: %d out of range : %s", __FUNCTION__,__LINE__,err.what());
-    }
-}
-#endif
 
 bool NfcDeviceHandler::HandlerCommand(CommandType *cmdtypes, CommandResponse *cmdResponse) {
 

@@ -1,4 +1,4 @@
-// Copyright (c) 2019-2020 LG Electronics, Inc.
+// Copyright (c) 2019-2022 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -25,38 +25,18 @@ void HIDDevice::setDeviceInfo(DeviceClass* devClass)
 {
     HIDSubsystem *hidSubsystem = (HIDSubsystem *)devClass;
 
-    PDM_LOG_DEBUG("HIDDevice:%s line: %d", __FUNCTION__, __LINE__);
     if(devClass->getAction() == DEVICE_ADD ) {
         Device::setDeviceInfo(devClass);
-        if(devClass->getDevType() == USB_DEVICE ){
+        if(devClass->getDevType() == USB_DEVICE ) {
             if(!devClass->getSpeed().empty()) {
-                PDM_LOG_DEBUG("HIDDevice:%s line: %d updated device speed", __FUNCTION__, __LINE__);
                 m_devSpeed = getDeviceSpeed(stoi(devClass->getSpeed(), nullptr));
             }
-        }else if(hidSubsystem->getProcessed() == YES ) {
-            PDM_LOG_DEBUG("HIDDevice:%s line: %d", __FUNCTION__, __LINE__);
+        } else if(hidSubsystem->getProcessed() == YES ) {
             mHidDeviceHandlerCb(ADD,nullptr);
         }
     }
 }
-
-#if 0
-void HIDDevice::setDeviceInfo(PdmNetlinkEvent* pNE)
-{
-    if(pNE->getDevAttribute(ACTION) == DEVICE_ADD ) {
-        Device::setDeviceInfo(pNE);
-        if( pNE->getDevAttribute(DEVTYPE) == USB_DEVICE ){
-            if(!pNE->getDevAttribute(SPEED).empty()) {
-                m_devSpeed = getDeviceSpeed(stoi(pNE->getDevAttribute(SPEED),nullptr));
-            }
-        }else if(pNE->getDevAttribute(PROCESSED) == YES ) {
-            mHidDeviceHandlerCb(ADD,nullptr);
-        }
-    }
-}
-#endif
 
 void HIDDevice::registerCallback(handlerCb hidDeviceHandlerCb) {
     mHidDeviceHandlerCb = hidDeviceHandlerCb;
 }
-

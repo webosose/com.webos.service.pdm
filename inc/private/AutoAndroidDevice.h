@@ -31,7 +31,6 @@ public:
               : Device(pConfObj, pluginAdapter, "AUTOANDROID",PdmDevAttributes::PDM_ERR_NOTHING), m_isDevAddNotified(false){}
     ~AutoAndroidDevice() = default;
     void setDeviceInfo(DeviceClass*);
-	//void setDeviceInfo(PdmNetlinkEvent* pNE);
     void registerCallback(handlerCb AutoAndroidDeviceHandlerCb);
 };
 

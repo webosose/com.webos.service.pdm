@@ -1,4 +1,4 @@
-// Copyright (c) 2019 LG Electronics, Inc.
+// Copyright (c) 2019-2022 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -50,13 +50,11 @@ public:
         return nullptr;
     }
     bool HandlerEvent(DeviceClass* deviceClass) override;
-    //bool HandlerEvent(PdmNetlinkEvent* pNE) override;
     bool HandlerCommand(CommandType *cmdtypes, CommandResponse *cmdResponse) override;
     bool HandlePluginEvent(int eventType) override;
     bool GetAttachedDeviceStatus(pbnjson::JValue &payload, LSMessage *message) override;
     bool GetAttachedStorageDeviceList (pbnjson::JValue &payload, LSMessage *message);
     void ProcessMTPDevice(DeviceClass*);
-	//void ProcessMTPDevice(PdmNetlinkEvent* pNE);
     void commandNotification(EventType event, MTPDevice* device);
 };
 #endif //MTPDEVICEHANDLER_H

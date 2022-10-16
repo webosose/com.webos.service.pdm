@@ -1,4 +1,4 @@
-// Copyright (c) 2019-2020 LG Electronics, Inc.
+// Copyright (c) 2019-2022 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -38,10 +38,10 @@ MTPDevice::~MTPDevice()
 void MTPDevice::setDeviceInfo(DeviceClass* devClass)
 {
     MTPSubsystem* mtpSubSystem = (MTPSubsystem*)devClass;
-	if (mtpSubSystem == nullptr) return;
+
     if( mtpSubSystem->getDevType() == USB_DEVICE){
-        if(!mtpSubSystem->getSpeed().empty()) {
-            m_devSpeed = getDeviceSpeed(stoi(mtpSubSystem->getSpeed()));
+        if(!devClass->getSpeed().empty()) {
+            m_devSpeed = getDeviceSpeed(stoi(devClass->getSpeed()));
         }
         driveName = mtpSubSystem->getDevLinks();
         if(!driveName.empty())
@@ -54,26 +54,6 @@ void MTPDevice::setDeviceInfo(DeviceClass* devClass)
     }
     Device::setDeviceInfo(mtpSubSystem);
 }
-
-#if 0
-void MTPDevice::setDeviceInfo(PdmNetlinkEvent* pNE)
-{
-    if( pNE->getDevAttribute(DEVTYPE) == USB_DEVICE){
-        if(!pNE->getDevAttribute(SPEED).empty()) {
-            m_devSpeed = getDeviceSpeed(stoi(pNE->getDevAttribute(SPEED)));
-        }
-        driveName = pNE->getDevAttribute(DEVLINKS);
-        if(!driveName.empty())
-        {
-            driveName.erase(0,8);
-            //Example: "rootPath": "/tmp/usb/MTP-4-15"; "mountName": "/tmp/usb/MTP-4-15/MTP-4-15"
-            rootPath.append(driveName);
-            mountName = rootPath + "/" + driveName ;
-        }
-    }
-    Device::setDeviceInfo(pNE);
-}
-#endif
 
 PdmDevStatus MTPDevice::mtpMount( const std::string &mtpDeviceName){
     PdmDevStatus mountStatus = PdmDevStatus::PDM_DEV_UMOUNT_FAIL;

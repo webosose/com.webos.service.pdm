@@ -28,11 +28,6 @@ std::string DeviceClass::getDevType()
     return mDevPropMap[PdmDevAttributes::DEVTYPE];
 }
 
-// std::string DeviceClass::getDevLinks()
-// {
-// 	return mDevPropMap[PdmDevAttributes::DEVLINKS];
-// }
-
 std::string DeviceClass::getSubsystemName()
 {
     return mDevPropMap[PdmDevAttributes::SUBSYSTEM];
@@ -86,11 +81,6 @@ std::string DeviceClass::getIdVendor()
     return mDevPropMap[PdmDevAttributes::ID_VENDOR];
 }
 
-// std::string DeviceClass::getIdProduct()
-// {
-//     return mDevPropMap[PdmDevAttributes::ID_PRODUCT_ID];
-// }
-
 std::string DeviceClass::getDevNumber()
 {
     return mDevPropMap[PdmDevAttributes::DEVNUM];
@@ -101,40 +91,10 @@ std::string DeviceClass::getDevName()
     return mDevPropMap[PdmDevAttributes::DEVNAME];
 }
 
-// std::string DeviceClass::getHardDisk()
-// {
-//     return mDevPropMap[PdmDevAttributes::ID_ATA];
-// }
-
 std::string DeviceClass::getMediaPlayerId()
 {
     return mDevPropMap[PdmDevAttributes::ID_MEDIA_PLAYER];
 }
-
-// std::string DeviceClass::getGamepadId()
-// {
-//     return mDevPropMap[PdmDevAttributes::ID_GAMEPAD];
-// }
-
-// std::string DeviceClass::getUsbModemId()
-// {
-//     return mDevPropMap[PdmDevAttributes::ID_USB_MODEM_DONGLE];
-// }
-
-// std::string DeviceClass::getUsbSerialId()
-// {
-//     return mDevPropMap[PdmDevAttributes::ID_USB_SERIAL];
-// }
-
-// std::string DeviceClass::getUsbSerialSubType()
-// {
-//     return mDevPropMap[PdmDevAttributes::USB_SERIAL_SUB_TYPE];
-// }
-
-// std::string DeviceClass::getUsbInterfaces()
-// {
-//     return mDevPropMap[PdmDevAttributes::ID_USB_INTERFACES];
-// }
 
 std::string DeviceClass::getBluetoothId()
 {
@@ -158,80 +118,10 @@ std::string DeviceClass::getBusType()
     return "";
 }
 
-// std::string DeviceClass::getBusNum()
-// {
-// 	return mDevPropMap[PdmDevAttributes::BUSNUM];
-// }
-
-// std::string DeviceClass::getModelId()
-// {
-//     return mDevPropMap[PdmDevAttributes::ID_MODEL_ID];
-// }
-
 std::string DeviceClass::getSpeed()
 {
     return mDevPropMap[PdmDevAttributes::SPEED];
 }
-
-// std::string DeviceClass::getNetIfIndex()
-// {
-//     return mDevPropMap[PdmDevAttributes::NET_IFIINDEX];
-// }
-
-// std::string DeviceClass::getNetLinkMode()
-// {
-//     return mDevPropMap[PdmDevAttributes::NET_LINK_MODE];
-// }
-
-// std::string DeviceClass::getNetDuplex()
-// {
-//     return mDevPropMap[PdmDevAttributes::NET_DUPLEX];
-// }
-
-// std::string DeviceClass::getNetAddress()
-// {
-//     return mDevPropMap[PdmDevAttributes::NET_ADDRESS];
-// }
-
-// std::string DeviceClass::getNetOperState()
-// {
-//     return mDevPropMap[PdmDevAttributes::NET_OPERSTATE];
-// }
-
-// std::string DeviceClass::getProcessed()
-// {
-//     return mDevPropMap[PdmDevAttributes::PROCESSED];
-// }
-
-// std::string DeviceClass::isCardReader()
-// {
-//     return mDevPropMap[PdmDevAttributes::CARD_READER];
-// }
-
-// std::string DeviceClass::isHardDisk()
-// {
-//     return mDevPropMap[PdmDevAttributes::HARD_DISK];
-// }
-
-// std::string DeviceClass::getIdInstance()
-// {
-//     return mDevPropMap[PdmDevAttributes::ID_INSTANCE];
-// }
-
-// std::string DeviceClass::getIdBlackListedSuperSpeedDev()
-// {
-//     return mDevPropMap[PdmDevAttributes::ID_BLACK_LISTED_SUPER_SPEED_DEVICE];
-// }
-
-// std::string DeviceClass::isReadOnly()
-// {
-//     return mDevPropMap[PdmDevAttributes::READ_ONLY];
-// }
-
-// std::string DeviceClass::isDiskMediaChange()
-// {
-//     return mDevPropMap[PdmDevAttributes::DISK_MEDIA_CHANGE];
-// }
 
 std::string DeviceClass::getFsType()
 {
@@ -247,36 +137,6 @@ std::string DeviceClass::getFsLabelEnc()
 {
     return mDevPropMap[PdmDevAttributes::ID_FS_LABEL_ENC];
 }
-
-// std::string DeviceClass::getCardId()
-// {
-// 	return mDevPropMap[PdmDevAttributes::CARD_ID];
-// }
-
-// std::string DeviceClass::getCardName()
-// {
-// 	return mDevPropMap[PdmDevAttributes::CARD_NAME];
-// }
-
-// std::string DeviceClass::getCardNumber()
-// {
-// 	return mDevPropMap[PdmDevAttributes::CARD_NUMBER];
-// }
-
-// std::string DeviceClass::getCapabilities()
-// {
-//     return mDevPropMap[PdmDevAttributes::ID_V4L_CAPABILITIES];
-// }
-
-// std::string DeviceClass::getProductName()
-// {
-//     return mDevPropMap[PdmDevAttributes::ID_V4L_PRODUCT];
-// }
-
-// std::string DeviceClass::getVersion()
-// {
-//     return mDevPropMap[PdmDevAttributes::ID_V4L_VERSION];
-// }
 
 std::string DeviceClass::getIdBlackList()
 {

@@ -41,26 +41,23 @@ AutoAndroidDeviceHandler::~AutoAndroidDeviceHandler()
 
 bool AutoAndroidDeviceHandler::HandlerEvent(DeviceClass *devClass)
 {
-    AutoAndroidSubSystem *autoAndroidSubsystem = (AutoAndroidSubSystem *)devClass;
-    if (autoAndroidSubsystem == nullptr) return false;
-
 #ifdef WEBOS_SESSION
-    if (autoAndroidSubsystem->getAction() == "remove")
+    if (devClass->getAction() == "remove")
     {
-        ProcessAutoAndroidDevice(autoAndroidSubsystem);
+        ProcessAutoAndroidDevice(devClass);
         if (m_deviceRemoved)
             return true;
     }
 
-    if (isAOAProductId(autoAndroidSubsystem))
+    if (isAOAProductId(devClass))
     {
-        ProcessAutoAndroidDevice(autoAndroidSubsystem);
+        ProcessAutoAndroidDevice(devClass);
         return true;
     }
-    if (isAOAInterface(autoAndroidSubsystem))
+    if (isAOAInterface(devClass))
     {
         PDM_LOG_INFO("AutoAndroidDeviceHandler:", 0, "%s line: %d android interface detected", __FUNCTION__, __LINE__);
-        if (openDevice(autoAndroidSubsystem))
+        if (openDevice(devClass))
         {
             PDM_LOG_INFO("AutoAndroidDeviceHandler:", 0, "%s line: %d opened android device", __FUNCTION__, __LINE__);
             if (startAccessoryMode() >= 0)
@@ -76,41 +73,9 @@ bool AutoAndroidDeviceHandler::HandlerEvent(DeviceClass *devClass)
     return false;
 }
 
-#if 0
-bool AutoAndroidDeviceHandler::HandlerEvent(PdmNetlinkEvent* pNE){
-#ifdef WEBOS_SESSION
-    if (pNE->getDevAttribute(ACTION) == "remove")
-    {
-      ProcessAutoAndroidDevice(pNE);
-      if(m_deviceRemoved)
-          return true;
-    }
-
-    if(isAOAProductId(pNE)) {
-        ProcessAutoAndroidDevice(pNE);
-        return true;
-    }
-    if(isAOAInterface(pNE)) {
-        PDM_LOG_INFO("AutoAndroidDeviceHandler:",0,"%s line: %d android interface detected", __FUNCTION__,__LINE__);
-        if(openDevice(pNE)) {
-            PDM_LOG_INFO("AutoAndroidDeviceHandler:",0,"%s line: %d opened android device", __FUNCTION__,__LINE__);
-            if (startAccessoryMode()>= 0) {
-                PDM_LOG_INFO("AutoAndroidDeviceHandler:",0,"%s line: %d started Accessory mode", __FUNCTION__,__LINE__);
-                return true;
-            }
-        }
-    }
-#else
-    PDM_LOG_INFO("AutoAndroidDeviceHandler:",0,"%s line: %d Android Auto is applicable only for Auto not for OSE", __FUNCTION__,__LINE__);
-#endif
-    return false;
-}
-#endif
-
 bool AutoAndroidDeviceHandler::isAOAProductId(DeviceClass *devClass)
 {
     AutoAndroidSubSystem *autoAndroidSubsystem = (AutoAndroidSubSystem *)devClass;
-    if (autoAndroidSubsystem == nullptr) return false;
 
     if (autoAndroidSubsystem->getModelId().find("2d0") != std::string::npos)
     {
@@ -119,19 +84,9 @@ bool AutoAndroidDeviceHandler::isAOAProductId(DeviceClass *devClass)
     return false;
 }
 
-#if 0
-bool AutoAndroidDeviceHandler::isAOAProductId(PdmNetlinkEvent* pNE) {
-    if (pNE->getDevAttribute(ID_MODEL_ID).find("2d0") != std::string::npos) {
-        return true;
-    }
-    return false;
-}
-#endif
-
 bool AutoAndroidDeviceHandler::openDevice(DeviceClass *devClass)
 {
     AutoAndroidSubSystem *autoAndroidSubsystem = (AutoAndroidSubSystem *)devClass;
-    if (autoAndroidSubsystem == nullptr) return false;
 
     int usbopen_retrycnt = 0;
     libusb_device_handle *dev_handle = nullptr;
@@ -190,56 +145,6 @@ bool AutoAndroidDeviceHandler::openDevice(DeviceClass *devClass)
     }
     return true;
 }
-
-#if 0
-bool AutoAndroidDeviceHandler::openDevice(PdmNetlinkEvent* pNE){
-    int usbopen_retrycnt = 0;
-    libusb_device_handle *dev_handle = nullptr;
-    libusb_device *device = nullptr;
-    if(m_context == nullptr) {
-        if(int res = libusb_init(&m_context) != LIBUSB_SUCCESS) {
-            PDM_LOG_ERROR("AutoAndroidDeviceHandler:%s line: %d Fail to init libusb error:%s", __FUNCTION__, __LINE__,libusb_error_name(res));
-            return false;
-        } else {
-            PDM_LOG_INFO("AutoAndroidDeviceHandler:",0,"%s line: %d libusb_init initialized", __FUNCTION__,__LINE__);
-    }
-    } else {
-        PDM_LOG_INFO("AutoAndroidDeviceHandler:",0,"%s line: %d libusb_init already initialized", __FUNCTION__,__LINE__);
-    }
-    PDM_LOG_INFO("AutoAndroidDeviceHandler:",0,"%s line: %d VendorID:%s, ProductID:%s", __FUNCTION__,__LINE__,pNE->getDevAttribute("ID_VENDOR_ID").c_str(),pNE->getDevAttribute("ID_PRODUCT_ID").c_str());
-    std::string vendorID = pNE->getDevAttribute("ID_VENDOR_ID").c_str();
-    std::string productID =  pNE->getDevAttribute("ID_PRODUCT_ID").c_str();
-    unsigned vendorId = stoul(vendorID, nullptr, 16);
-    unsigned productId = stoul(productID, nullptr, 16);
-
-    dev_handle = libusb_open_device_with_vid_pid(m_context,vendorId,productId); 
-    if(dev_handle == nullptr) {
-        PDM_LOG_ERROR("AutoAndroidDeviceHandler:%s line: %d Fail to get dev_handle", __FUNCTION__, __LINE__);
-        return false;
-    }
-
-    device = libusb_get_device (dev_handle);
-    if(device ==nullptr){
-        PDM_LOG_ERROR("AutoAndroidDeviceHandler:%s line: %d Fail to get device", __FUNCTION__, __LINE__);
-        return false;
-    }
-    while(int res = libusb_open(device, &mHandle) != LIBUSB_SUCCESS) {
-        PDM_LOG_ERROR("AutoAndroidDeviceHandler:%s line: %d Failed to open USB device, error: %s with mHandle : %p", __FUNCTION__, __LINE__, libusb_error_name(res), mHandle);
-        usbopen_retrycnt ++;
-        if(usbopen_retrycnt > USB_OPEN_RETRY_COUNT) {
-            PDM_LOG_ERROR("AutoAndroidDeviceHandler:%s line: %d Failed to open USB device, exceeded Retry count. (%d)", __FUNCTION__, __LINE__,usbopen_retrycnt);
-            return false;
-        }
-        usleep(USB_OPEN_RETRY_USECOND);
-    }
-    PDM_LOG_INFO("AutoAndroidDeviceHandler:",0,"%s line: %d Successfully opened device. with mHandle : 0x%p", __FUNCTION__,__LINE__,mHandle);
-
-    if (libusb_claim_interface(mHandle, 0) == LIBUSB_SUCCESS) {
-        PDM_LOG_INFO("AutoAndroidDeviceHandler:",0,"%s line: %d libusb_claim_interface Attached", __FUNCTION__,__LINE__);
-    }
-    return true;
-}
-#endif
 
 int AutoAndroidDeviceHandler::startAccessoryMode()
 {
@@ -334,19 +239,6 @@ bool AutoAndroidDeviceHandler::isAOAInterface(DeviceClass *devClass)
     return result;
 }
 
-#if 0
-bool AutoAndroidDeviceHandler::isAOAInterface(PdmNetlinkEvent* pNE)
-{
-    bool result = false;
-    std::string interfaceClass = pNE->getInterfaceClass();
-    PDM_LOG_INFO("AutoAndroidDeviceHandler:",0,"%s line: %d interfaceClass %s devType:%s", __FUNCTION__,__LINE__,interfaceClass.c_str(), pNE->getDevAttribute(DEVTYPE).c_str());
-    if (((interfaceClass.find(":06")!= std::string::npos) || (interfaceClass.find(":ff")!= std::string::npos)) && (pNE->getDevAttribute(DEVTYPE) ==  USB_DEVICE) && (pNE->getDevAttribute(ID_BLUETOOTH) != "1")){
-        result =  true;
-    }
-    return result;
-}
-#endif
-
 void AutoAndroidDeviceHandler::removeDevice(AutoAndroidDevice *device)
 {
     if (!device)
@@ -409,46 +301,6 @@ void AutoAndroidDeviceHandler::ProcessAutoAndroidDevice(DeviceClass *devClass)
     }
 }
 
-#if 0
-void AutoAndroidDeviceHandler::ProcessAutoAndroidDevice(PdmNetlinkEvent* pNE){
-
-    PDM_LOG_INFO("AutoAndroidDeviceHandler:",0,"%s line: %d DEVTYPE: %s ACTION: %s", __FUNCTION__,__LINE__,pNE->getDevAttribute(DEVTYPE).c_str(),pNE->getDevAttribute(ACTION).c_str());
-    AutoAndroidDevice* androidDevice = nullptr;
-    try {
-        switch(sMapDeviceActions.at(pNE->getDevAttribute(ACTION)))
-        {
-            case DeviceActions::USB_DEV_ADD:
-                androidDevice = getDeviceWithPath< AutoAndroidDevice >(sList,pNE->getDevAttribute(DEVPATH));
-                if(!androidDevice)
-                {
-                    androidDevice = new (std::nothrow) AutoAndroidDevice(m_pConfObj, m_pluginAdapter);
-                    if(!androidDevice)
-                        break;
-                    androidDevice->setDeviceInfo(pNE);
-                    androidDevice->registerCallback(std::bind(&AutoAndroidDeviceHandler::commandNotification, this, _1, _2));
-                    sList.push_back(androidDevice);
-                    Notify(AUTO_ANDROID_DEVICE,ADD, androidDevice);
-                }else
-                    androidDevice->setDeviceInfo(pNE);
-                break;
-            case DeviceActions::USB_DEV_REMOVE:
-                androidDevice = getDeviceWithPath< AutoAndroidDevice >(sList,pNE->getDevAttribute(DEVPATH));
-                if(androidDevice) {
-                    removeDevice(androidDevice);
-                    m_deviceRemoved = true;
-                }
-                break;
-            default:
-                //Do nothing
-                break;
-        }
-    }
-    catch (const std::out_of_range& err) {
-        PDM_LOG_INFO("AutoAndroidDeviceHandler:",0,"%s line: %d out of range : %s", __FUNCTION__,__LINE__,err.what());
-    }
-}
-#endif
-
 bool AutoAndroidDeviceHandler::HandlerCommand(CommandType *cmdtypes, CommandResponse *cmdResponse)
 {
 
@@ -458,7 +310,6 @@ bool AutoAndroidDeviceHandler::HandlerCommand(CommandType *cmdtypes, CommandResp
 
 bool AutoAndroidDeviceHandler::HandlePluginEvent(int eventType)
 {
-    // Need to discuss
     return true;
 }
 

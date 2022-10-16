@@ -1,7 +1,7 @@
 
 // @@@LICENSE
 //
-// Copyright (c) 2020 LG Electronics, Inc.
+// Copyright (c) 2020-2022 LG Electronics, Inc.
 //
 // Confidential computer software. Valid license from LG required for
 // possession, use or copying. Consistent with FAR 12.211 and 12.212,
@@ -29,21 +29,6 @@ void AutoAndroidDevice::setDeviceInfo(DeviceClass* devClass)
         Device::setDeviceInfo(devClass);
     }
 }
-
-#if 0
-void AutoAndroidDevice::setDeviceInfo(PdmNetlinkEvent* pNE)
-{
-    PDM_LOG_DEBUG("AutoAndroidDevice:%s line: %d setDeviceInfo", __FUNCTION__, __LINE__);
-    if(pNE->getDevAttribute(ACTION) == DEVICE_ADD ) {
-        PDM_LOG_DEBUG("AutoAndroidDevice:%s line: %d setDeviceInfo: DEVICE_ADD", __FUNCTION__, __LINE__);
-        if(!pNE->getDevAttribute(SPEED).empty()) {
-            m_devSpeed = getDeviceSpeed(stoi(pNE->getDevAttribute(SPEED),nullptr));
-        }
-        Device::setDeviceInfo(pNE);
-    }
-
-}
-#endif
 
 void AutoAndroidDevice::registerCallback(handlerCb AutoAndroidDeviceHandlerCb) {
     mAutoAndroidDeviceHandlerCb = AutoAndroidDeviceHandlerCb;

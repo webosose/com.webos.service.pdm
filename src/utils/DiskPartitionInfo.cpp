@@ -1,4 +1,4 @@
-// Copyright (c) 2019-2021 LG Electronics, Inc.
+// Copyright (c) 2019-2022 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -50,28 +50,6 @@ void DiskPartitionInfo::setPartitionInfo(DeviceClass* devClass, const std::strin
     if(!devClass->getFsLabelEnc().empty())
         volumeLabel = devClass->getFsLabelEnc();
 }
-
-#if 0
-void DiskPartitionInfo::setPartitionInfo(PdmNetlinkEvent* pNE,const std::string &deviceRootPath)
-{
-    driveName = pNE->getDevAttribute(DEVNAME);
-    PDM_LOG_INFO("DiskPartitionInfo:",0,"%s driveName: %s deviceRootPath:%s", __FUNCTION__,driveName.c_str(), deviceRootPath.c_str());
-    if(!driveName.empty() && !deviceRootPath.empty())
-    {
-#ifndef WEBOS_SESSION
-        rootPath = deviceRootPath;
-        mountName = deviceRootPath + "/" + driveName;
-#endif
-    }
-    if(!pNE->getDevAttribute(ID_FS_TYPE).empty())
-        fsType = pNE->getDevAttribute(ID_FS_TYPE);
-
-    if(!pNE->getDevAttribute(ID_FS_UUID).empty())
-        uuid = pNE->getDevAttribute(ID_FS_UUID);
-    if(!pNE->getDevAttribute(ID_FS_LABEL_ENC).empty())
-        volumeLabel = pNE->getDevAttribute(ID_FS_LABEL_ENC);
-}
-#endif
 
 void DiskPartitionInfo::setDriveStatus(std::string dStatus)
 {

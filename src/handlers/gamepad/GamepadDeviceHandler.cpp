@@ -33,43 +33,22 @@ GamepadDeviceHandler::GamepadDeviceHandler(PdmConfig* const pConfObj, PluginAdap
 bool GamepadDeviceHandler::HandlerEvent(DeviceClass* devClass)
 {
     GamepadSubSystem* gamepadSubsystem = (GamepadSubSystem*)devClass;
-	if (gamepadSubsystem == nullptr) return false;
 
-    if (gamepadSubsystem->getAction() == "remove")
+    if (devClass->getAction() == "remove")
     {
       m_deviceRemoved = false;
-      ProcessGamepadDevice(gamepadSubsystem);
+      ProcessGamepadDevice(devClass);
       if(m_deviceRemoved) {
           PDM_LOG_DEBUG("GamepadDeviceHandler:%s line: %d  DEVTYPE=usb_device removed", __FUNCTION__, __LINE__);
           return true;
       }
     }
     if(gamepadSubsystem->getGamepadId() == "1"){
-        ProcessGamepadDevice(gamepadSubsystem);
+        ProcessGamepadDevice(devClass);
         return true;
     }
     return false;
 }
-
-#if 0
-bool GamepadDeviceHandler::HandlerEvent(PdmNetlinkEvent* pNE){
-
-    if (pNE->getDevAttribute(ACTION) == "remove")
-    {
-      m_deviceRemoved = false;
-      ProcessGamepadDevice(pNE);
-      if(m_deviceRemoved) {
-          PDM_LOG_DEBUG("GamepadDeviceHandler:%s line: %d  DEVTYPE=usb_device removed", __FUNCTION__, __LINE__);
-          return true;
-      }
-    }
-    if(pNE->getDevAttribute(ID_GAMEPAD) == "1"){
-        ProcessGamepadDevice(pNE);
-        return true;
-    }
-    return false;
-}
-#endif
 
 void GamepadDeviceHandler::removeDevice(GamepadDevice* gamePadDevice)
 {
@@ -112,42 +91,6 @@ void GamepadDeviceHandler::ProcessGamepadDevice(DeviceClass* devClass){
          PDM_LOG_INFO("GamepadDeviceHandler:",0,"%s line: %d out of range : %s", __FUNCTION__,__LINE__,err.what());
     }
 }
-
-#if 0
-void GamepadDeviceHandler::ProcessGamepadDevice(PdmNetlinkEvent* pNE){
-    GamepadDevice *gamepadDevice;
-    PDM_LOG_INFO("GamepadDeviceHandler:",0,"%s line: %d DEVTYPE: %s ACTION: %s", __FUNCTION__,__LINE__,pNE->getDevAttribute(DEVTYPE).c_str(),pNE->getDevAttribute(ACTION).c_str());
-
-    try {
-            switch(sMapDeviceActions.at(pNE->getDevAttribute(ACTION)))
-            {
-                case DeviceActions::USB_DEV_ADD:
-                    PDM_LOG_DEBUG("GamepadDeviceHandler:%s line: %d action : %s", __FUNCTION__, __LINE__,pNE->getDevAttribute(ACTION).c_str());
-                    gamepadDevice = new (std::nothrow) GamepadDevice(m_pConfObj, m_pluginAdapter);
-                    if(gamepadDevice) {
-                        gamepadDevice->setDeviceInfo(pNE);
-                        sList.push_back(gamepadDevice);
-                        Notify(GAMEPAD_DEVICE,ADD);
-                    }
-                    break;
-                case DeviceActions::USB_DEV_REMOVE:
-                   PDM_LOG_DEBUG("GamepadDeviceHandler:%s line: %d action : %s", __FUNCTION__, __LINE__,pNE->getDevAttribute(ACTION).c_str());
-                   gamepadDevice = getDeviceWithPath< GamepadDevice >(sList,pNE->getDevAttribute(DEVPATH));
-                   if(gamepadDevice) {
-                      removeDevice(gamepadDevice);
-                      m_deviceRemoved = true;
-                   }
-                     break;
-                default:
-                 //Do nothing
-                 break;
-        }
-    }
-      catch (const std::out_of_range& err) {
-         PDM_LOG_INFO("GamepadDeviceHandler:",0,"%s line: %d out of range : %s", __FUNCTION__,__LINE__,err.what());
-    }
-}
-#endif
 
 bool GamepadDeviceHandler::HandlerCommand(CommandType *cmdtypes, CommandResponse *cmdResponse) {
 

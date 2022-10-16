@@ -1,4 +1,4 @@
-// Copyright (c) 2019-2020 LG Electronics, Inc.
+// Copyright (c) 2019-2022 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -59,10 +59,6 @@ private:
    void updateDiskInfo(DeviceClass*);
    void updateMultiSdCard(DeviceClass*);
    void handleCardReaderDeviceChange(DeviceClass*);
-   //void updateDeviceInfo(PdmNetlinkEvent* pNE);
-   //void updateDiskInfo(PdmNetlinkEvent* pNE);
-   //void updateMultiSdCard(PdmNetlinkEvent* pNE);
-   //void handleCardReaderDeviceChange(PdmNetlinkEvent* pNE);
    void storageDeviceNotification();
    void fsckOnDeviceAddThread(DiskPartitionInfo *partition);
    DiskPartitionInfo* findPartition(const std::string &drivename);
@@ -71,14 +67,12 @@ private:
    PdmDevStatus mountPartition(DiskPartitionInfo &partition, const bool readOnly);
    PdmDevStatus fsckPartition(DiskPartitionInfo &partition, const std::string &fsckMode);
    void checkSdCardAddRemove(DeviceClass*);
-   //void checkSdCardAddRemove(PdmNetlinkEvent* pNE);
    bool triggerUevent();
 
 protected:
    int getPartitionCount() {return m_partitionCount;}
    int getdiskPartitionListSize() {return m_diskPartitionList.size();}
    void setStorageInterfaceType(DeviceClass*);
-   //void setStorageInterfaceType(PdmNetlinkEvent* pNE);
 
 public:
    StorageDevice(PdmConfig* const pConfObj, PluginAdapter* const pluginAdapter);
@@ -86,10 +80,8 @@ public:
    bool getIsMounted(){ return m_deviceIsMounted;}
    void registerCallback(handlerCb storageDeviceHandlerCb);
    void setDeviceInfo(DeviceClass*);
-   //void setDeviceInfo(PdmNetlinkEvent* pNE);
    PdmDevStatus setPartitionVolumeLabel(const std::string &drivename,const std::string &volumeLabel);
    void setPartitionInfo(DeviceClass*);
-   //void setPartitionInfo(PdmNetlinkEvent* pNE);
    PdmDevStatus umountAllPartition(const bool lazyUnmount);
    PdmDevStatus mountAllPartition();
    PdmDevStatus fsck(const std::string driveName);

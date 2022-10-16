@@ -60,14 +60,11 @@ private:
                                                           &AutoAndroidDeviceHandler::CreateObject));
     }
     bool isAOAInterface(DeviceClass*);
-	//bool isAOAInterface(PdmNetlinkEvent* pNE);
     bool isAOAProductId(DeviceClass*);
-	//bool isAOAProductId(PdmNetlinkEvent* pNE);
     int startAccessoryMode();
     int getAOAPProtocol();
     void removeDevice(AutoAndroidDevice* Device);
     bool openDevice(DeviceClass*);
-	//bool openDevice(PdmNetlinkEvent* pNE);
 
 public:
     ~AutoAndroidDeviceHandler();
@@ -82,13 +79,11 @@ public:
     }
 
     bool HandlerEvent(DeviceClass* deviceClass) override;
-    //bool HandlerEvent(PdmNetlinkEvent* pNE) override;
     bool HandlerCommand(CommandType *cmdtypes, CommandResponse *cmdResponse) override;
     bool HandlePluginEvent(int eventType) override;
     bool GetAttachedDeviceStatus(pbnjson::JValue &payload, LSMessage *message) override;
     bool GetAttachedNonStorageDeviceList(pbnjson::JValue &payload, LSMessage *message);
     void ProcessAutoAndroidDevice(DeviceClass*);
-	//void ProcessAutoAndroidDevice(PdmNetlinkEvent* pNE);
     void commandNotification(EventType event, AutoAndroidDevice* device);
 };
 

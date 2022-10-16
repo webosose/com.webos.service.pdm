@@ -47,63 +47,32 @@ CdcDeviceHandler::~CdcDeviceHandler()
 
 bool CdcDeviceHandler::HandlerEvent(DeviceClass *devClass)
 {
-    CdcSubSystem *cdcSubsystem = (CdcSubSystem *)devClass;
-    if (cdcSubsystem == nullptr) return false;
-
     PDM_LOG_DEBUG("CdcDeviceHandler:%s line: %d ", __FUNCTION__, __LINE__);
 
-    if (cdcSubsystem->getAction() == "remove")
+    if (devClass->getAction() == "remove")
     {
         m_deviceRemoved = false;
-        ProcessCdcDevice(cdcSubsystem);
+        ProcessCdcDevice(devClass);
         if (m_deviceRemoved)
         {
             PDM_LOG_DEBUG("CdcDeviceHandler:%s line: %d  DEVTYPE=usb_device removed", __FUNCTION__, __LINE__);
             return true;
         }
     }
-    if (!identifyCdcDevice(cdcSubsystem))
+    if (!identifyCdcDevice(devClass))
         return false;
-    if (cdcSubsystem->getDevType() == USB_DEVICE)
+    if (devClass->getDevType() == USB_DEVICE)
     {
-        ProcessCdcDevice(cdcSubsystem);
+        ProcessCdcDevice(devClass);
         return false;
     }
-    else if ((cdcSubsystem->getSubsystemName() == "net") || (cdcSubsystem->getSubsystemName() == "tty"))
+    else if ((devClass->getSubsystemName() == "net") || (devClass->getSubsystemName() == "tty"))
     {
-        ProcessCdcDevice(cdcSubsystem);
+        ProcessCdcDevice(devClass);
         return true;
     }
     return false;
 }
-
-#if 0
-bool CdcDeviceHandler::HandlerEvent(PdmNetlinkEvent* pNE)
-{
-    PDM_LOG_DEBUG("CdcDeviceHandler:%s line: %d ", __FUNCTION__, __LINE__);
-
-    if (pNE->getDevAttribute(ACTION) == "remove")
-    {
-        m_deviceRemoved = false;
-        ProcessCdcDevice(pNE);
-        if(m_deviceRemoved) {
-            PDM_LOG_DEBUG("CdcDeviceHandler:%s line: %d  DEVTYPE=usb_device removed", __FUNCTION__, __LINE__);
-            return true;
-         }
-    }
-    if(!identifyCdcDevice(pNE))
-        return false;
-    if(pNE->getDevAttribute(DEVTYPE) ==  USB_DEVICE) {
-        ProcessCdcDevice(pNE);
-        return false;
-    }
-    else if((pNE->getDevAttribute(SUBSYSTEM) ==  "net") || (pNE->getDevAttribute(SUBSYSTEM) ==  "tty")) {
-        ProcessCdcDevice(pNE);
-        return true;
-    }
-    return false;
-}
-#endif
 
 void CdcDeviceHandler::removeDevice(CdcDevice *cdcDevice)
 {
@@ -172,57 +141,9 @@ void CdcDeviceHandler::ProcessCdcDevice(DeviceClass *devClass)
     }
 }
 
-#if 0
-void CdcDeviceHandler::ProcessCdcDevice(PdmNetlinkEvent* pNE)
-{
-    CdcDevice *cdcDevice;
-    PDM_LOG_DEBUG("CdcDeviceHandler:%s line: %d CdcDeviceHandler: DEVTYPE: %s ACTION: %s", __FUNCTION__, __LINE__,pNE->getDevAttribute(DEVTYPE).c_str(),pNE->getDevAttribute(ACTION).c_str());
-     try {
-            switch(sMapDeviceActions.at(pNE->getDevAttribute(ACTION)))
-            {
-                case DeviceActions::USB_DEV_ADD:
-                PDM_LOG_DEBUG("CdcDeviceHandler:%s line: %d  Add CDC device",__FUNCTION__, __LINE__);
-                cdcDevice = getDeviceWithPath< CdcDevice >(sList,pNE->getDevAttribute(DEVPATH));
-                if(!cdcDevice ) {
-                   cdcDevice = new (std::nothrow) CdcDevice(m_pConfObj, m_pluginAdapter);
-                   if(cdcDevice) {
-                      cdcDevice->setDeviceInfo(pNE);
-                      sList.push_back(cdcDevice);
-                      if(pNE->getDevAttribute(ID_USB_MODEM_DONGLE) == YES) { // In case of modem dongle there is only a single event and no update happens later.
-                          sList.push_back(cdcDevice);
-                          Notify(CDC_DEVICE,ADD); // So notify now itself
-                      }
-                   } else {
-                      PDM_LOG_CRITICAL("CdcDeviceHandler:%s line: %d Unable to create new CDC device", __FUNCTION__, __LINE__);
-                   }
-                } else{
-                   sList.push_back(cdcDevice);
-                   cdcDevice->updateDeviceInfo(pNE);
-                   Notify(CDC_DEVICE,ADD,cdcDevice);
-                }
-                break;
-                case DeviceActions::USB_DEV_REMOVE:
-                    cdcDevice = getDeviceWithPath< CdcDevice >(sList,pNE->getDevAttribute(DEVPATH));
-                if(cdcDevice) {
-                   removeDevice(cdcDevice);
-                   m_deviceRemoved = true;
-                }
-                    break;
-                default:
-                 //Do nothing
-                    break;
-            }
-        }
-        catch (const std::out_of_range& err) {
-         PDM_LOG_INFO("StorageDeviceHandler:",0,"%s line: %d out of range : %s", __FUNCTION__,__LINE__,err.what());
-    }
-}
-#endif
-
 bool CdcDeviceHandler::identifyCdcDevice(DeviceClass *devClass)
 {
     CdcSubSystem *cdcSubsystem = (CdcSubSystem *)devClass;
-    if (cdcSubsystem == nullptr) return false;
 
     std::string interfaceClass = devClass->getInterfaceClass();
 
@@ -234,21 +155,6 @@ bool CdcDeviceHandler::identifyCdcDevice(DeviceClass *devClass)
 
     return false;
 }
-
-#if 0
-bool CdcDeviceHandler::identifyCdcDevice(PdmNetlinkEvent* pNE)
-{
-    std::string interfaceClass = pNE->getInterfaceClass();
-
-    if((interfaceClass.find(iClass) != std::string::npos) ||
-    (pNE->getDevAttribute(ID_USB_SERIAL) == YES) ||
-    ((pNE->getDevAttribute(ID_USB_INTERFACES).find(ethernetInterfaceClass)) != std::string::npos) ||
-    ((pNE->getDevAttribute(ID_USB_MODEM_DONGLE) == YES) && m_is3g4gDongleSupported))
-        return true;
-
-    return false;
-}
-#endif
 
 bool CdcDeviceHandler::HandlerCommand(CommandType *cmdtypes, CommandResponse *cmdResponse)
 {

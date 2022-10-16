@@ -1,4 +1,4 @@
-// Copyright (c) 2019-2020 LG Electronics, Inc.
+// Copyright (c) 2019-2022 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -85,51 +85,28 @@ void PTPDevice::onDeviceRemove()
 void PTPDevice::setDeviceInfo(DeviceClass *devClass)
 {
     PTPSubsystem *ptpSubsystem = (PTPSubsystem *)devClass;
-    if (ptpSubsystem == nullptr)
-        return;
 
-    if (ptpSubsystem->getDevType() == USB_DEVICE)
+    if (devClass->getDevType() == USB_DEVICE)
     {
-        if (!ptpSubsystem->getSpeed().empty())
+        if (!devClass->getSpeed().empty())
         {
-            m_devSpeed = getDeviceSpeed(stoi(ptpSubsystem->getSpeed()));
+            m_devSpeed = getDeviceSpeed(stoi(devClass->getSpeed()));
         }
         if (!ptpSubsystem->getBusNum().empty())
         {
             m_busNum = std::stoi(ptpSubsystem->getBusNum());
         }
-        if (!ptpSubsystem->getDevNumber().empty())
+        if (!devClass->getDevNumber().empty())
         {
-            m_ptpDevNum = std::stoi(ptpSubsystem->getDevNumber(), nullptr);
+            m_ptpDevNum = std::stoi(devClass->getDevNumber(), nullptr);
         }
-        Device::setDeviceInfo(ptpSubsystem);
+        Device::setDeviceInfo(devClass);
     }
     if (m_deviceNum != 0 && m_busNum != 0)
     {
         ptpMount();
     }
 }
-
-#if 0
-void PTPDevice::setDeviceInfo(PdmNetlinkEvent* pNE)
-{
-    if (pNE->getDevAttribute(DEVTYPE) == USB_DEVICE) {
-        if(!pNE->getDevAttribute(SPEED).empty()) {
-            m_devSpeed = getDeviceSpeed(stoi(pNE->getDevAttribute(SPEED)));
-        }
-        if(!pNE->getDevAttribute(BUSNUM).empty()) {
-            m_busNum = std::stoi(pNE->getDevAttribute(BUSNUM));
-        }
-        if(!pNE->getDevAttribute(DEVNUM).empty()) {
-            m_ptpDevNum = std::stoi(pNE->getDevAttribute(DEVNUM),nullptr);
-        }
-        Device::setDeviceInfo(pNE);
-    }
-    if(m_deviceNum != 0 && m_busNum !=0){
-        ptpMount();
-    }
-}
-#endif
 
 PdmDevStatus PTPDevice::eject()
 {

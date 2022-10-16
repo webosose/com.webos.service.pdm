@@ -1,4 +1,4 @@
-// Copyright (c) 2019 LG Electronics, Inc.
+// Copyright (c) 2019-2022 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@
 #include "Device.h"
 #include "DeviceHandler.h"
 #include "PdmDeviceFactory.h"
-#include "PdmLogUtils.h"
 #include "PdmUtils.h"
 #include "DeviceManager.h"
 #include "StorageDeviceHandler.h"
@@ -72,36 +71,8 @@ bool DeviceManager::createPdmdeviceList() {
     return true;
 }
 
-// bool DeviceManager::HandlePdmDevice(PdmNetlinkEvent *event) {
-
-//     PDM_LOG_DEBUG("DeviceManager::HandlePdmDevice");
-
-//     if (!(event->getDevAttribute(ID_BLACKLIST)).empty() && std::stoi(event->getDevAttribute(ID_BLACKLIST),nullptr)) {
-//         PDM_LOG_DEBUG("Blacklist device detcted");
-//         BlackListDeviceHandler blackListDeviceHandler(event);
-//         return true;
-//     }
-
-//     for(auto handler : mHandlerList)
-//     {
-//         bool result = handler->HandlerEvent(event);
-//         if(event->getDevAttribute(DEVTYPE) ==  "usb_device")
-//             continue;
-//         if(result)
-//             return true;
-//     }
-
-//     return false;
-// }
-
 bool DeviceManager::HandlePdmDevice(DeviceClass *devClassPtr)
 {
-    // if (!(event->getDevAttribute(ID_BLACKLIST)).empty() && std::stoi(event->getDevAttribute(ID_BLACKLIST),nullptr)) {
-    //     PDM_LOG_DEBUG("Blacklist device detcted");
-    //     BlackListDeviceHandler blackListDeviceHandler(event);
-    //     return true;
-    // }
-
     if (!(devClassPtr->getIdBlackList()).empty() && std::stoi(devClassPtr->getIdBlackList(),nullptr)) {
         PDM_LOG_DEBUG("Blacklist device detected");
         BlackListDeviceHandler blackListDeviceHandler(devClassPtr);
@@ -112,9 +83,6 @@ bool DeviceManager::HandlePdmDevice(DeviceClass *devClassPtr)
     for(auto handler : mHandlerList)
     {
         bool result = handler->HandlerEvent(devClassPtr);
-        // if(event->getDevAttribute(DEVTYPE) ==  "usb_device")
-        PDM_LOG_DEBUG("DeviceManager:%s line: %d", __FUNCTION__, __LINE__);
-        PDM_LOG_DEBUG("DeviceManager:%s line: %d handlerName: %s, result: %d", __FUNCTION__, __LINE__, handler->getHandlerName().c_str(), result);
         if(devClassPtr->getDevType() ==  "usb_device")
             continue;
         if(result)

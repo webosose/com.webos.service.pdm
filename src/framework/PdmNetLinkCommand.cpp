@@ -1,4 +1,4 @@
-// Copyright (c) 2019 LG Electronics, Inc.
+// Copyright (c) 2019-2022 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,18 +18,13 @@
 #include "PdmNetLinkCommand.h"
 
 
-// PdmNetLinkCommand::PdmNetLinkCommand(PdmNetlinkEvent *event)
 PdmNetLinkCommand::PdmNetLinkCommand(DeviceClass *deviceClassEvent)
 {
-    // m_netLinkEvent = event;
     m_deviceClassEvent = deviceClassEvent;
 }
 
 PdmNetLinkCommand::~PdmNetLinkCommand()
 {
-    // if(m_netLinkEvent)
-    //     delete m_netLinkEvent;
-    // m_netLinkEvent = nullptr;
     if(m_deviceClassEvent)
         delete m_deviceClassEvent;
     m_deviceClassEvent = nullptr;
@@ -37,12 +32,6 @@ PdmNetLinkCommand::~PdmNetLinkCommand()
 
 void PdmNetLinkCommand::execute()
 {
-    // if (m_netLinkEvent) {
-    //     DeviceManager::getInstance()->HandlePdmDevice(m_netLinkEvent);
-    //     if(m_netLinkEvent)
-    //         delete m_netLinkEvent;
-    //     m_netLinkEvent = nullptr;
-    // }
     if (m_deviceClassEvent) {
         DeviceManager::getInstance()->HandlePdmDevice(m_deviceClassEvent);
         if(m_deviceClassEvent)

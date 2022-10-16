@@ -41,7 +41,6 @@ void SoundDevice::setDeviceInfo(DeviceClass* devClassPtr)
 {
     PDM_LOG_DEBUG("SoundDevice:%s line: %d setDeviceInfo", __FUNCTION__, __LINE__);
     SoundSubsystem* soundSubsystem = (SoundSubsystem*)devClassPtr;
-	if (soundSubsystem == nullptr) return;
 
     PDM_LOG_DEBUG("SoundDevice:%s line: %d setDeviceInfo", __FUNCTION__, __LINE__);
     if(!(soundSubsystem->getSpeed()).empty()) {
@@ -60,7 +59,7 @@ void SoundDevice::updateDeviceInfo(DeviceClass* devClassPtr)
 {
     PDM_LOG_DEBUG("SoundDevice:%s line: %d", __FUNCTION__, __LINE__);
     SoundSubsystem* soundSubsystem = (SoundSubsystem*)devClassPtr;
-	if (soundSubsystem == nullptr) return;
+    
     PDM_LOG_DEBUG("SoundDevice:%s line: %d", __FUNCTION__, __LINE__);
     if(soundSubsystem->getSubsystemName() == "sound") {
         if(!soundSubsystem->getUsbDriver().empty())

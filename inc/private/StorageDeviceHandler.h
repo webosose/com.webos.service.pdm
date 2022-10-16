@@ -1,4 +1,4 @@
-// Copyright (c) 2019-2021 LG Electronics, Inc.
+// Copyright (c) 2019-2022 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -54,10 +54,6 @@ private:
 	void checkStorageDevice(DeviceClass*);
 	void createStorageDevice(DeviceClass*, IDevice*);
 
-	//bool deleteStorageDevice(PdmNetlinkEvent* pNE);
-    //void ProcessStorageDevice(PdmNetlinkEvent* pNE);
-    //void checkStorageDevice(PdmNetlinkEvent* pNE);
-    //void createStorageDevice(PdmNetlinkEvent* pNE, IDevice *device);
     bool format(CommandType *cmdtypes, CommandResponse *cmdResponse);
     bool eject(CommandType *cmdtypes, CommandResponse *cmdResponse);
     bool fsck(CommandType *cmdtypes, CommandResponse *cmdResponse);
@@ -67,7 +63,6 @@ private:
     bool mountFsck(CommandType *cmdtypes, CommandResponse *cmdResponse);
     bool getSpaceInfo (CommandType *cmdtypes, CommandResponse *cmdResponse);
     bool isStorageDevice(DeviceClass*);
-	//bool isStorageDevice(PdmNetlinkEvent* pNE);
     bool umountAllDrive(bool lazyUnmount);
     void suspendRequest();
     void resumeRequest(const int &eventType);
@@ -82,7 +77,6 @@ public:
         return nullptr;
     }
     bool HandlerEvent(DeviceClass* deviceClass) override;
-    //bool HandlerEvent(PdmNetlinkEvent* pNE) override;
     bool HandlerCommand(CommandType *cmdtypes, CommandResponse *cmdResponse) override;
     bool GetAttachedDeviceStatus(pbnjson::JValue &payload, LSMessage *message) override;
     bool HandlePluginEvent(int eventType) override;

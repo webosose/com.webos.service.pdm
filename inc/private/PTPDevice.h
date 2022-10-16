@@ -1,4 +1,4 @@
-// Copyright (c) 2019 LG Electronics, Inc.
+// Copyright (c) 2019-2022 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -37,7 +37,6 @@ public:
     PTPDevice(PdmConfig* const pConfObj, PluginAdapter* const pluginAdapter);
     ~PTPDevice() = default;
     void setDeviceInfo(DeviceClass*);
-	//void setDeviceInfo(PdmNetlinkEvent* pNE);
     void onDeviceRemove();
     void resumeRequest(const int &eventType);
     PdmDevStatus eject();
