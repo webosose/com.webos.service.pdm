@@ -1,6 +1,6 @@
 // @@@LICENSE
 //
-// Copyright (c) 2020 LG Electronics, Inc.
+// Copyright (c) 2020-2022 LG Electronics, Inc.
 //
 // Confidential computer software. Valid license from LG required for
 // possession, use or copying. Consistent with FAR 12.211 and 12.212,
@@ -31,17 +31,17 @@ NfcDeviceHandler::NfcDeviceHandler(PdmConfig* const pConfObj, PluginAdapter* con
 NfcDeviceHandler::~NfcDeviceHandler() {
 }
 
-bool NfcDeviceHandler::HandlerEvent(PdmNetlinkEvent* pNE){
-
-    if (pNE->getDevAttribute(ACTION) == "remove")
+bool NfcDeviceHandler::HandlerEvent(DeviceClass* devClass)
+{
+    if (devClass->getAction()== "remove")
     {
-      ProcessNfcDevice(pNE);
+      ProcessNfcDevice(devClass);
       if(m_deviceRemoved)
           return true;
     }
 
-    if (pNE->getDevAttribute(ID_USB_INTERFACES).find(iClass) != std::string::npos) {
-        ProcessNfcDevice(pNE);
+    if (devClass->getInterfaceClass().find(iClass) != std::string::npos) {
+        ProcessNfcDevice(devClass);
         return true;
     }
     return false;
@@ -58,29 +58,29 @@ void NfcDeviceHandler::removeDevice(NfcDevice* device)
 
 }
 
-void NfcDeviceHandler::ProcessNfcDevice(PdmNetlinkEvent* pNE){
+void NfcDeviceHandler::ProcessNfcDevice(DeviceClass* devClass){
 
-    PDM_LOG_INFO("NfcDeviceHandler:",0,"%s line: %d DEVTYPE: %s ACTION: %s", __FUNCTION__,__LINE__,pNE->getDevAttribute(DEVTYPE).c_str(),pNE->getDevAttribute(ACTION).c_str());
+    PDM_LOG_INFO("NfcDeviceHandler:",0,"%s line: %d DEVTYPE: %s ACTION: %s", __FUNCTION__, __LINE__, devClass->getDevType().c_str(), devClass->getAction().c_str());
     NfcDevice* nfcDevice = nullptr;
     try {
-        switch(sMapDeviceActions.at(pNE->getDevAttribute(ACTION)))
+        switch(sMapDeviceActions.at(devClass->getAction()))
         {
             case DeviceActions::USB_DEV_ADD:
-                nfcDevice = getDeviceWithPath< NfcDevice >(sList,pNE->getDevAttribute(DEVPATH));
+                nfcDevice = getDeviceWithPath< NfcDevice >(sList, devClass->getDevPath());
                 if(!nfcDevice)
                 {
                     nfcDevice = new (std::nothrow) NfcDevice(m_pConfObj, m_pluginAdapter);
                     if(!nfcDevice)
                         break;
-                    nfcDevice->setDeviceInfo(pNE);
+                    nfcDevice->setDeviceInfo(devClass);
                     nfcDevice->registerCallback(std::bind(&NfcDeviceHandler::commandNotification, this, _1, _2));
                     sList.push_back(nfcDevice);
                     Notify(NFC_DEVICE,ADD, nfcDevice);
                 }else
-                    nfcDevice->setDeviceInfo(pNE);
+                    nfcDevice->setDeviceInfo(devClass);
                 break;
             case DeviceActions::USB_DEV_REMOVE:
-                nfcDevice = getDeviceWithPath< NfcDevice >(sList,pNE->getDevAttribute(DEVPATH));
+                nfcDevice = getDeviceWithPath< NfcDevice >(sList, devClass->getDevPath());
                 if(nfcDevice) {
                     removeDevice(nfcDevice);
                     m_deviceRemoved = true;

@@ -1,4 +1,4 @@
-// Copyright (c) 2019-2021 LG Electronics, Inc.
+// Copyright (c) 2019-2022 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -24,8 +24,6 @@
 
 enum FsckState {PARTITION_FSCK_NONE = 0, PARTITION_FSCK_STARTED = 1, PARTITION_FSCK_SUCCESS = 2, PARTITION_FSCK_FAIL = 3, PARTITION_FSCK_TIMEOUT = 4 };
 
-class PdmNetlinkEvent;
-
 class DiskPartitionInfo : public Storage {
 
 private:
@@ -39,7 +37,7 @@ public:
     DiskPartitionInfo(PdmConfig* const pConfObj, PluginAdapter* const pluginAdapter);
     ~DiskPartitionInfo() = default;
     bool isMounted(){ return m_isMounted;}
-    void setPartitionInfo(PdmNetlinkEvent* pNE,const std::string &deviceRootPath);
+    void setPartitionInfo(DeviceClass* devClass, const std::string &deviceRootPath);
     bool isSupportedFs() { return m_isSupportedFS;}
     void setIsSupportedFs(bool isSupported) { m_isSupportedFS = isSupported;}
     const std::string getDriveStatus(){return driveStatus;}

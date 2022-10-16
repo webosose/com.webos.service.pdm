@@ -1,4 +1,4 @@
-// Copyright (c) 2019 LG Electronics, Inc.
+// Copyright (c) 2019-2022 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@
 
 #include <thread>
 
-class PdmNetlinkEvent;
+class DeviceClass;
 
 class PdmNetlinkListener {
 
@@ -30,7 +30,7 @@ public:
   virtual ~PdmNetlinkListener();
   bool startListener();
   bool stopListener();
-  virtual void onEvent(PdmNetlinkEvent *evn) = 0;
+  virtual void onEvent(DeviceClass *deviceClassEvent) = 0;
 private:
   void init();
   void runListner();

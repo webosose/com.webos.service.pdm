@@ -1,4 +1,4 @@
-// Copyright (c) 2019-2020 LG Electronics, Inc.
+// Copyright (c) 2019-2022 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -30,24 +30,25 @@ PTPDeviceHandler::PTPDeviceHandler(PdmConfig* const pConfObj, PluginAdapter* con
 PTPDeviceHandler::~PTPDeviceHandler() {
 }
 
-bool PTPDeviceHandler::HandlerEvent(PdmNetlinkEvent* pNE){
+bool PTPDeviceHandler::HandlerEvent(DeviceClass* devClass)
+{
 #ifndef WEBOS_SESSION
     PDM_LOG_DEBUG("PTPDeviceHandler::HandlerEvent");
 
-   if (pNE->getDevAttribute(ACTION) == "remove")
+   if (devClass->getAction() == "remove")
    {
-      ProcessPTPDevice(pNE);
+      ProcessPTPDevice(devClass);
       return false;
    }
-    std::string interfaceClass = pNE->getInterfaceClass();
+    std::string interfaceClass = devClass->getInterfaceClass();
     if(interfaceClass.find(iClass) == std::string::npos)
         return false;
-    if((pNE->getDevAttribute(DEVTYPE) ==  USB_DEVICE) && (pNE->getDevAttribute(ID_MEDIA_PLAYER) != "1")){
-        ProcessPTPDevice(pNE);
+    if((devClass->getDevType() ==  USB_DEVICE) && (devClass->getMediaPlayerId() != "1")){
+        ProcessPTPDevice(devClass);
         return false;
     }
-    else if((pNE->getDevAttribute(SUBSYSTEM) ==  "usb") && (pNE->getDevAttribute(ID_MEDIA_PLAYER) != "1")) {
-        ProcessPTPDevice(pNE);
+    else if((devClass->getSubsystemName() ==  "usb") && (devClass->getMediaPlayerId() != "1")) {
+        ProcessPTPDevice(devClass);
         return true;
     }
 #endif
@@ -64,20 +65,20 @@ void PTPDeviceHandler::removeDevice(PTPDevice* ptpDevice)
     ptpDevice = nullptr;
 }
 
-void PTPDeviceHandler::ProcessPTPDevice(PdmNetlinkEvent* pNE) {
+void PTPDeviceHandler::ProcessPTPDevice(DeviceClass* devClass) {
     PTPDevice *ptpDevice;
-    PDM_LOG_INFO("PTPDeviceHandler:",0,"%s line: %d DEVTYPE: %s ACTION: %s", __FUNCTION__,__LINE__,pNE->getDevAttribute(DEVTYPE).c_str(),pNE->getDevAttribute(ACTION).c_str());
+    PDM_LOG_INFO("PTPDeviceHandler:",0,"%s line: %d DEVTYPE: %s ACTION: %s", __FUNCTION__,__LINE__, devClass->getDevType().c_str(), devClass->getAction().c_str());
     try {
-            switch(sMapDeviceActions.at(pNE->getDevAttribute(ACTION)))
+            switch(sMapDeviceActions.at(devClass->getAction()))
             {
                 case DeviceActions::USB_DEV_ADD:
-                    PDM_LOG_DEBUG("PTPDeviceHandler:%s line: %d action : %s", __FUNCTION__, __LINE__,pNE->getDevAttribute(ACTION).c_str());
+                    PDM_LOG_DEBUG("PTPDeviceHandler:%s line: %d action : %s", __FUNCTION__, __LINE__, devClass->getAction().c_str());
                     ptpDevice = new (std::nothrow) PTPDevice(m_pConfObj, m_pluginAdapter);
                     if(!ptpDevice) {
                         PDM_LOG_CRITICAL("PTPDeviceHandler:%s line: %d Unable to create new PTP Device", __FUNCTION__, __LINE__);
                         return;
                     }
-                    ptpDevice->setDeviceInfo(pNE);
+                    ptpDevice->setDeviceInfo(devClass);
                     if(ptpDevice->getIsMounted()){
                         ptpDevice->registerCallback(std::bind(&PTPDeviceHandler::commandNotification, this, _1, _2));
                         sList.push_back(ptpDevice);
@@ -89,8 +90,8 @@ void PTPDeviceHandler::ProcessPTPDevice(PdmNetlinkEvent* pNE) {
                     }
                     break;
                 case DeviceActions::USB_DEV_REMOVE:
-                    PDM_LOG_DEBUG("PTPDeviceHandler:%s line: %d action : %s", __FUNCTION__, __LINE__,pNE->getDevAttribute(ACTION).c_str());
-                    ptpDevice = getDeviceWithPath<PTPDevice>(sList,pNE->getDevAttribute(DEVPATH));
+                    PDM_LOG_DEBUG("PTPDeviceHandler:%s line: %d action : %s", __FUNCTION__, __LINE__, devClass->getAction().c_str());
+                    ptpDevice = getDeviceWithPath<PTPDevice>(sList, devClass->getDevPath());
                     if(ptpDevice) {
                         ptpDevice->onDeviceRemove();
                         removeDevice(ptpDevice);

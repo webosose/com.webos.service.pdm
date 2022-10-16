@@ -19,6 +19,7 @@
 
 #include "Device.h"
 #include "Common.h"
+#include "DeviceClass.h"
 
 class BluetoothDevice : public Device
 {
@@ -26,9 +27,10 @@ public:
     BluetoothDevice(PdmConfig* const pConfObj, PluginAdapter* const pluginAdapter)
                     : Device(pConfObj, pluginAdapter, "BLUETOOTH", PdmDevAttributes::PDM_ERR_NOTHING){}
     ~BluetoothDevice() = default;
-    void setDeviceInfo(PdmNetlinkEvent* pNE);
+    void setDeviceInfo(DeviceClass*);
 #ifdef WEBOS_SESSION
-    void updateDeviceInfo(PdmNetlinkEvent* pNE);
+    void updateDeviceInfo(DeviceClass*);
+
 #endif
 };
 

@@ -37,7 +37,6 @@ private:
     PdmDeviceFactory() = default;
 
 public:
-
         bool Register(const std::string &handlerName, pFuncHandlerCreator create);
         bool UnRegister(const std::string &handlerName);
         DeviceHandler* CreateObject(const std::string &handlerName, PdmConfig* const pConfObj, PluginAdapter* const pluginAdapter);

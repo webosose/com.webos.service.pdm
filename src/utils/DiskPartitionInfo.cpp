@@ -1,4 +1,4 @@
-// Copyright (c) 2019-2021 LG Electronics, Inc.
+// Copyright (c) 2019-2022 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
 #include "Common.h"
 #include "DiskPartitionInfo.h"
 #include "PdmLogUtils.h"
-#include "PdmNetlinkEvent.h"
 #include <luna-service2/lunaservice.hpp>
 #include <luna-service2++/handle.hpp>
 #include "LunaIPC.h"
@@ -33,9 +32,9 @@ DiskPartitionInfo::DiskPartitionInfo(PdmConfig* const pConfObj, PluginAdapter* c
 {
 }
 
-void DiskPartitionInfo::setPartitionInfo(PdmNetlinkEvent* pNE,const std::string &deviceRootPath)
+void DiskPartitionInfo::setPartitionInfo(DeviceClass* devClass, const std::string &deviceRootPath)
 {
-    driveName = pNE->getDevAttribute(DEVNAME);
+    driveName = devClass->getDevName();
     PDM_LOG_INFO("DiskPartitionInfo:",0,"%s driveName: %s deviceRootPath:%s", __FUNCTION__,driveName.c_str(), deviceRootPath.c_str());
     if(!driveName.empty() && !deviceRootPath.empty())
     {
@@ -44,13 +43,12 @@ void DiskPartitionInfo::setPartitionInfo(PdmNetlinkEvent* pNE,const std::string 
         mountName = deviceRootPath + "/" + driveName;
 #endif
     }
-    if(!pNE->getDevAttribute(ID_FS_TYPE).empty())
-        fsType = pNE->getDevAttribute(ID_FS_TYPE);
-
-    if(!pNE->getDevAttribute(ID_FS_UUID).empty())
-        uuid = pNE->getDevAttribute(ID_FS_UUID);
-    if(!pNE->getDevAttribute(ID_FS_LABEL_ENC).empty())
-        volumeLabel = pNE->getDevAttribute(ID_FS_LABEL_ENC);
+    if(!devClass->getFsType().empty())
+        fsType = devClass->getFsType();
+    if(!devClass->getFsUuid().empty())
+        uuid = devClass->getFsUuid();
+    if(!devClass->getFsLabelEnc().empty())
+        volumeLabel = devClass->getFsLabelEnc();
 }
 
 void DiskPartitionInfo::setDriveStatus(std::string dStatus)

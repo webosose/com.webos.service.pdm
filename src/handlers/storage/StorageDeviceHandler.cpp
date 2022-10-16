@@ -1,4 +1,4 @@
-// Copyright (c) 2019-2021 LG Electronics, Inc.
+// Copyright (c) 2019-2022 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@
 #include <luna-service2++/handle.hpp>
 #include "LunaIPC.h"
 #include <sys/mount.h>
+#include "StorageSubsystem.h"
 
 using namespace PdmDevAttributes;
 using namespace std::placeholders;
@@ -94,25 +95,25 @@ int StorageDeviceHandler::readMaxUsbStorageDevices()
     return maxUsbStorageDevs;
 }
 
-bool StorageDeviceHandler::HandlerEvent(PdmNetlinkEvent* pNE){
-
+bool StorageDeviceHandler::HandlerEvent(DeviceClass* devClass)
+{
     PDM_LOG_DEBUG("StorageDeviceHandler::HandlerEvent");
-   if (pNE->getDevAttribute(ACTION) == "remove")
+   if (devClass->getAction()== "remove")
    {
-      if(deleteStorageDevice(pNE)) {
+      if(deleteStorageDevice(devClass)) {
          PDM_LOG_DEBUG("StorageDeviceHandler:%s line: %d  DEVTYPE=usb_device removed", __FUNCTION__, __LINE__);
          return true;
       }
       return false;
    }
-   if(!isStorageDevice(pNE))
+   if(!isStorageDevice(devClass))
         return false;
-    if(pNE->getDevAttribute(DEVTYPE) ==  USB_DEVICE) {
-        ProcessStorageDevice(pNE);
+    if(devClass->getDevType() ==  USB_DEVICE) {
+        ProcessStorageDevice(devClass);
         return false;
     }
-    else if(pNE->getDevAttribute(SUBSYSTEM) ==  "block") {
-        ProcessStorageDevice(pNE);
+    else if(devClass->getSubsystemName() ==  "block") {
+        ProcessStorageDevice(devClass);
         return true;
     }
     return false;
@@ -161,14 +162,14 @@ bool StorageDeviceHandler::HandlerCommand(CommandType *cmdtypes, CommandResponse
     return result;
 }
 
-void StorageDeviceHandler::ProcessStorageDevice(PdmNetlinkEvent* pNE) {
-    PDM_LOG_INFO("StorageDeviceHandler:",0,"%s line: %d DEVTYPE: %s ACTION: %s", __FUNCTION__,__LINE__,pNE->getDevAttribute(DEVTYPE).c_str(),pNE->getDevAttribute(ACTION).c_str());
+void StorageDeviceHandler::ProcessStorageDevice(DeviceClass* devClass) {
+    PDM_LOG_INFO("StorageDeviceHandler:",0,"%s line: %d DEVTYPE: %s ACTION: %s", __FUNCTION__,__LINE__, devClass->getDevType().c_str(), devClass->getAction().c_str());
     try {
-        switch(sMapDeviceActions.at(pNE->getDevAttribute(ACTION)))
+        switch(sMapDeviceActions.at(devClass->getAction()))
          {
              case DeviceActions::USB_DEV_ADD:
              case DeviceActions::USB_DEV_CHANGE:
-                 checkStorageDevice(pNE);
+                 checkStorageDevice(devClass);
                  break;
              default:
                  //Do nothing
@@ -180,39 +181,39 @@ void StorageDeviceHandler::ProcessStorageDevice(PdmNetlinkEvent* pNE) {
     }
 }
 
-void StorageDeviceHandler::checkStorageDevice(PdmNetlinkEvent* pNE) {
+void StorageDeviceHandler::checkStorageDevice(DeviceClass* devClass) {
 
-    StorageDevice *storageDevPath = getDeviceWithPath< StorageDevice >(mStorageList,pNE->getDevAttribute(DEVPATH));
-    if((pNE->getDevAttribute(DEVTYPE) == USB_DEVICE) && (storageDevPath == nullptr)) {
-        PDM_LOG_DEBUG("StorageDeviceHandler:%s line: %d New device with path DEVNAME: %s", __FUNCTION__, __LINE__,pNE->getDevAttribute(DEVNAME).c_str());
-        createStorageDevice(pNE, nullptr);
+    StorageDevice *storageDevPath = getDeviceWithPath< StorageDevice >(mStorageList, devClass->getDevPath());
+    if((devClass->getDevType() == USB_DEVICE) && (storageDevPath == nullptr)) {
+        PDM_LOG_DEBUG("StorageDeviceHandler:%s line: %d New device with path DEVNAME: %s", __FUNCTION__, __LINE__, devClass->getDevName().c_str());
+        createStorageDevice(devClass, nullptr);
         return;
     }
 
     if(storageDevPath && storageDevPath->getDeviceName() == "") {
-        PDM_LOG_DEBUG("StorageDeviceHandler:%s line: %d updated device name empty DEVNAME: %s", __FUNCTION__, __LINE__,pNE->getDevAttribute(DEVNAME).c_str());
-        storageDevPath->setDeviceInfo(pNE);
+        PDM_LOG_DEBUG("StorageDeviceHandler:%s line: %d updated device name empty DEVNAME: %s", __FUNCTION__, __LINE__, devClass->getDevName().c_str());
+        storageDevPath->setDeviceInfo(devClass);
         return;
     }
 
-    StorageDevice *storageDevName = getDeviceWithName< StorageDevice >(mStorageList, pNE->getDevAttribute(DEVNAME));
+    StorageDevice *storageDevName = getDeviceWithName< StorageDevice >(mStorageList, devClass->getDevName());
 
     if(storageDevName && storageDevPath) {
-        PDM_LOG_DEBUG("StorageDeviceHandler:%s line: %d update device with name DEVNAME: %s", __FUNCTION__, __LINE__,pNE->getDevAttribute(DEVNAME).c_str());
-        storageDevName->setDeviceInfo(pNE);
+        PDM_LOG_DEBUG("StorageDeviceHandler:%s line: %d update device with name DEVNAME: %s", __FUNCTION__, __LINE__, devClass->getDevName().c_str());
+        storageDevName->setDeviceInfo(devClass);
         return;
     }
     if(storageDevPath && storageDevName == nullptr) {
-        PDM_LOG_DEBUG("StorageDeviceHandler:%s line: %d new device with name DEVNAME: %s", __FUNCTION__, __LINE__,pNE->getDevAttribute(DEVNAME).c_str());
-        createStorageDevice(pNE, storageDevPath);
+        PDM_LOG_DEBUG("StorageDeviceHandler:%s line: %d new device with name DEVNAME: %s", __FUNCTION__, __LINE__, devClass->getDevName().c_str());
+        createStorageDevice(devClass, storageDevPath);
         return;
     }
 
 }
 
-void StorageDeviceHandler::createStorageDevice(PdmNetlinkEvent* pNE, IDevice *device)
+void StorageDeviceHandler::createStorageDevice(DeviceClass* devClass, IDevice *device)
 {
-    PDM_LOG_DEBUG("StorageDeviceHandler:%s line: %d DEVNAME: %s", __FUNCTION__, __LINE__,pNE->getDevAttribute(DEVNAME).c_str());
+    PDM_LOG_DEBUG("StorageDeviceHandler:%s line: %d DEVNAME: %s", __FUNCTION__, __LINE__, devClass->getDevName().c_str());
     if(mStorageList.size() >= m_maxStorageDevices) {
         PDM_LOG_CRITICAL("StorageDeviceHandler:%s line: %d Storage Device count: %zd has reached max. Dont process", __FUNCTION__, __LINE__, mStorageList.size());
         Notify(STORAGE_DEVICE,MAX_COUNT_REACHED);
@@ -228,30 +229,30 @@ void StorageDeviceHandler::createStorageDevice(PdmNetlinkEvent* pNE, IDevice *de
         storageDev->setIsExtraSdCard(true);
         storageDev->setExtraSdCardDetails(*device);
     }
-    storageDev->setDeviceInfo(pNE);
+    storageDev->setDeviceInfo(devClass);
     std::lock_guard<std::mutex> lock(mStorageListMtx);
     mStorageList.push_back(storageDev);
     PDM_LOG_DEBUG("StorageDeviceHandler: %s line: %d Storage Device count: %zd ", __FUNCTION__,__LINE__,mStorageList.size());
 
 }
 
-bool StorageDeviceHandler::deleteStorageDevice(PdmNetlinkEvent* pNE)
+bool StorageDeviceHandler::deleteStorageDevice(DeviceClass* devClass)
 {
-    PDM_LOG_DEBUG("StorageDeviceHandler:%s line: %d DEVNAME: %s", __FUNCTION__, __LINE__,pNE->getDevAttribute(DEVNUM).c_str());
+    PDM_LOG_DEBUG("StorageDeviceHandler:%s line: %d DEVNAME: %s", __FUNCTION__, __LINE__, devClass->getDevNumber().c_str());
     StorageDevice *storageDev = nullptr;
    bool deviceRemoveStatus =  false;
 
-    if(pNE->getDevAttribute(DEVTYPE) == USB_DEVICE) {
+    if(devClass->getDevType() == USB_DEVICE) {
            PDM_LOG_DEBUG("StorageDeviceHandler:%s line: %d with USB_DEVICE list size: %zd", __FUNCTION__, __LINE__, mStorageList.size());
-           storageDev = getDeviceWithPath < StorageDevice > (mStorageList, pNE->getDevAttribute(DEVPATH));
+           storageDev = getDeviceWithPath < StorageDevice > (mStorageList, devClass->getDevPath());
          if(storageDev) {
             deviceRemoveStatus = true;
          }
-    } else if(pNE->getDevAttribute(DEVTYPE) == DISK) {
+    } else if(devClass->getDevType() == DISK) {
         PDM_LOG_DEBUG("StorageDeviceHandler:%s line: %d with DISK list size: %zd", __FUNCTION__, __LINE__, mStorageList.size());
-        storageDev = getDeviceWithName < StorageDevice > (mStorageList, pNE->getDevAttribute(DEVNAME));
+        storageDev = getDeviceWithName < StorageDevice > (mStorageList, devClass->getDevName());
         if(nullptr == storageDev){
-            PDM_LOG_DEBUG("StorageDeviceHandler:%s line: %d with storageDev is null for DEVNAME: %s", __FUNCTION__, __LINE__, pNE->getDevAttribute(DEVNAME).c_str());
+            PDM_LOG_DEBUG("StorageDeviceHandler:%s line: %d with storageDev is null for DEVNAME: %s", __FUNCTION__, __LINE__, devClass->getDevName().c_str());
             return deviceRemoveStatus;
         }
         if(!storageDev->getIsExtraSdCard())
@@ -474,12 +475,15 @@ void StorageDeviceHandler::computeSpaceInfoThread()
     }
     mSpaceInfoThreadStatus = false;
 }
-bool StorageDeviceHandler::isStorageDevice(PdmNetlinkEvent* pNE)
+
+bool StorageDeviceHandler::isStorageDevice(DeviceClass* devClass)
 {
+    StorageSubsystem *storageSubsystem = (StorageSubsystem *)devClass;
+
     PDM_LOG_DEBUG("StorageDeviceHandler::isStorageDevice");
-    std::string interfaceClass = pNE->getInterfaceClass();
-    if((interfaceClass.find(iClass) != std::string::npos) || (pNE->getDevAttribute(HARD_DISK) == PDM_HDD_ID_ATA) ||
-                                       (pNE->getDevAttribute(ID_ATA) == PDM_HDD_ID_ATA))
+    std::string interfaceClass = devClass->getInterfaceClass();
+    if((interfaceClass.find(iClass) != std::string::npos) || (storageSubsystem->getHardDisk() == PDM_HDD_ID_ATA) ||
+                                       (storageSubsystem->getHardDisk() == PDM_HDD_ID_ATA))
         return true;
 
     return false;
@@ -592,4 +596,3 @@ void StorageDeviceHandler::resumeRequest(const int &eventType) {
         storageDev->resumeRequest(eventType);
     Notify(STORAGE_DEVICE, ADD);
 }
-

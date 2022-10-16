@@ -1,4 +1,4 @@
-// Copyright (c) 2019 LG Electronics, Inc.
+// Copyright (c) 2019-2022 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@
 #define _GAMEPADDEVICE_H_
 
 #include "Device.h"
+#include "DeviceClass.h"
 
 class GamepadDeviceHandler;
 
@@ -27,7 +28,7 @@ public:
     GamepadDevice(PdmConfig* const pConfObj, PluginAdapter* const pluginAdapter)
                    : Device(pConfObj, pluginAdapter, "XPAD", PdmDevAttributes::PDM_ERR_NOTHING){}
     ~GamepadDevice(){}
-    void setDeviceInfo(PdmNetlinkEvent* pNE);
+	void setDeviceInfo(DeviceClass*);
 };
 
 #endif // GAMEPADDEVICE_H

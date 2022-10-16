@@ -1,4 +1,4 @@
-// Copyright (c) 2019-2020 LG Electronics, Inc.
+// Copyright (c) 2019-2022 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@
 #include "DeviceHandler.h"
 #include "PdmDeviceFactory.h"
 #include "PdmLogUtils.h"
-#include "PdmNetlinkEvent.h"
+#include "DeviceClass.h"
 
 class CdcDeviceHandler : public DeviceHandler
 {
@@ -55,13 +55,13 @@ public:
         return nullptr;
     }
 
-    bool HandlerEvent(PdmNetlinkEvent* pNE) override;
+    bool HandlerEvent(DeviceClass*) override;
     bool HandlerCommand(CommandType *cmdtypes, CommandResponse *cmdResponse) override;
     bool HandlePluginEvent(int eventType) override;
     bool GetAttachedDeviceStatus(pbnjson::JValue &payload, LSMessage *message) override;
     bool GetAttachedNonStorageDeviceList(pbnjson::JValue &payload, LSMessage *message);
-    void ProcessCdcDevice(PdmNetlinkEvent* pNE);
-    bool identifyCdcDevice(PdmNetlinkEvent* pNE);
+    void ProcessCdcDevice(DeviceClass*);
+    bool identifyCdcDevice(DeviceClass*);
     bool GetAttachedNetDeviceList(pbnjson::JValue &payload, LSMessage *message);
 };
 

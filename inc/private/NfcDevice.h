@@ -1,6 +1,6 @@
 // @@@LICENSE
 //
-// Copyright (c) 2020 LG Electronics, Inc.
+// Copyright (c) 2020-2022 LG Electronics, Inc.
 //
 // Confidential computer software. Valid license from LG required for
 // possession, use or copying. Consistent with FAR 12.211 and 12.212,
@@ -15,6 +15,7 @@
 #define _nfcDevice_H_
 
 #include "Device.h"
+#include "DeviceClass.h"
 #include <functional>
 
 class nfcDeviceHandler;
@@ -30,7 +31,7 @@ public:
     NfcDevice(PdmConfig* const pConfObj, PluginAdapter* const pluginAdapter)
               : Device(pConfObj, pluginAdapter, "NFC",PdmDevAttributes::PDM_ERR_NOTHING), m_isDevAddNotified(false), m_deviceClass(""){}
     ~NfcDevice() = default;
-    void setDeviceInfo(PdmNetlinkEvent* pNE);
+    void setDeviceInfo(DeviceClass*);
     void registerCallback(handlerCb nfcDeviceHandlerCb);
 	std::string getDeviceClass(){return m_deviceClass;}
 };

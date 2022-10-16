@@ -1,6 +1,6 @@
 // @@@LICENSE
 //
-// Copyright (c) 2020-2021 LG Electronics, Inc.
+// Copyright (c) 2020-2022 LG Electronics, Inc.
 //
 // Confidential computer software. Valid license from LG required for
 // possession, use or copying. Consistent with FAR 12.211 and 12.212,
@@ -17,8 +17,8 @@
 #include "DeviceHandler.h"
 #include "AutoAndroidDevice.h"
 #include "PdmDeviceFactory.h"
-#include "PdmNetlinkEvent.h"
 #include "PdmLogUtils.h"
+#include "DeviceClass.h"
 #include <libusb.h>
 
 #define ACCESSORY_STRING_MANUFACTURER 0
@@ -59,12 +59,12 @@ private:
         return (PdmDeviceFactory::getInstance()->Register("AUTOANDROID",
                                                           &AutoAndroidDeviceHandler::CreateObject));
     }
-    bool isAOAInterface(PdmNetlinkEvent* pNE);
-    bool isAOAProductId(PdmNetlinkEvent* pNE);
+    bool isAOAInterface(DeviceClass*);
+    bool isAOAProductId(DeviceClass*);
     int startAccessoryMode();
     int getAOAPProtocol();
     void removeDevice(AutoAndroidDevice* Device);
-    bool openDevice(PdmNetlinkEvent* pNE);
+    bool openDevice(DeviceClass*);
 
 public:
     ~AutoAndroidDeviceHandler();
@@ -78,12 +78,12 @@ public:
         }
     }
 
-    bool HandlerEvent(PdmNetlinkEvent* pNE) override;
+    bool HandlerEvent(DeviceClass* deviceClass) override;
     bool HandlerCommand(CommandType *cmdtypes, CommandResponse *cmdResponse) override;
     bool HandlePluginEvent(int eventType) override;
     bool GetAttachedDeviceStatus(pbnjson::JValue &payload, LSMessage *message) override;
     bool GetAttachedNonStorageDeviceList(pbnjson::JValue &payload, LSMessage *message);
-    void ProcessAutoAndroidDevice(PdmNetlinkEvent* pNE);
+    void ProcessAutoAndroidDevice(DeviceClass*);
     void commandNotification(EventType event, AutoAndroidDevice* device);
 };
 

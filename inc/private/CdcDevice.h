@@ -1,4 +1,4 @@
-// Copyright (c) 2019 LG Electronics, Inc.
+// Copyright (c) 2019-2022 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@
 
 #include "Common.h"
 #include "Device.h"
+#include "DeviceClass.h"
 
 class CdcDevice : public Device
 {
@@ -30,8 +31,8 @@ class CdcDevice : public Device
 public:
     CdcDevice(PdmConfig* const pConfObj, PluginAdapter* const pluginAdapter);
     ~CdcDevice(){}
-    void setDeviceInfo(PdmNetlinkEvent* pNE);
-    void updateDeviceInfo(PdmNetlinkEvent* pNE);
+    void setDeviceInfo(DeviceClass*);
+    void updateDeviceInfo(DeviceClass*);
     std::string& getDuplex(){return m_duplex;}
     std::string& getDeviceAddress(){return m_address;}
     std::string& getOperstate(){return m_operstate;}

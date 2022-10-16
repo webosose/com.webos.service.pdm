@@ -1,4 +1,4 @@
-// Copyright (c) 2019 LG Electronics, Inc.
+// Copyright (c) 2019 -2022 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,20 +17,15 @@
 #include "CdcDevice.h"
 #include "Common.h"
 #include "PdmLogUtils.h"
+#include "CdcSubSystem.h"
 
 using namespace PdmDevAttributes;
 
 //USB2SERIAL
 const std::string USB2SERIAL = "USB2SERIAL";
-const std::string USB_SERIAL_SUB_TYPE = "USB_SERIAL_SUB_TYPE";
+//const std::string USB_SERIAL_SUB_TYPE = "USB_SERIAL_SUB_TYPE";
 //Modem dongle
 const std::string MODEM_DONGLE = "USBMODEM";
-//USB2ETHERNET
-const std::string NET_IFIINDEX = "NET_IFIINDEX";
-const std::string NET_LINK_MODE = "NET_LINK_MODE";
-const std::string NET_DUPLEX = "NET_DUPLEX";
-const std::string NET_ADDRESS = "NET_ADDRESS";
-const std::string NET_OPERSTATE = "NET_OPERSTATE";
 
 CdcDevice::CdcDevice(PdmConfig* const pConfObj, PluginAdapter* const pluginAdapter)
                 : Device(pConfObj, pluginAdapter, "CDC", PDM_ERR_NOTHING)
@@ -42,20 +37,21 @@ CdcDevice::CdcDevice(PdmConfig* const pConfObj, PluginAdapter* const pluginAdapt
 }
 
 
-
-void CdcDevice::setDeviceInfo(PdmNetlinkEvent* pNE)
+void CdcDevice::setDeviceInfo(DeviceClass* devClass)
 {
+    CdcSubSystem *cdcSubsystem = (CdcSubSystem *)devClass;
+
     PDM_LOG_DEBUG("CdcDevice:%s line: %d setDeviceInfo", __FUNCTION__, __LINE__);
-    if( (pNE->getDevAttribute(DEVTYPE) == USB_DEVICE) || (pNE->getDevAttribute(ID_USB_MODEM_DONGLE) == YES) ) {
-        if(!pNE->getDevAttribute(SPEED).empty())
-            m_devSpeed = getDeviceSpeed(stoi(pNE->getDevAttribute(SPEED),nullptr));
-        Device::setDeviceInfo(pNE);
-        if ("1" == pNE->getDevAttribute(ID_USB_SERIAL)){
+    if( (devClass->getDevType() == USB_DEVICE) || (cdcSubsystem->getUsbModemId() == YES) ) {
+        if(!devClass->getSpeed().empty())
+            m_devSpeed = getDeviceSpeed(stoi(devClass->getSpeed(), nullptr));
+        Device::setDeviceInfo(devClass);
+        if ("1" == cdcSubsystem->getIdUsbSerial()){
             PDM_LOG_DEBUG("CdcDevice:%s line: %d It is USB to serial device", __FUNCTION__, __LINE__);
             m_deviceType = USB2SERIAL;
-            m_deviceSubType = pNE->getDevAttribute(USB_SERIAL_SUB_TYPE);
+            m_deviceSubType = cdcSubsystem->getUsbSerialSubType();
         }
-        if((pNE->getDevAttribute(ID_USB_MODEM_DONGLE) == YES))
+        if((cdcSubsystem->getUsbModemId() == YES))
         {
             PDM_LOG_DEBUG("CdcDevice:%s line: %d It is modem dongle device", __FUNCTION__, __LINE__);
             m_deviceType = MODEM_DONGLE;
@@ -64,27 +60,28 @@ void CdcDevice::setDeviceInfo(PdmNetlinkEvent* pNE)
     }
 }
 
-void CdcDevice::updateDeviceInfo(PdmNetlinkEvent* pNE)
+void CdcDevice::updateDeviceInfo(DeviceClass* devClass)
 {
-    if((pNE->getDevAttribute(SUBSYSTEM) == "net") && (m_deviceType != MODEM_DONGLE)){
+    CdcSubSystem *cdcSubsystem = (CdcSubSystem *)devClass;
+    if((devClass->getSubsystemName()== "net") && (m_deviceType != MODEM_DONGLE)){
         PDM_LOG_DEBUG("CdcDevice:%s line: %d It is Net device", __FUNCTION__, __LINE__);
-        if(!(pNE->getDevAttribute(ID_USB_DRIVER).empty()))
-            m_deviceSubType = pNE->getDevAttribute(ID_USB_DRIVER);
+        if(!(devClass->getUsbDriver().empty()))
+            m_deviceSubType = devClass->getUsbDriver();
 
-        if(!(pNE->getDevAttribute(NET_IFIINDEX).empty()))
-            m_ifindex = pNE->getDevAttribute(NET_IFIINDEX);
+        if(!(cdcSubsystem->getNetIfIndex().empty()))
+            m_ifindex = cdcSubsystem->getNetIfIndex();
 
-        if(!(pNE->getDevAttribute(NET_LINK_MODE).empty()))
-            m_linkMode = pNE->getDevAttribute(NET_LINK_MODE);
+        if(!(cdcSubsystem->getNetLinkMode().empty()))
+            m_linkMode = cdcSubsystem->getNetLinkMode();
 
-        if(!(pNE->getDevAttribute(NET_DUPLEX).empty()))
-            m_duplex = pNE->getDevAttribute(NET_DUPLEX);
+        if(!(cdcSubsystem->getNetDuplex().empty()))
+            m_duplex = cdcSubsystem->getNetDuplex();
 
-        if(!(pNE->getDevAttribute(NET_ADDRESS).empty()))
-            m_address = pNE->getDevAttribute(NET_ADDRESS);
+        if(!(cdcSubsystem->getNetAddress().empty()))
+            m_address = cdcSubsystem->getNetAddress();
 
-        if(!(pNE->getDevAttribute(NET_OPERSTATE).empty()))
-            m_operstate = pNE->getDevAttribute(NET_OPERSTATE);
+        if(!(cdcSubsystem->getNetOperState().empty()))
+            m_operstate = cdcSubsystem->getNetOperState();
 
          m_isToastRequired = false;
     }

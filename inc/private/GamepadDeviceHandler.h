@@ -1,4 +1,4 @@
-// Copyright (c) 2019-2020 LG Electronics, Inc.
+// Copyright (c) 2019-2022 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@
 #include "GamepadDevice.h"
 #include "PdmDeviceFactory.h"
 #include "PdmLogUtils.h"
-#include "PdmNetlinkEvent.h"
+#include "DeviceClass.h"
 
 class GamepadDeviceHandler : public DeviceHandler
 {
@@ -48,11 +48,11 @@ public:
             return nullptr;
         }
     }
-    bool HandlerEvent(PdmNetlinkEvent* pNE) override;
+    bool HandlerEvent(DeviceClass*) override;
     bool HandlerCommand(CommandType *cmdtypes, CommandResponse *cmdResponse) override;
     bool GetAttachedDeviceStatus(pbnjson::JValue &payload, LSMessage *message) override;
     bool GetAttachedNonStorageDeviceList(pbnjson::JValue &payload, LSMessage *message);
-    void ProcessGamepadDevice(PdmNetlinkEvent* pNE);
+    void ProcessGamepadDevice(DeviceClass*);
 };
 
 #endif // GAMEPADDEVICEHANDLER_H

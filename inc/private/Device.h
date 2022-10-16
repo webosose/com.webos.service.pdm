@@ -1,4 +1,4 @@
-// Copyright (c) 2019-2021 LG Electronics, Inc.
+// Copyright (c) 2019-2022 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -22,8 +22,8 @@
 #include "Common.h"
 #include "IDevice.h"
 #include "PdmConfig.h"
-#include "PdmNetlinkEvent.h"
 #include "PluginAdapter.h"
+#include "DeviceClass.h"
 
 enum DeviceSpeed { FULL = 12, HIGH = 480, SUPER = 5000};
 
@@ -94,7 +94,7 @@ public:
     virtual bool isConnectedToPower(){return m_isPowerOnConnect;}
     virtual bool canDisplayToast(){return m_isToastRequired;}
     virtual std::string getDeviceSpeed(int speed)const;
-    void setDeviceInfo(PdmNetlinkEvent* pNE);
+    void setDeviceInfo(DeviceClass* deviceClass);
     void setProductName(const std::string& productName){m_productName = productName;}
     void onDeviceRemove(){}
     virtual int getPortSpeed(){return m_usbPortSpeed;}

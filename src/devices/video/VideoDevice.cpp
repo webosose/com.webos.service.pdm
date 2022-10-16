@@ -1,4 +1,4 @@
-// Copyright (c) 2019-2021 LG Electronics, Inc.
+// Copyright (c) 2019-2022 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,6 +17,8 @@
 #include "VideoDevice.h"
 #include "Common.h"
 #include "PdmLogUtils.h"
+#include "DeviceClass.h"
+#include "VideoSubsystem.h"
 
 using namespace PdmDevAttributes;
 
@@ -40,50 +42,51 @@ VideoDevice::~VideoDevice() {
     mSubDeviceList.clear();
 }
 
-void VideoDevice::setDeviceInfo(PdmNetlinkEvent* pNE, bool isCameraReady)
+void VideoDevice::setDeviceInfo(DeviceClass* devClassPtr, bool isCameraReady)
 {
-    PDM_LOG_DEBUG("VideoDevice:%s line: %d setDeviceInfo", __FUNCTION__, __LINE__);
-    if(pNE->getDevAttribute(ACTION) == DEVICE_ADD ) {
+    if(devClassPtr->getAction() == DEVICE_ADD ) {
         PDM_LOG_DEBUG("VideoDevice:%s line: %d setDeviceInfo: DEVICE_ADD", __FUNCTION__, __LINE__);
-        if(!pNE->getDevAttribute(SPEED).empty()) {
-            m_devSpeed = getDeviceSpeed(stoi(pNE->getDevAttribute(SPEED),nullptr));
+        if(!devClassPtr->getSpeed().empty()) {
+            m_devSpeed = getDeviceSpeed(stoi(devClassPtr->getSpeed(), nullptr));
         }
         if(!isCameraReady) {
             m_deviceType = DEV_TYPE_UNKNOWN;
         }
-        Device::setDeviceInfo(pNE);
+        Device::setDeviceInfo(devClassPtr);
     }
 }
 
-void VideoDevice::updateDeviceInfo(PdmNetlinkEvent* pNE)
+void VideoDevice::updateDeviceInfo(DeviceClass* devClassPtr)
 {
+	VideoSubsystem* videoSubSystem = (VideoSubsystem*)devClassPtr;
+
 #ifdef WEBOS_SESSION
-    if (!pNE->getDevAttribute(DEVNAME).empty()) {
+    if (!devClassPtr->getDevName().empty()) {
         std::string devPath = "/dev/";
-        m_devPath = devPath.append(pNE->getDevAttribute(DEVNAME));
+        m_devPath = devPath.append(devClassPtr->getDevName());
     }
 #endif
-    if (pNE->getDevAttribute(SUBSYSTEM) ==  "video4linux" && pNE->getDevAttribute(ID_V4L_CAPABILITIES) ==  ":capture:") {
-        if(!pNE->getDevAttribute(SUBSYSTEM).empty())
-            m_subSystem = pNE->getDevAttribute(SUBSYSTEM);
+    if (devClassPtr->getSubsystemName() ==  "video4linux" && videoSubSystem->getCapabilities().find(":capture:") !=  std::string::npos) {
+        if(!devClassPtr->getSubsystemName().empty())
+            m_subSystem = devClassPtr->getSubsystemName();
 
-        if(!pNE->getDevAttribute(ID_USB_DRIVER).empty())
-            m_deviceSubType = pNE->getDevAttribute(ID_USB_DRIVER);
+        if(!devClassPtr->getUsbDriver().empty())
+            m_deviceSubType = devClassPtr->getUsbDriver();
 
-        if (!pNE->getDevAttribute(DEVNAME).empty()) {
+        if (!devClassPtr->getDevName().empty()) {
             std::string cam_path = "/dev/";
-            m_kernel = cam_path.append(pNE->getDevAttribute(DEVNAME));
+            m_kernel = cam_path.append(devClassPtr->getDevName());
         }
 
-        VideoSubDevice* subDevice = getSubDevice("/dev/"+pNE->getDevAttribute(DEVNAME));
-        switch (sMapDeviceActions[pNE->getDevAttribute(ACTION)]) {
+        VideoSubDevice* subDevice = getSubDevice("/dev/" + devClassPtr->getDevName());
+        switch (sMapDeviceActions[devClassPtr->getAction()]) {
             case DeviceActions::USB_DEV_ADD:
-                if (!pNE->getDevAttribute(DEVNAME).empty()) {
+                if (!devClassPtr->getDevName().empty()) {
                     if (subDevice) {
-                        subDevice->updateInfo(pNE->getDevAttribute(DEVNAME), pNE->getDevAttribute(ID_V4L_CAPABILITIES), pNE->getDevAttribute(ID_V4L_PRODUCT), pNE->getDevAttribute(ID_V4L_VERSION));
+                        subDevice->updateInfo(devClassPtr->getDevName(), videoSubSystem->getCapabilities(), videoSubSystem->getProductName(), videoSubSystem->getVersion());
                     }
                     else {
-                        subDevice = new (std::nothrow) VideoSubDevice(pNE->getDevAttribute(DEVNAME), pNE->getDevAttribute(ID_V4L_CAPABILITIES), pNE->getDevAttribute(ID_V4L_PRODUCT), pNE->getDevAttribute(ID_V4L_VERSION));
+                        subDevice = new (std::nothrow) VideoSubDevice(devClassPtr->getDevName(), videoSubSystem->getCapabilities(), videoSubSystem->getProductName(), videoSubSystem->getVersion());
                         if (!subDevice) {
                             PDM_LOG_CRITICAL("VideoDevice:%s line: %d Not able to create the sub device", __FUNCTION__, __LINE__);
                             return;

@@ -1,4 +1,4 @@
-// Copyright (c) 2019 LG Electronics, Inc.
+// Copyright (c) 2019-2022 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,8 +18,8 @@
 #define _PDMNETLINKHANDLER_H
 
 #include "CommandManager.h"
-#include "PdmNetlinkEvent.h"
 #include "PdmNetlinkListener.h"
+#include "DeviceClass.h"
 
 class PdmNetlinkHandler: public PdmNetlinkListener
 {
@@ -31,7 +31,7 @@ public:
     bool start();
     bool stop();
 protected:
-    void onEvent(PdmNetlinkEvent *event) override;
+    void onEvent(DeviceClass *deviceClassEvent) override;
 };
 
 #endif //_PDMNETLINKMANAGER_H

@@ -21,6 +21,7 @@
 #include "Device.h"
 #include <functional>
 #include <list>
+#include "DeviceClass.h"
 
 class SoundSubDevice {
 private:
@@ -51,8 +52,8 @@ class SoundDevice : public Device
 public:
     SoundDevice(PdmConfig* const pConfObj, PluginAdapter* const pluginAdapter);
     ~SoundDevice() = default;
-    void setDeviceInfo(PdmNetlinkEvent* pNE);
-    void updateDeviceInfo(PdmNetlinkEvent* pNE);
+    void setDeviceInfo(DeviceClass* devClass);
+    void updateDeviceInfo(DeviceClass* devClass);
     std::string getCardName(){ return m_soundDeviceName;}
     std::string getCardId(){ return m_cardId;}
     int getCardNumber(){ return m_cardNumber;}

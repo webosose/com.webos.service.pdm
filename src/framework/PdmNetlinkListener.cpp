@@ -1,4 +1,4 @@
-// Copyright (c) 2019-2020 LG Electronics, Inc.
+// Copyright (c) 2019-2022 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -23,8 +23,8 @@
 #include <thread>
 
 #include "PdmNetlinkListener.h"
-#include "PdmNetlinkEvent.h"
 #include "PdmLogUtils.h"
+#include "PdmNetlinkClassAdapter.h"
 
 #define memzero(x,l) (std::memset((x), 0, (l)))
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
@@ -64,7 +64,6 @@ bool PdmNetlinkListener::stopListener(){
 /*  To get the new udev instances
 */
 void PdmNetlinkListener::init(){
-
     udev = udev_new();
     if (!udev) {
         fprintf(stderr, "udev_new() failed\n");
@@ -77,7 +76,6 @@ void PdmNetlinkListener::init(){
 
 void PdmNetlinkListener::enumerate_devices(struct udev* udev)
 {
-
     struct udev_enumerate* enumerate = udev_enumerate_new(udev);
 
     udev_enumerate_add_match_subsystem(enumerate, SUBSYSTEM);
@@ -90,7 +88,6 @@ void PdmNetlinkListener::enumerate_devices(struct udev* udev)
     udev_enumerate_add_match_subsystem(enumerate, "rfkill");
 
     udev_enumerate_scan_devices(enumerate);
-
     struct udev_list_entry* devices = udev_enumerate_get_list_entry(enumerate);
     struct udev_list_entry* entry;
 
@@ -98,9 +95,7 @@ void PdmNetlinkListener::enumerate_devices(struct udev* udev)
         const char* path = udev_list_entry_get_name(entry);
         struct udev_device* device = udev_device_new_from_syspath(udev, path);
         if (device != NULL) {
-            PdmNetlinkEvent *pNE = new PdmNetlinkEvent;
-            pNE->pdmParser(device, true);
-            onEvent(pNE);
+            PdmNetlinkClassAdapter::getInstance().handleEvent(device, true);
         }
         udev_device_unref(device);
     }
@@ -109,7 +104,6 @@ void PdmNetlinkListener::enumerate_devices(struct udev* udev)
 }
 
 void PdmNetlinkListener::threadStart(){
-
     struct udev_monitor* monitor = NULL;
     int fd_ep;
     int fd_udev = -1;
@@ -161,17 +155,7 @@ void PdmNetlinkListener::threadStart(){
     for (int i = 0; i < fdcount; i++) {
         if (ev[i].data.fd == fd_udev && ev[i].events & EPOLLIN) {
             device = udev_monitor_receive_device(monitor);
-            if (device == NULL) {
-                PDM_LOG_WARNING("PdmNetlinkListener: %s line: %d no device from socket", __FUNCTION__, __LINE__);
-                continue;
-            }
-            PdmNetlinkEvent *pNE = new (std::nothrow) PdmNetlinkEvent;
-            if(pNE){
-                pNE->pdmParser(device, false);
-                onEvent(pNE);
-            } else {
-                PDM_LOG_ERROR("PdmNetlinkListener: %s line: %d memory failure for PdmNetlinkEvent",__FUNCTION__, __LINE__);
-            }
+			PdmNetlinkClassAdapter::getInstance().handleEvent(device, false);
             udev_device_unref(device);
             }
         }

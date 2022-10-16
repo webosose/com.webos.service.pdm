@@ -1,4 +1,4 @@
-// Copyright (c) 2019-2020 LG Electronics, Inc.
+// Copyright (c) 2019-2022 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 #include "BluetoothDeviceHandler.h"
 #include "PdmJson.h"
+#include "BluetoothSubSystem.h"
 
 using namespace PdmDevAttributes;
 
@@ -38,21 +39,23 @@ BluetoothDeviceHandler::~BluetoothDeviceHandler()
     }
 }
 
-bool BluetoothDeviceHandler::HandlerEvent(PdmNetlinkEvent* pNE){
+bool BluetoothDeviceHandler::HandlerEvent(DeviceClass* devClass){
+    BluetoothSubSystem* bluetoothSubsystem = (BluetoothSubSystem*)devClass;
+
     bool btDeviceProcessed = false;
     PDM_LOG_DEBUG("BluetoothDeviceHandler:%s line: %d", __FUNCTION__, __LINE__);
-   if (pNE->getDevAttribute(ACTION) == "remove")
+   if (devClass->getAction() == "remove")
     {
-      ProcessBluetoothDevice(pNE);
+      ProcessBluetoothDevice(devClass);
       return btDeviceProcessed;
     }
 #ifdef WEBOS_SESSION
-    if((pNE->getDevAttribute(ID_BLUETOOTH) == "1") || ((pNE->getDevAttribute(SUBSYSTEM) == "rfkill") && (pNE->getDevAttribute(RFKILL_NAME).find("hci") != std::string::npos)))
+    if((bluetoothSubsystem->getBluetoothId() == "1") || ((devClass->getSubsystemName() == "rfkill") && (devClass->getRfKillName().find("hci") != std::string::npos)))
 #else
-    if(pNE->getDevAttribute(ID_BLUETOOTH) == "1")
+    if(bluetoothSubsystem->getBluetoothId() == "1")
 #endif
     {
-      ProcessBluetoothDevice(pNE);
+      ProcessBluetoothDevice(devClass);
       btDeviceProcessed = true;
     }
     return btDeviceProcessed;
@@ -66,33 +69,33 @@ void BluetoothDeviceHandler::removeDevice(BluetoothDevice* bluetoothDevice)
     bluetoothDevice = nullptr;
 }
 
-void BluetoothDeviceHandler::ProcessBluetoothDevice(PdmNetlinkEvent* pNE){
+void BluetoothDeviceHandler::ProcessBluetoothDevice(DeviceClass* devClass){
     BluetoothDevice *bluetoothDevice = nullptr;
-    std::string deviceAction = pNE->getDevAttribute(ACTION);
-    std::string deviceType = pNE->getDevAttribute(DEVTYPE);
-    std::string devicePath = pNE->getDevAttribute(DEVPATH);
-    PDM_LOG_INFO("BluetoothDeviceHandler:",0,"%s line: %d DEVTYPE: %s ACTION: %s", __FUNCTION__,__LINE__,deviceType.c_str(),deviceAction.c_str());
+    std::string deviceAction = devClass->getAction();
+    std::string deviceType = devClass->getDevType();
+    std::string devicePath = devClass->getDevPath();
+    PDM_LOG_INFO("BluetoothDeviceHandler:",0,"%s line: %d DEVTYPE: %s ACTION: %s", __FUNCTION__,__LINE__, deviceType.c_str(), deviceAction.c_str());
  try {
-        switch(sMapDeviceActions.at(pNE->getDevAttribute(ACTION)))
+        switch(sMapDeviceActions.at(devClass->getAction()))
         {
             case DeviceActions::USB_DEV_ADD:
             bluetoothDevice = getDeviceWithPath< BluetoothDevice >(sList,devicePath);
             if(bluetoothDevice){
 #ifdef WEBOS_SESSION
-                PDM_LOG_DEBUG("BluetoothDeviceHandler:%s line: %d ACTION: DEVICE_ADD. Already present SUBSYSTEM: %s", __FUNCTION__, __LINE__, pNE->getDevAttribute(SUBSYSTEM).c_str());
-                if (pNE->getDevAttribute(SUBSYSTEM) == "rfkill")
+                PDM_LOG_DEBUG("BluetoothDeviceHandler:%s line: %d ACTION: DEVICE_ADD. Already present SUBSYSTEM: %s", __FUNCTION__, __LINE__, devClass->getSubsystemName().c_str());
+                if (devClass->getSubsystemName() == "rfkill")
                 {
-                    bluetoothDevice->updateDeviceInfo(pNE);
+                    bluetoothDevice->updateDeviceInfo(devClass);
                     Notify(BLUETOOTH_DEVICE,ADD, bluetoothDevice);
                 }
 #else
                 PDM_LOG_DEBUG("BluetoothDeviceHandler:%s line: %d ACTION: DEVICE_ADD. Already present", __FUNCTION__, __LINE__);
-                bluetoothDevice->setDeviceInfo(pNE);
+                bluetoothDevice->setDeviceInfo(devClass);
 #endif
             } else {
                 bluetoothDevice = new(std::nothrow) BluetoothDevice(m_pConfObj, m_pluginAdapter);
                 if(bluetoothDevice){
-                    bluetoothDevice->setDeviceInfo(pNE);
+                    bluetoothDevice->setDeviceInfo(devClass);
                     sList.push_back(bluetoothDevice);
 #ifndef WEBOS_SESSION
                     Notify(BLUETOOTH_DEVICE,ADD);

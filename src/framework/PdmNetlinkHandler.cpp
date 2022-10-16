@@ -1,4 +1,4 @@
-// Copyright (c) 2019 LG Electronics, Inc.
+// Copyright (c) 2019-2022 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 
 #include "PdmNetlinkHandler.h"
 #include "DeviceManager.h"
-#include "PdmLogUtils.h"
 #include "PdmNetLinkCommand.h"
 
 PdmNetlinkHandler::PdmNetlinkHandler(CommandManager *cmdManager)
@@ -31,17 +30,19 @@ PdmNetlinkHandler::~PdmNetlinkHandler()
 
 bool PdmNetlinkHandler::start()
 {
+    PDM_LOG_DEBUG("PdmNetlinkHandler:%s line: %d", __FUNCTION__, __LINE__);
     return this->startListener();
 }
 
 bool PdmNetlinkHandler::stop()
 {
+    PDM_LOG_DEBUG("PdmNetlinkHandler:%s line: %d", __FUNCTION__, __LINE__);
     return this->stopListener();
 }
 
-void PdmNetlinkHandler::onEvent(PdmNetlinkEvent *event)
+void PdmNetlinkHandler::onEvent(DeviceClass *deviceClassEvent)
 {
-    PdmNetLinkCommand *netLinkCmd = new (std::nothrow) PdmNetLinkCommand(event);
+    PdmNetLinkCommand *netLinkCmd = new (std::nothrow) PdmNetLinkCommand(deviceClassEvent);
     if(netLinkCmd)
         m_commandManager->sendCommand(netLinkCmd);
 }

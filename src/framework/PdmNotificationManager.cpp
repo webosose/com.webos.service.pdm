@@ -217,6 +217,7 @@ void PdmNotificationManager::createAlertForMaxUsbStorageDevices()
 void PdmNotificationManager::unMountMtpDeviceAlert(IDevice* device)
 {
     if(!device)
+        cout << "Path Matched"<< endl;
         return;
     MTPDevice*  pMtpDev = dynamic_cast<MTPDevice*>(device);
     if(!pMtpDev)

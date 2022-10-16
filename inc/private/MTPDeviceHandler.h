@@ -1,4 +1,4 @@
-// Copyright (c) 2019 LG Electronics, Inc.
+// Copyright (c) 2019-2022 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,8 +21,8 @@
 #include "DeviceHandler.h"
 #include "MTPDevice.h"
 #include "PdmDeviceFactory.h"
-#include "PdmNetlinkEvent.h"
 #include "PdmLogUtils.h"
+#include "DeviceClass.h"
 
 class MTPDeviceHandler : public DeviceHandler
 {
@@ -49,12 +49,12 @@ public:
             return new MTPDeviceHandler(pConfObj, pluginAdapter);
         return nullptr;
     }
-    bool HandlerEvent(PdmNetlinkEvent* pNE) override;
+    bool HandlerEvent(DeviceClass* deviceClass) override;
     bool HandlerCommand(CommandType *cmdtypes, CommandResponse *cmdResponse) override;
     bool HandlePluginEvent(int eventType) override;
     bool GetAttachedDeviceStatus(pbnjson::JValue &payload, LSMessage *message) override;
     bool GetAttachedStorageDeviceList (pbnjson::JValue &payload, LSMessage *message);
-    void ProcessMTPDevice(PdmNetlinkEvent* pNE);
+    void ProcessMTPDevice(DeviceClass*);
     void commandNotification(EventType event, MTPDevice* device);
 };
 #endif //MTPDEVICEHANDLER_H

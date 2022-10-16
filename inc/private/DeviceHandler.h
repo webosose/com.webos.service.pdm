@@ -1,4 +1,4 @@
-// Copyright (c) 2019 LG Electronics, Inc.
+// Copyright (c) 2019-2022 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -27,8 +27,8 @@
 #include "PdmLunaHandler.h"
 #include "PluginAdapter.h"
 #include "CommandTypes.h"
-
-class PdmNetlinkEvent;
+#include "DeviceClass.h"
+#include "PdmLogUtils.h"
 
 class DeviceHandler: public DeviceStateObserver {
 protected:
@@ -42,7 +42,7 @@ public:
         lunaHandler = PdmLunaHandler::getInstance();
     }
     virtual ~DeviceHandler(){}
-    virtual bool HandlerEvent(PdmNetlinkEvent* event) = 0;
+    virtual bool HandlerEvent(DeviceClass* deviceClass) = 0;
     virtual bool HandlerCommand(CommandType *cmdtypes, CommandResponse *cmdResponse) = 0;
     virtual bool GetAttachedDeviceStatus(pbnjson::JValue &payload, LSMessage *message) = 0;
     virtual bool HandlePluginEvent(int eventType);

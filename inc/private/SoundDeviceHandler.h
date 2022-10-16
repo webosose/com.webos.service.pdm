@@ -20,10 +20,9 @@
 #include "DeviceHandler.h"
 #include "SoundDevice.h"
 #include "PdmDeviceFactory.h"
-#include "PdmNetlinkEvent.h"
 #include "PdmLogUtils.h"
 #include "Common.h"
-
+#include "DeviceClass.h"
 
 class SoundDeviceHandler : public DeviceHandler
 {
@@ -42,7 +41,7 @@ private:
     }
 
     void removeDevice(SoundDevice* hdl);
-    bool isSoundDevice(PdmNetlinkEvent* pNE);
+    bool isSoundDevice(DeviceClass* deviceClass);
 
 public:
     virtual ~SoundDeviceHandler();
@@ -56,14 +55,14 @@ public:
         }
     }
 
-    bool HandlerEvent(PdmNetlinkEvent* pNE) override;
+    bool HandlerEvent(DeviceClass* deviceClass) override;
     bool HandlerCommand(CommandType *cmdtypes, CommandResponse *cmdResponse) override;
     bool HandlePluginEvent(int eventType);
     bool GetAttachedDeviceStatus(pbnjson::JValue &payload, LSMessage *message) override;
     bool GetAttachedNonStorageDeviceList(pbnjson::JValue &payload, LSMessage *message);
     bool GetAttachedAudioDeviceList(pbnjson::JValue &payload, LSMessage *message);
     bool GetAttachedAudioSubDeviceList(pbnjson::JValue &payload, LSMessage *message);
-    void ProcessSoundDevice(PdmNetlinkEvent* pNE);
+    void ProcessSoundDevice(DeviceClass* deviceClass);
 };
 
 #endif // SOUNDDEVICEHANDLER_H

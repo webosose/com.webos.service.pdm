@@ -1,4 +1,4 @@
-// Copyright (c) 2019-2020 LG Electronics, Inc.
+// Copyright (c) 2019-2022 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,24 +19,24 @@
 
 using namespace PdmDevAttributes;
 
-void BluetoothDevice::setDeviceInfo(PdmNetlinkEvent* pNE)
+void BluetoothDevice::setDeviceInfo(DeviceClass* devClass)
 {
     PDM_LOG_DEBUG("BluetoothDevice:%s line: %d setDeviceInfo", __FUNCTION__, __LINE__);
-    if(pNE->getDevAttribute(ACTION) == DEVICE_ADD ){
+    if(devClass->getAction() == DEVICE_ADD ){
         PDM_LOG_DEBUG("BluetoothDevice:%s line: %d setDeviceInfo: DEVICE_ADD", __FUNCTION__, __LINE__);
-        if(!pNE->getDevAttribute(SPEED).empty())
-            m_devSpeed = getDeviceSpeed(stoi(pNE->getDevAttribute(SPEED),nullptr));
-        Device::setDeviceInfo(pNE);
+        if(!devClass->getSpeed().empty())
+            m_devSpeed = getDeviceSpeed(stoi(devClass->getSpeed(), nullptr));
+        Device::setDeviceInfo(devClass);
         /*m_deviceSubType will be modified once  requirement will be clear*/
-        m_deviceSubType = pNE->getDevAttribute(ID_MODEL);
+        m_deviceSubType = devClass->getIdModel();
     }
 }
 
 #ifdef WEBOS_SESSION
-void BluetoothDevice::updateDeviceInfo(PdmNetlinkEvent* pNE)
+void BluetoothDevice::updateDeviceInfo(DeviceClass *devClass)
 {
     PDM_LOG_DEBUG("BluetoothDevice:%s line: %d updateDeviceInfo", __FUNCTION__, __LINE__);
-    m_deviceName = pNE->getDevAttribute(RFKILL_NAME);
+    m_deviceName = devClass->getRfKillName();
     PDM_LOG_DEBUG("BluetoothDevice:%s line: %d m_deviceName: %s", __FUNCTION__, __LINE__, m_deviceName.c_str());
 }
 #endif

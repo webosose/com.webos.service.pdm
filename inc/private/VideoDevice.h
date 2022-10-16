@@ -1,4 +1,4 @@
-// Copyright (c) 2019-2021 LG Electronics, Inc.
+// Copyright (c) 2019-2022 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,13 +17,10 @@
 #ifndef _VIDEODEVICE_H_
 #define _VIDEODEVICE_H_
 
-#include "Device.h"
 #include <functional>
 #include <list>
-
-const std::string ID_V4L_CAPABILITIES  =  "ID_V4L_CAPABILITIES";
-const std::string ID_V4L_PRODUCT  =  "ID_V4L_PRODUCT";
-const std::string ID_V4L_VERSION  =  "ID_V4L_VERSION";
+#include "Device.h"
+#include "DeviceClass.h"
 
 class VideoDeviceHandler;
 class VideoSubDevice {
@@ -57,8 +54,8 @@ class VideoDevice : public Device
 public:
     VideoDevice(PdmConfig* const pConfObj, PluginAdapter* const pluginAdapter);
     ~VideoDevice();
-    void setDeviceInfo(PdmNetlinkEvent* pNE, bool isCameraReady);
-    void updateDeviceInfo(PdmNetlinkEvent* pNE);
+	void setDeviceInfo(DeviceClass*, bool);
+    void updateDeviceInfo(DeviceClass*);
     std::string getSubsystem() {return m_subSystem;}
     std::string getKernel(){return m_kernel;}
     std::list<VideoSubDevice*> getSubDeviceList() const {return mSubDeviceList;}

@@ -1,4 +1,4 @@
-// Copyright (c) 2019-2021 LG Electronics, Inc.
+// Copyright (c) 2019-2022 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,8 +20,8 @@
 #include "DeviceHandler.h"
 #include "VideoDevice.h"
 #include "PdmDeviceFactory.h"
-#include "PdmNetlinkEvent.h"
 #include "PdmLogUtils.h"
+#include "DeviceClass.h"
 
 class VideoDeviceHandler : public DeviceHandler
 {
@@ -40,7 +40,7 @@ private:
                                                           &VideoDeviceHandler::CreateObject));
     }
 
-    void removeDevice(VideoDevice* hdl);
+    void removeDevice(VideoDevice* videoDevice);
 
 public:
     ~VideoDeviceHandler();
@@ -54,12 +54,12 @@ public:
         }
     }
 
-    bool HandlerEvent(PdmNetlinkEvent* pNE) override;
+    bool HandlerEvent(DeviceClass*) override;
     bool HandlerCommand(CommandType *cmdtypes, CommandResponse *cmdResponse) override;
     bool HandlePluginEvent(int eventType) override;
     bool GetAttachedDeviceStatus(pbnjson::JValue &payload, LSMessage *message) override;
     bool GetAttachedNonStorageDeviceList(pbnjson::JValue &payload, LSMessage *message);
-    void ProcessVideoDevice(PdmNetlinkEvent* pNE);
+    void ProcessVideoDevice(DeviceClass*);
     bool GetAttachedVideoDeviceList(pbnjson::JValue &payload, LSMessage *message);
     bool GetAttachedVideoSubDeviceList(pbnjson::JValue &payload, LSMessage *message);
 };

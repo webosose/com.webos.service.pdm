@@ -521,7 +521,6 @@ bool PdmLunaService::cbGetAttachedNonStorageDeviceList(LSHandle *sh, LSMessage *
                 event = PDM_EVENT_AUDIO_DEVICES;
             }
         }
-
         subscribed = subscriptionAdd(sh, event, message);
     }
     payload.put("returnValue", subscribed);

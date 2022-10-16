@@ -1,4 +1,4 @@
-// Copyright (c) 2019-2021 LG Electronics, Inc.
+// Copyright (c) 2019-2022 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,9 +19,9 @@
 
 #include "DeviceHandler.h"
 #include "PdmDeviceFactory.h"
-#include "PdmNetlinkEvent.h"
 #include "StorageDevice.h"
 #include "PdmLogUtils.h"
+#include "DeviceClass.h"
 #include <mutex>
 #include <condition_variable>
 #include <thread>
@@ -49,10 +49,11 @@ private:
                                               &StorageDeviceHandler::CreateObject));
     }
     void removeDevice(StorageDevice *storageDevice);
-    bool deleteStorageDevice(PdmNetlinkEvent* pNE);
-    void ProcessStorageDevice(PdmNetlinkEvent* pNE);
-    void checkStorageDevice(PdmNetlinkEvent* pNE);
-    void createStorageDevice(PdmNetlinkEvent* pNE, IDevice *device);
+	bool deleteStorageDevice(DeviceClass*);
+	void ProcessStorageDevice(DeviceClass*);
+	void checkStorageDevice(DeviceClass*);
+	void createStorageDevice(DeviceClass*, IDevice*);
+
     bool format(CommandType *cmdtypes, CommandResponse *cmdResponse);
     bool eject(CommandType *cmdtypes, CommandResponse *cmdResponse);
     bool fsck(CommandType *cmdtypes, CommandResponse *cmdResponse);
@@ -61,7 +62,7 @@ private:
     bool isWritableDrive(CommandType *cmdtypes, CommandResponse *cmdResponse);
     bool mountFsck(CommandType *cmdtypes, CommandResponse *cmdResponse);
     bool getSpaceInfo (CommandType *cmdtypes, CommandResponse *cmdResponse);
-    bool isStorageDevice(PdmNetlinkEvent* pNE);
+    bool isStorageDevice(DeviceClass*);
     bool umountAllDrive(bool lazyUnmount);
     void suspendRequest();
     void resumeRequest(const int &eventType);
@@ -75,7 +76,7 @@ public:
             return new StorageDeviceHandler(pConfObj,pluginAdapter);
         return nullptr;
     }
-    bool HandlerEvent(PdmNetlinkEvent* pNE) override;
+    bool HandlerEvent(DeviceClass* deviceClass) override;
     bool HandlerCommand(CommandType *cmdtypes, CommandResponse *cmdResponse) override;
     bool GetAttachedDeviceStatus(pbnjson::JValue &payload, LSMessage *message) override;
     bool HandlePluginEvent(int eventType) override;

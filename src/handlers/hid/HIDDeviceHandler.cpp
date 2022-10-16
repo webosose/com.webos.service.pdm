@@ -32,32 +32,29 @@ HIDDeviceHandler::HIDDeviceHandler(PdmConfig* const pConfObj, PluginAdapter* con
 HIDDeviceHandler::~HIDDeviceHandler() {
 }
 
-bool HIDDeviceHandler::HandlerEvent(PdmNetlinkEvent* pNE){
-
-    PDM_LOG_DEBUG("HIDDeviceHandler::HandlerEvent");
-    if (pNE->getDevAttribute(ACTION) == "remove")
+bool HIDDeviceHandler::HandlerEvent(DeviceClass* devClass)
+{
+    if (devClass->getAction()== "remove")
     {
         m_deviceRemoved = false;
-        ProcessHIDDevice(pNE);
+        ProcessHIDDevice(devClass);
         if(m_deviceRemoved) {
-            PDM_LOG_DEBUG("HIDDeviceHandler:%s line: %d  DEVTYPE=usb_device removed", __FUNCTION__, __LINE__);
             return true;
         }
     }
 
-    std::string interfaceClass = pNE->getInterfaceClass();
+    std::string interfaceClass = devClass->getInterfaceClass();
     if(interfaceClass.find(iClass) == std::string::npos)
         return false;
-    if(pNE->getDevAttribute(DEVTYPE) ==  USB_DEVICE){
-        ProcessHIDDevice(pNE);
+    if(devClass->getDevType()==  USB_DEVICE){
+        ProcessHIDDevice(devClass);
         return false;
     }
-    else if(pNE->getDevAttribute(SUBSYSTEM) ==  "input" && interfaceClass.find(iClass) != std::string::npos) {
-        ProcessHIDDevice(pNE);
+    else if(devClass->getSubsystemName()==  "input" && interfaceClass.find(iClass) != std::string::npos) {
+        ProcessHIDDevice(devClass);
         return true;
     }
     return false;
-
 }
 
 void HIDDeviceHandler::removeDevice(HIDDevice* hidDevice)
@@ -65,48 +62,47 @@ void HIDDeviceHandler::removeDevice(HIDDevice* hidDevice)
     if(!hidDevice)
         return;
     sList.remove(hidDevice);
-
     Notify(HID_DEVICE,REMOVE,hidDevice);
-
     delete hidDevice;
     hidDevice = nullptr;
 
 }
 
-void HIDDeviceHandler::ProcessHIDDevice(PdmNetlinkEvent* pNE){
+void HIDDeviceHandler::ProcessHIDDevice(DeviceClass* devClass){
     HIDDevice *hidDevice;
-    PDM_LOG_INFO("HIDDeviceHandler:",0,"%s line: %d DEVTYPE: %s ACTION: %s", __FUNCTION__,__LINE__,pNE->getDevAttribute(DEVTYPE).c_str(),pNE->getDevAttribute(ACTION).c_str());
-
    try {
-            switch(sMapDeviceActions.at(pNE->getDevAttribute(ACTION)))
+            switch(sMapDeviceActions.at(devClass->getAction()))
             {
                 case DeviceActions::USB_DEV_ADD:
-                    hidDevice = getDeviceWithPath< HIDDevice >(sList,pNE->getDevAttribute(DEVPATH));
+                    hidDevice = getDeviceWithPath< HIDDevice >(sList, devClass->getDevPath());
+                    
                     if(!hidDevice)
                     {
                         hidDevice = new (std::nothrow) HIDDevice(m_pConfObj, m_pluginAdapter);
                         if(!hidDevice)
                             break;
-                        hidDevice->setDeviceInfo(pNE);
+                        hidDevice->setDeviceInfo(devClass);
                         hidDevice->registerCallback(std::bind(&HIDDeviceHandler::commandNotification, this, _1, _2));
                         sList.push_back(hidDevice);
-                    }else
-                        hidDevice->setDeviceInfo(pNE);
+                    }else {
+                        hidDevice->setDeviceInfo(devClass);
+                    }
                     break;
                 case DeviceActions::USB_DEV_REMOVE:
-                    hidDevice = getDeviceWithPath< HIDDevice >(sList,pNE->getDevAttribute(DEVPATH));
+                    hidDevice = getDeviceWithPath< HIDDevice >(sList, devClass->getDevPath());
                     if(hidDevice) {
                        removeDevice(hidDevice);
                        m_deviceRemoved = true;
                     }
                     break;
                 default:
+                    PDM_LOG_DEBUG("HIDDeviceHandler: %s line: %d ACTION NOT found", __FUNCTION__, __LINE__);
                 //Do nothing
                    break;
             }
        }
       catch (const std::out_of_range& err) {
-         PDM_LOG_INFO("HIDDeviceHandler:",0,"%s line: %d out of range : %s", __FUNCTION__,__LINE__,err.what());
+         PDM_LOG_INFO("HIDDeviceHandler:",0,"%s line: %d out of range : %s", __FUNCTION__, __LINE__, err.what());
    }
 }
 

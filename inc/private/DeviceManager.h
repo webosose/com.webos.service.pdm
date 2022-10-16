@@ -1,4 +1,4 @@
-// Copyright (c) 2019 LG Electronics, Inc.
+// Copyright (c) 2019-2022 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -25,10 +25,11 @@
 #include "CommandManager.h"
 #include "CommandTypes.h"
 #include "PluginAdapter.h"
+#include "DeviceClass.h"
 
 class DeviceHandler;
-class PdmNetlinkEvent;
 class PdmConfig;
+class DeviceClass;
 
 class DeviceManager {
 
@@ -42,7 +43,7 @@ public:
     DeviceManager();
     ~DeviceManager();
     bool init(PdmConfig* const pConfObj, PluginAdapter* const pluginAdapter);
-    bool HandlePdmDevice(PdmNetlinkEvent *evn);
+	bool HandlePdmDevice(DeviceClass *deviceClass);
     bool HandlePdmCommand(CommandType *cmdtypes, CommandResponse *cmdResponse);
     bool HandlePluginEvent(int eventType);
     std::list<DeviceHandler*> getDeviceHandlerList();

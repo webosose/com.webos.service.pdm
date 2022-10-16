@@ -14,27 +14,27 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-#ifndef _PDMNETLINKEVENT_H
-#define _PDMNETLINKEVENT_H
+#include "DeviceClassCommand.h"
+#include "DeviceManager.h"
 
-#include <libudev.h>
-#include <string>
-#include <map>
+DeviceClassCommand::DeviceClassCommand(DeviceClass *ptr)
+{
+    mDevClassPtr = ptr;
+}
 
-class PdmNetlinkEvent {
+DeviceClassCommand::~DeviceClassCommand()
+{
+    if(mDevClassPtr)
+        delete mDevClassPtr;
+    mDevClassPtr = nullptr;
+}
 
-private:
-
-    void getDeviceInfo(struct udev_device* dev, bool isPowerOnConnect);
-    std::map<std::string,std::string> mdeviceInfo;
-public:
-
-   PdmNetlinkEvent(){}
-   ~PdmNetlinkEvent(){}
-
-   void pdmParser(struct udev_device* dev, bool isPowerOnConnect);
-   std::string getDevAttribute(std::string);
-   std::string getInterfaceClass();
-
-};
-#endif //_PDMNETLINKEVENT_H
+void DeviceClassCommand::execute()
+{
+    if (mDevClassPtr) {
+        DeviceManager::getInstance()->HandlePdmDevice(mDevClassPtr);
+        if(mDevClassPtr)
+            delete mDevClassPtr;
+        mDevClassPtr = nullptr;
+    }
+}
