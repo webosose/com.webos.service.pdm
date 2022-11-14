@@ -1,4 +1,4 @@
-// Copyright (c) 2019 LG Electronics, Inc.
+// Copyright (c) 2019-2022 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -101,6 +101,11 @@ bool PdmLocaleHandler::onSettingsServiceStateChanged(LSHandle * sh, LSMessage * 
     LSMessageRef(message);
     const char *msgPayload;
     msgPayload = LSMessageGetPayload(message);
+    if(!msgPayload) {
+        PDM_LOG_ERROR("PdmLunaService:%s line: %d payloadMsg is empty ", __FUNCTION__, __LINE__);
+        return false;
+    }
+
     pbnjson::JValue root = pbnjson::JDomParser::fromString(msgPayload);
     if(root.isNull()) {
         PDM_LOG_ERROR("PdmLocaleHandler:%s line: %d json object error", __FUNCTION__, __LINE__);
@@ -133,6 +138,11 @@ bool PdmLocaleHandler::onLocaleInfoReceived(LSHandle * sh, LSMessage * message, 
     LSMessageRef(message);
     const char *msgPayload;
     msgPayload = LSMessageGetPayload(message);
+    if(!msgPayload) {
+        PDM_LOG_ERROR("PdmLunaService:%s line: %d payloadMsg is empty ", __FUNCTION__, __LINE__);
+        return false;
+    }
+
     pbnjson::JValue root = pbnjson::JDomParser::fromString(msgPayload);
     if(root.isNull() || !root["returnValue"].asBool() || !root["settings"].isObject()) {
         PDM_LOG_ERROR("PdmLocaleHandler:%s line: %d json object error", __FUNCTION__, __LINE__);

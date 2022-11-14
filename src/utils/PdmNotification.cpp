@@ -1,4 +1,4 @@
-// Copyright (c) 2019 LG Electronics, Inc.
+// Copyright (c) 2019-2022 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -150,6 +150,10 @@ bool Notification::createAlertCallback(LSHandle * sh, LSMessage * message, void*
 
     LSMessageRef(message);
     const char *payload = LSMessageGetPayload(message);
+    if(!payload) {
+        PDM_LOG_ERROR("PdmLunaService:%s line: %d payloadMsg is empty ", __FUNCTION__, __LINE__);
+        return false;
+    }
 
     pbnjson::JValue root = pbnjson::JDomParser::fromString(payload);
 
@@ -253,6 +257,10 @@ bool Notification::getNotificationStateCallback(LSHandle * sh, LSMessage * messa
     LSMessageRef(message);
 
     payload = LSMessageGetPayload(message);
+    if(!payload) {
+        PDM_LOG_ERROR("PdmLunaService:%s line: %d payloadMsg is empty ", __FUNCTION__, __LINE__);
+        return false;
+    }
     pbnjson::JValue root = pbnjson::JDomParser::fromString(payload);
 
     if(root.isNull()) {

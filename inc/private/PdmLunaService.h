@@ -203,7 +203,7 @@ class PdmLunaService
         static bool cbUpdateDeviceListResponse(LSHandle * sh, LSMessage * message, void * user_data);
         static bool cbUpdateStorageDeviceListResponse(LSHandle * sh, LSMessage * message, void * user_data);
 #endif
-        bool notifySubscribers(int eventDeviceType, const int &eventID, std::string hubPortPath);
+        bool notifySubscribers(unsigned int eventDeviceType, const int &eventID, std::string hubPortPath);
         bool cbGetExample(LSHandle *sh, LSMessage *message);
         bool cbGetAttachedStorageDeviceList(LSHandle *sh, LSMessage *message);
         bool cbGetAttachedNonStorageDeviceList(LSHandle *sh, LSMessage *message);

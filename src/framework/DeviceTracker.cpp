@@ -51,7 +51,7 @@ void DeviceTracker::attachObservers()
 
 void DeviceTracker::update(const int &eventDeviceType, const int &eventID, IDevice* device)
 {
-    int eventType = UNKNOWN_DEVICE;
+    unsigned int eventType = UNKNOWN_DEVICE;
     std::string hubPortPath;
     PDM_LOG_DEBUG("DeviceTracker::update -  Event: %d eventID: %d", eventDeviceType, eventID);
 

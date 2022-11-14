@@ -498,7 +498,7 @@ bool PdmLunaService::cbGetAttachedNonStorageDeviceList(LSHandle *sh, LSMessage *
         payload = createJsonGetAttachedNonStorageDeviceList(message, "VideoSubDevices");
     else if (category.compare("Video") == 0)
         payload = createJsonGetAttachedNonStorageDeviceList(message, "Video");
-    if(groupSubDevices && category.compare("Audio") == 0)
+    else if(groupSubDevices && category.compare("Audio") == 0)
         payload = createJsonGetAttachedNonStorageDeviceList(message, "AudioSubDevices");
     else if (category.compare("Audio") == 0)
         payload = createJsonGetAttachedNonStorageDeviceList(message, "Audio");
@@ -676,6 +676,10 @@ bool PdmLunaService::cbEject(LSHandle *sh, LSMessage *message)
     PDM_LOG_DEBUG("PdmLunaService:%s line: %d payload:%s", __FUNCTION__, __LINE__, LSMessageGetPayload(message));
     VALIDATE_SCHEMA_AND_RETURN(sh, message, JSON_SCHEMA_VALIDATE_DEVICE_NUMBER);
     const char* payload = LSMessageGetPayload(message);
+    if(!payload) {
+        PDM_LOG_ERROR("PdmLunaService:%s line: %d payloadMsg is empty ", __FUNCTION__, __LINE__);
+        return false;
+    }
 
     pbnjson::JValue root = pbnjson::JDomParser::fromString(payload);
 
@@ -1227,7 +1231,7 @@ bool PdmLunaService::cbUmountAllDrive(LSHandle *sh, LSMessage *message)
     return true;
 }
 
-bool PdmLunaService::notifySubscribers(int eventDeviceType, const int &eventID, std::string hubPortPath)
+bool PdmLunaService::notifySubscribers(unsigned int eventDeviceType, const int &eventID, std::string hubPortPath)
 {
     PDM_LOG_DEBUG("PdmLunaService::notifySubscribers - Device Type: %s",DeviceEventTable[eventDeviceType]);
 
