@@ -144,7 +144,7 @@ void PdmNotificationManager::showConnectedToast(int eventDeviceType)
         case PdmDevAttributes::CDC_DEVICE: message = m_pLocHandler->getLocString("USB device is connected.");break;
         case PdmDevAttributes::UNKNOWN_DEVICE: message = m_pLocHandler->getLocString("Unknown device is connected.");break;
     }
-    if(!message.empty())
+    if(!message.empty() && eventDeviceType != PdmDevAttributes::HID_DEVICE && eventDeviceType != PdmDevAttributes::STORAGE_DEVICE)
         showToast(message,DEVICE_CONNECTED_ICON_PATH);
 }
 
@@ -169,7 +169,7 @@ void PdmNotificationManager::showDisconnectedToast(int eventDeviceType)
         case PdmDevAttributes::CDC_DEVICE: message = m_pLocHandler->getLocString("USB device is disconnected.");break;
         case PdmDevAttributes::UNKNOWN_DEVICE: message = m_pLocHandler->getLocString("Unknown device is disconnected.");break;
     }
-    if(!message.empty())
+    if(!message.empty() && eventDeviceType != PdmDevAttributes::HID_DEVICE && eventDeviceType != PdmDevAttributes::STORAGE_DEVICE)
         showToast(message,DEVICE_CONNECTED_ICON_PATH);
 }
 
