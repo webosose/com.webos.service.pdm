@@ -91,8 +91,6 @@ void PdmNotificationManager::update(const int &eventDeviceType, const int &event
 
     switch(eventID)
     {
-        case ADD: showConnectedToast(eventDeviceType); break;
-        case REMOVE: showDisconnectedToast(eventDeviceType); break;
         case CONNECTING: showConnectingToast(eventDeviceType); break;
         case MAX_COUNT_REACHED: createAlertForMaxUsbStorageDevices();break;
         case REMOVE_BEFORE_MOUNT:
@@ -121,56 +119,6 @@ bool PdmNotificationManager::isToastRequired(int eventDeviceType)
         //Except above devices,Toast is required for all other device.
             return true;
     }
-}
-
-void PdmNotificationManager::showConnectedToast(int eventDeviceType)
-{
-    PDM_LOG_DEBUG("PdmNotificationManager:%s line: %d ", __FUNCTION__, __LINE__);
-
-    if(!isToastRequired(eventDeviceType))
-        return;
-
-    std::string message;
-    switch(eventDeviceType)
-    {
-        case PdmDevAttributes::STORAGE_DEVICE: message = m_pLocHandler->getLocString("Storage device is connected.");break;
-        case PdmDevAttributes::HID_DEVICE: message = m_pLocHandler->getLocString("HID device is connected.");break;
-        case PdmDevAttributes::VIDEO_DEVICE: message = m_pLocHandler->getLocString("Camera device is connected.");break;
-        case PdmDevAttributes::SOUND_DEVICE: message = m_pLocHandler->getLocString("Sound device is connected.");break;
-        case PdmDevAttributes::GAMEPAD_DEVICE: message = m_pLocHandler->getLocString("XPAD device is connected.");break;
-        case PdmDevAttributes::MTP_DEVICE: message = m_pLocHandler->getLocString("MTP device is connected.");break;
-        case PdmDevAttributes::PTP_DEVICE: message = m_pLocHandler->getLocString("PTP device is connected.");break;
-        case PdmDevAttributes::BLUETOOTH_DEVICE: message = m_pLocHandler->getLocString("Bluetooth device is connected.");break;
-        case PdmDevAttributes::CDC_DEVICE: message = m_pLocHandler->getLocString("USB device is connected.");break;
-        case PdmDevAttributes::UNKNOWN_DEVICE: message = m_pLocHandler->getLocString("Unknown device is connected.");break;
-    }
-    if(!message.empty() && eventDeviceType != PdmDevAttributes::HID_DEVICE && eventDeviceType != PdmDevAttributes::STORAGE_DEVICE)
-        showToast(message,DEVICE_CONNECTED_ICON_PATH);
-}
-
-void PdmNotificationManager::showDisconnectedToast(int eventDeviceType)
-{
-    PDM_LOG_DEBUG("PdmNotificationManager:%s line: %d ", __FUNCTION__, __LINE__);
-
-    if(!isToastRequired(eventDeviceType))
-        return;
-
-    std::string message;
-    switch(eventDeviceType)
-    {
-        case PdmDevAttributes::STORAGE_DEVICE: message = m_pLocHandler->getLocString("Storage device is disconnected.");break;
-        case PdmDevAttributes::HID_DEVICE: message = m_pLocHandler->getLocString("HID device is disconnected.");break;
-        case PdmDevAttributes::VIDEO_DEVICE: message = m_pLocHandler->getLocString("Camera device is disconnected.");break;
-        case PdmDevAttributes::SOUND_DEVICE: message = m_pLocHandler->getLocString("Sound device is disconnected.");break;
-        case PdmDevAttributes::GAMEPAD_DEVICE: message = m_pLocHandler->getLocString("XPAD device is disconnected.");break;
-        case PdmDevAttributes::MTP_DEVICE: message = m_pLocHandler->getLocString("MTP device is disconnected.");break;
-        case PdmDevAttributes::PTP_DEVICE: message = m_pLocHandler->getLocString("PTP device is disconnected.");break;
-        case PdmDevAttributes::BLUETOOTH_DEVICE: message = m_pLocHandler->getLocString("Bluetooth device is disconnected.");break;
-        case PdmDevAttributes::CDC_DEVICE: message = m_pLocHandler->getLocString("USB device is disconnected.");break;
-        case PdmDevAttributes::UNKNOWN_DEVICE: message = m_pLocHandler->getLocString("Unknown device is disconnected.");break;
-    }
-    if(!message.empty() && eventDeviceType != PdmDevAttributes::HID_DEVICE && eventDeviceType != PdmDevAttributes::STORAGE_DEVICE)
-        showToast(message,DEVICE_CONNECTED_ICON_PATH);
 }
 
 void PdmNotificationManager::showConnectingToast(int eventDeviceType)
