@@ -26,6 +26,7 @@
 #include "MTPDevice.h"
 #include "StorageDevice.h"
 #include "DiskPartitionInfo.h"
+#include <sys/shm.h>
 
 //notification Icons
     const std::string DEVICE_CONNECTED_ICON_PATH = "/usr/share/physical-device-manager/usb_connect.png";
@@ -121,26 +122,76 @@ bool PdmNotificationManager::isToastRequired(int eventDeviceType)
     }
 }
 
+int PdmNotificationManager::getPIDbyName(char *pidName, size_t len)
+{
+    FILE *fp;
+    char pidofCmd[len + 18] = {0};
+    int pidValue = -1;
+
+    if (pidName != 0) {
+        strncpy(pidofCmd, "pidof ", 6);
+        strncat(pidofCmd, pidName, len);
+        strncat(pidofCmd, "> /tmp/pidof", 12);
+        system(pidofCmd);
+        fp = fopen("/tmp/pidof", "r");
+        if (fscanf(fp, "%d", &pidValue) != 1)
+            pidValue = -1;
+        fclose(fp);
+        unlink("/tmp/pidof");
+    }
+    return pidValue;
+}
+
+void PdmNotificationManager::sendAlertInfo(pdmEvent pEvent, pbnjson::JValue parameters)
+{
+    int shmId;
+    int eventPid = 0;
+    char *sharedMemory;
+    std::string payloadStr;
+    pbnjson::JValue payload = pbnjson::Object();
+    union sigval sv;
+
+    payload.put("pdmEvent", pEvent);
+    payload.put("parameters", parameters);
+    payloadStr = payload.stringify().c_str();
+    PDM_LOG_DEBUG("PdmNotificationManager:%s line: %d payload for signal handler: %s", __FUNCTION__, __LINE__, payload.stringify().c_str());
+
+    shmId = shmget(PDM_SHM_KEY, payloadStr.length(), 0666 | IPC_CREAT);
+    if (shmId == -1)
+        PDM_LOG_ERROR("shmget() is failed error :%s", strerror(errno));
+
+    sharedMemory = (char *)shmat(shmId, (void *)0, 0);
+
+    if(sharedMemory != nullptr) {
+
+        memcpy(sharedMemory, payloadStr.c_str(), payloadStr.length());
+        shmdt(sharedMemory);
+
+        sv.sival_int = payloadStr.length();
+        // passed 13 as event-monitor string length
+        eventPid = PdmNotificationManager::getPIDbyName("event-monitor", 13);
+        PDM_LOG_DEBUG("Event-monitor process ID :%d", eventPid);
+
+        if (eventPid > 0) {
+            if (-1 == sigqueue(eventPid, SIGUSR2, sv))
+                PDM_LOG_ERROR("sigqueue is failed error :%s", strerror(errno));
+        }
+    }
+}
+
 void PdmNotificationManager::showConnectingToast(int eventDeviceType)
 {
     PDM_LOG_DEBUG("PdmNotificationManager:%s line: %d device type: %d", __FUNCTION__, __LINE__,eventDeviceType);
 
-    std::string message;
     switch(eventDeviceType)
     {
-        case PdmDevAttributes::HID_DEVICE: message = m_pLocHandler->getLocString("HID device is connecting.");break;
-        case PdmDevAttributes::VIDEO_DEVICE: message = m_pLocHandler->getLocString("Camera device is connecting.");break;
-        case PdmDevAttributes::GAMEPAD_DEVICE: message = m_pLocHandler->getLocString("XPAD device is connecting.");break;
-        case PdmDevAttributes::MTP_DEVICE: message = m_pLocHandler->getLocString("MTP device is connecting.");break;
-        case PdmDevAttributes::PTP_DEVICE: message = m_pLocHandler->getLocString("PTP device is connecting.");break;
-        case PdmDevAttributes::SOUND_DEVICE: message = m_pLocHandler->getLocString("SOUND device is connecting.");break;
-        case PdmDevAttributes::BLUETOOTH_DEVICE: message = m_pLocHandler->getLocString("Bluetooth device is connecting.");break;
-        case PdmDevAttributes::CDC_DEVICE: message = m_pLocHandler->getLocString("USB device is connecting.");break;
-        case PdmDevAttributes::STORAGE_DEVICE: message = m_pLocHandler->getLocString("Storage device is connecting.");break;
+    case PdmDevAttributes::STORAGE_DEVICE:
+        pbnjson::JValue parameters = pbnjson::Object();
+        PdmNotificationManager::sendAlertInfo(CONNECTING_EVENT, parameters);
+        break;
     }
-    if(!message.empty())
-        showToast(message,DEVICE_CONNECTED_ICON_PATH);
 }
+
 void PdmNotificationManager::showToast(const std::string& message,const std::string &iconUrl)
 {
     PDM_LOG_DEBUG("PdmNotificationManager:%s line: %d ", __FUNCTION__, __LINE__);
@@ -153,13 +204,8 @@ void PdmNotificationManager::createAlertForMaxUsbStorageDevices()
 {
     PDM_LOG_DEBUG("PdmNotificationManager:%s line: %d ", __FUNCTION__, __LINE__);
 
-    pbnjson::JValue buttons = pbnjson::JArray
-    {
-        pbnjson::JObject{{"label", m_pLocHandler->getLocString("OK")}}
-    };
-
-    createAlert(ALERT_ID_USB_MAX_STORAGE_DEVCIES,m_pLocHandler->getLocString("Exceeded maximum number of allowable USB storage. You can connect up to 6 USB storages to your device"),buttons);
-
+    pbnjson::JValue parameters = pbnjson::Object();
+    PdmNotificationManager::sendAlertInfo(MAX_COUNT_REACHED_EVENT, parameters);
 }
 
 void PdmNotificationManager::unMountMtpDeviceAlert(IDevice* device)

@@ -21,11 +21,26 @@
 #include "DeviceNotification.h"
 #include "PdmLocaleHandler.h"
 
+#define PDM_SHM_KEY 45697
+
 class PdmNotificationManager :public IObserver
 {
     private:
         bool m_powerState;
         PdmLocaleHandler *m_pLocHandler;
+        enum pdmEvent
+        {
+            CONNECTING_EVENT = 0,
+            MAX_COUNT_REACHED_EVENT,
+            REMOVE_BEFORE_MOUNT_EVENT,
+            REMOVE_BEFORE_MOUNT_MTP_EVENT,
+            UNSUPPORTED_FS_FORMAT_NEEDED_EVENT,
+            FSCK_TIMED_OUT_EVENT,
+            FORMAT_STARTED_EVENT,
+            FORMAT_SUCCESS_EVENT,
+            FORMAT_FAIL_EVENT,
+            REMOVE_UNSUPPORTED_FS_EVENT
+        };
 
     private :
         void update(const int &eventDeviceType, const int &eventID, IDevice* device = nullptr) override;
@@ -66,6 +81,8 @@ class PdmNotificationManager :public IObserver
         void createAlertForUnmountedDeviceRemoval(IDevice* device);
         void createAlertForUnsupportedFileSystem(IDevice* device);
         void closeUnsupportedFsAlert(IDevice* device);
+        void sendAlertInfo(pdmEvent pEvent, pbnjson::JValue parameters);
+        int getPIDbyName(char *pidName, size_t len);
 
     public :
         void attachObservers();
