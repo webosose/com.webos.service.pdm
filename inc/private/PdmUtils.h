@@ -29,6 +29,7 @@ namespace PdmUtils
     bool createDir(const std::string &dirName);
     bool removeDirRecursive(const std::string &dirPath);
     bool removeFile(const std::string &dirPath);
+    unsigned int getPIDbyName(char *processName);
     std::string& ltrimString(std::string &str);
     std::string& rtrimString(std::string &str);
     std::string& trimString(std::string &str);

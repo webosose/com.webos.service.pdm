@@ -28,6 +28,7 @@ class PdmNotificationManager :public IObserver
     private:
         bool m_powerState;
         PdmLocaleHandler *m_pLocHandler;
+        int m_shmId;
         enum pdmEvent
         {
             CONNECTING_EVENT = 0,
@@ -82,7 +83,6 @@ class PdmNotificationManager :public IObserver
         void createAlertForUnsupportedFileSystem(IDevice* device);
         void closeUnsupportedFsAlert(IDevice* device);
         void sendAlertInfo(pdmEvent pEvent, pbnjson::JValue parameters);
-        int getPIDbyName(char *pidName, size_t len);
 
     public :
         void attachObservers();

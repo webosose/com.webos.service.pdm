@@ -26,24 +26,16 @@
 #include "MTPDevice.h"
 #include "StorageDevice.h"
 #include "DiskPartitionInfo.h"
+#include "PdmUtils.h"
 #include <sys/shm.h>
-
-//notification Icons
-    const std::string DEVICE_CONNECTED_ICON_PATH = "/usr/share/physical-device-manager/usb_connect.png";
-
-//Alert IDs
-    const std::string ALERT_ID_USB_STORAGE_DEV_REMOVED = "usbStorageDevRemoved";
-    const std::string ALERT_ID_USB_STORAGE_DEV_UNSUPPORTED_FS = "usbStorageDevUnsupportedFs";
-    const std::string ALERT_ID_USB_MAX_STORAGE_DEVCIES = "usbMaxStorageDevices";
-    const std::string ALERT_ID_USB_STORAGE_FSCK_TIME_OUT = "usbStorageDevicesFsckTimeOut";
-
-// Alert strings
-    const std::string ALERT_STRING_USB_STORAGE_DEV_UNSUPPORTED_FS = "This USB storage has an unsupported system and cannot be read.";
 
 PdmNotificationManager::PdmNotificationManager()
      : IObserver(), m_powerState(true)
 {
     m_pLocHandler = PdmLocaleHandler::getInstance();
+    m_shmId = shmget(PDM_SHM_KEY, 256, 0640 | IPC_CREAT);
+    if (m_shmId == -1)
+        PDM_LOG_ERROR("shmget() is failed, error :%s", strerror(errno));
 }
 
 PdmNotificationManager::~PdmNotificationManager()
@@ -52,6 +44,9 @@ PdmNotificationManager::~PdmNotificationManager()
 
     for(auto handler : pDeviceHandlerList)
         handler->Unregister(this);
+
+    if (shmctl(m_shmId, IPC_RMID, NULL) == -1)
+        PDM_LOG_ERROR("shmctl() is failed, error :%s", strerror(errno));
 }
 
 void PdmNotificationManager::attachObservers()
@@ -95,7 +90,7 @@ void PdmNotificationManager::update(const int &eventDeviceType, const int &event
         case CONNECTING: showConnectingToast(eventDeviceType); break;
         case MAX_COUNT_REACHED: createAlertForMaxUsbStorageDevices();break;
         case REMOVE_BEFORE_MOUNT:
-            if(eventDeviceType ==PdmDevAttributes::MTP_DEVICE)
+            if(eventDeviceType == PdmDevAttributes::MTP_DEVICE)
             {
                 unMountMtpDeviceAlert(device);
                 break;
@@ -122,30 +117,10 @@ bool PdmNotificationManager::isToastRequired(int eventDeviceType)
     }
 }
 
-int PdmNotificationManager::getPIDbyName(char *pidName, size_t len)
-{
-    FILE *fp;
-    char pidofCmd[len + 18] = {0};
-    int pidValue = -1;
-
-    if (pidName != 0) {
-        strncpy(pidofCmd, "pidof ", 6);
-        strncat(pidofCmd, pidName, len);
-        strncat(pidofCmd, "> /tmp/pidof", 12);
-        system(pidofCmd);
-        fp = fopen("/tmp/pidof", "r");
-        if (fscanf(fp, "%d", &pidValue) != 1)
-            pidValue = -1;
-        fclose(fp);
-        unlink("/tmp/pidof");
-    }
-    return pidValue;
-}
-
 void PdmNotificationManager::sendAlertInfo(pdmEvent pEvent, pbnjson::JValue parameters)
 {
     int shmId;
-    int eventPid = 0;
+    unsigned int eventPid = 0;
     char *sharedMemory;
     std::string payloadStr;
     pbnjson::JValue payload = pbnjson::Object();
@@ -156,9 +131,11 @@ void PdmNotificationManager::sendAlertInfo(pdmEvent pEvent, pbnjson::JValue para
     payloadStr = payload.stringify().c_str();
     PDM_LOG_DEBUG("PdmNotificationManager:%s line: %d payload for signal handler: %s", __FUNCTION__, __LINE__, payload.stringify().c_str());
 
-    shmId = shmget(PDM_SHM_KEY, payloadStr.length(), 0666 | IPC_CREAT);
-    if (shmId == -1)
+    shmId = shmget(PDM_SHM_KEY, payloadStr.length(), 0);
+    if (shmId == -1) {
         PDM_LOG_ERROR("shmget() is failed error :%s", strerror(errno));
+        return;
+    }
 
     sharedMemory = (char *)shmat(shmId, (void *)0, 0);
 
@@ -168,9 +145,9 @@ void PdmNotificationManager::sendAlertInfo(pdmEvent pEvent, pbnjson::JValue para
         shmdt(sharedMemory);
 
         sv.sival_int = payloadStr.length();
-        // passed 13 as event-monitor string length
-        eventPid = PdmNotificationManager::getPIDbyName("event-monitor", 13);
-        PDM_LOG_DEBUG("Event-monitor process ID :%d", eventPid);
+
+        eventPid = PdmUtils::getPIDbyName("event-monitor");
+        PDM_LOG_DEBUG("PdmNotificationManager:%s line: %d  event-monitor process ID :%d", __FUNCTION__, __LINE__, eventPid);
 
         if (eventPid > 0) {
             if (-1 == sigqueue(eventPid, SIGUSR2, sv))
@@ -181,15 +158,11 @@ void PdmNotificationManager::sendAlertInfo(pdmEvent pEvent, pbnjson::JValue para
 
 void PdmNotificationManager::showConnectingToast(int eventDeviceType)
 {
-    PDM_LOG_DEBUG("PdmNotificationManager:%s line: %d device type: %d", __FUNCTION__, __LINE__,eventDeviceType);
+    PDM_LOG_DEBUG("PdmNotificationManager:%s line: %d device type: %d", __FUNCTION__, __LINE__, eventDeviceType);
 
-    switch(eventDeviceType)
-    {
-    case PdmDevAttributes::STORAGE_DEVICE:
-        pbnjson::JValue parameters = pbnjson::Object();
-        PdmNotificationManager::sendAlertInfo(CONNECTING_EVENT, parameters);
-        break;
-    }
+    pbnjson::JValue parameters = pbnjson::Object();
+    parameters.put("deviceType", eventDeviceType);
+    PdmNotificationManager::sendAlertInfo(CONNECTING_EVENT, parameters);
 }
 
 void PdmNotificationManager::showToast(const std::string& message,const std::string &iconUrl)
@@ -215,61 +188,52 @@ void PdmNotificationManager::unMountMtpDeviceAlert(IDevice* device)
         cout << "Path Matched"<< endl;
         return;
     }
+
     MTPDevice*  pMtpDev = dynamic_cast<MTPDevice*>(device);
     if(!pMtpDev)
         return;
-    pbnjson::JValue buttons = pbnjson::JArray
-    {
-        pbnjson::JObject{{"label", m_pLocHandler->getLocString("OK")}}
-    };
+
     std::string driveName = pMtpDev->getDriveName();
-    std::string alertIdDevRemoved = ALERT_ID_USB_STORAGE_DEV_REMOVED + driveName;
-    PDM_LOG_DEBUG("PdmNotificationManager:%s line: %d alertId: %s", __FUNCTION__, __LINE__, alertIdDevRemoved.c_str());
-    createAlert(alertIdDevRemoved,m_pLocHandler->getLocString("After removing, please reconnect the usb device."),buttons);
+    PDM_LOG_DEBUG("PdmNotificationManager:%s line: %d driveName: %s", __FUNCTION__, __LINE__, driveName.c_str());
+    pbnjson::JValue parameters = pbnjson::Object();
+    parameters.put("driveName", driveName);
+    PdmNotificationManager::sendAlertInfo(REMOVE_BEFORE_MOUNT_MTP_EVENT, parameters);
 }
 
 void PdmNotificationManager::createAlertForUnmountedDeviceRemoval(IDevice* device)
 {
     if(!device)
         return;
+
     StorageDevice*  pStorageDev = dynamic_cast<StorageDevice*>(device);
     if(!pStorageDev)
         return;
 
     std::string devNumStr = std::to_string(pStorageDev->getDeviceNum());
-    std::string alertIdFsckTimeout = ALERT_ID_USB_STORAGE_FSCK_TIME_OUT + devNumStr;
-    closeAlert(alertIdFsckTimeout);
 
-    pbnjson::JValue buttons = pbnjson::JArray
-    {
-        pbnjson::JObject{{"label", m_pLocHandler->getLocString("OK")}}
-    };
+    PDM_LOG_DEBUG("PdmNotificationManager:%s line: %d devNumStr: %s", __FUNCTION__, __LINE__, devNumStr.c_str());
 
-    std::string alertIdDevRemoved = ALERT_ID_USB_STORAGE_DEV_REMOVED + devNumStr;
-    PDM_LOG_DEBUG("PdmNotificationManager:%s line: %d alertId: %s", __FUNCTION__, __LINE__, alertIdDevRemoved.c_str());
-
-    createAlert(alertIdDevRemoved,m_pLocHandler->getLocString("After removing, please reconnect the usb device."),buttons);
+    pbnjson::JValue parameters = pbnjson::Object();
+    parameters.put("deviceNum", devNumStr);
+    PdmNotificationManager::sendAlertInfo(REMOVE_BEFORE_MOUNT_EVENT, parameters);
 }
 
 void PdmNotificationManager::createAlertForUnsupportedFileSystem(IDevice* device)
 {
     if(!device)
         return;
+
     StorageDevice*  pStorageDev = dynamic_cast<StorageDevice*>(device);
     if(!pStorageDev)
         return;
 
     std::string devNumStr = std::to_string(pStorageDev->getDeviceNum());
-    std::string alertIdUnsupportedFs = ALERT_ID_USB_STORAGE_DEV_UNSUPPORTED_FS + devNumStr;
 
-    PDM_LOG_DEBUG("PdmNotificationManager:%s line: %d Input list is NOT supported", __FUNCTION__, __LINE__);
-    pbnjson::JValue buttons = pbnjson::JArray
-    {
-        pbnjson::JObject{{"label", m_pLocHandler->getLocString("OK")}}
-    };
-    createAlert(alertIdUnsupportedFs,m_pLocHandler->getLocString(ALERT_STRING_USB_STORAGE_DEV_UNSUPPORTED_FS),buttons);
+    PDM_LOG_DEBUG("PdmNotificationManager:%s line: %d devNumStr: %s", __FUNCTION__, __LINE__, devNumStr.c_str());
 
-    PDM_LOG_DEBUG("PdmNotificationManager:%s line: %d alertId: %s", __FUNCTION__, __LINE__, alertIdUnsupportedFs.c_str());
+    pbnjson::JValue parameters = pbnjson::Object();
+    parameters.put("deviceNum", devNumStr);
+    PdmNotificationManager::sendAlertInfo(UNSUPPORTED_FS_FORMAT_NEEDED_EVENT, parameters);
 }
 
 void PdmNotificationManager::createAlertForFsckTimeout(IDevice* device)
@@ -278,31 +242,27 @@ void PdmNotificationManager::createAlertForFsckTimeout(IDevice* device)
 
     if(!device)
         return;
+
     StorageDevice*  pStorageDev = dynamic_cast<StorageDevice*>(device);
     if(!pStorageDev)
         return;
+
     std::string devNumStr = std::to_string(pStorageDev->getDeviceNum());
-    std::string alertIdFsckTimeout = ALERT_ID_USB_STORAGE_FSCK_TIME_OUT + devNumStr;
     std::string mountName = pStorageDev->getDeviceName();
-    pbnjson::JValue buttons = pbnjson::JArray
-    {
-        pbnjson::JObject{{"label", m_pLocHandler->getLocString("CHECK & REPAIR")},
-        {"onclick", "luna://com.webos.service.pdm/mountandFullFsck"},
-        {"params", pbnjson::JObject{{"needFsck",true},{"mountName", mountName}}}},
-        pbnjson::JObject{{"label", m_pLocHandler->getLocString("OPEN NOW")},
-        {"onclick", "luna://com.webos.service.pdm/mountandFullFsck"},
-        {"params", pbnjson::JObject{{"needFsck",false},{"mountName", mountName}}}}
-    };
 
-    PDM_LOG_DEBUG("PdmNotificationManager:%s line: %d alertId: %s", __FUNCTION__, __LINE__, alertIdFsckTimeout.c_str());
+    PDM_LOG_DEBUG("PdmNotificationManager:%s line: %d devNumStr: %s mountName: %s", __FUNCTION__, __LINE__, devNumStr.c_str(), mountName.c_str());
 
-    createAlert(alertIdFsckTimeout,m_pLocHandler->getLocString("Some files may not be recognizable. Do you want to open device name now?"),buttons);
+    pbnjson::JValue parameters = pbnjson::Object();
+    parameters.put("deviceNum", devNumStr);
+    parameters.put("mountName", mountName);
+    PdmNotificationManager::sendAlertInfo(FSCK_TIMED_OUT_EVENT, parameters);
 }
 
 void PdmNotificationManager::showFormatStartedToast(IDevice* device)
 {
     if(!device)
         return;
+
     DiskPartitionInfo*  pPartition = dynamic_cast<DiskPartitionInfo*>(device);
     if(!pPartition)
         return;
@@ -312,18 +272,16 @@ void PdmNotificationManager::showFormatStartedToast(IDevice* device)
     std::string driveInfo = "[" + driveSizeInGb.str() + "GB] " + pPartition->getProductName();
     PDM_LOG_DEBUG("PdmNotificationManager:%s line: %d driveInfo: %s", __FUNCTION__, __LINE__, driveInfo.c_str());
 
-    IString *istr = new IString(m_pLocHandler->getLocString("Formatting {DRIVEINFO}..."));
-    map<string, string> ivalues;
-    ivalues.insert(pair<string, string>("DRIVEINFO", driveInfo));
-
-    showToast(istr->format(ivalues),DEVICE_CONNECTED_ICON_PATH);
-    delete istr;
+    pbnjson::JValue parameters = pbnjson::Object();
+    parameters.put("driveInfo", driveInfo);
+    PdmNotificationManager::sendAlertInfo(FORMAT_STARTED_EVENT, parameters);
 }
 
 void PdmNotificationManager::showFormatSuccessToast(IDevice* device)
 {
     if(!device)
         return;
+
     DiskPartitionInfo*  pPartition = dynamic_cast<DiskPartitionInfo*>(device);
     if(!pPartition)
         return;
@@ -333,18 +291,16 @@ void PdmNotificationManager::showFormatSuccessToast(IDevice* device)
     std::string driveInfo = "[" + driveSizeInGb.str() + "GB] " + pPartition->getProductName();
     PDM_LOG_DEBUG("PdmNotificationManager:%s line: %d driveInfo: %s", __FUNCTION__, __LINE__, driveInfo.c_str());
 
-    IString *istr = new IString(m_pLocHandler->getLocString("Formatting {DRIVEINFO} has been successfully completed."));
-    map<string, string> ivalues;
-    ivalues.insert(pair<string, string>("DRIVEINFO", driveInfo));
-
-    showToast(istr->format(ivalues),DEVICE_CONNECTED_ICON_PATH);
-    delete istr;
+    pbnjson::JValue parameters = pbnjson::Object();
+    parameters.put("driveInfo", driveInfo);
+    PdmNotificationManager::sendAlertInfo(FORMAT_SUCCESS_EVENT, parameters);
 }
 
 void PdmNotificationManager::showFormatFailToast(IDevice* device)
 {
     if(!device)
         return;
+
     DiskPartitionInfo*  pPartition = dynamic_cast<DiskPartitionInfo*>(device);
     if(!pPartition)
         return;
@@ -354,24 +310,23 @@ void PdmNotificationManager::showFormatFailToast(IDevice* device)
     std::string driveInfo = "[" + driveSizeInGb.str() + "GB] " + pPartition->getProductName();
     PDM_LOG_DEBUG("PdmNotificationManager:%s line: %d driveInfo: %s", __FUNCTION__, __LINE__, driveInfo.c_str());
 
-    IString *istr = new IString(m_pLocHandler->getLocString("Formatting {DRIVEINFO} has not been successfully completed."));
-    map<string, string> ivalues;
-    ivalues.insert(pair<string, string>("DRIVEINFO", driveInfo));
-
-    showToast(istr->format(ivalues),DEVICE_CONNECTED_ICON_PATH);
-    delete istr;
+    pbnjson::JValue parameters = pbnjson::Object();
+    parameters.put("driveInfo", driveInfo);
+    PdmNotificationManager::sendAlertInfo(FORMAT_FAIL_EVENT, parameters);
 }
 
 void PdmNotificationManager::closeUnsupportedFsAlert(IDevice* device)
 {
     if(!device)
         return;
+
     StorageDevice*  pStorageDev = dynamic_cast<StorageDevice*>(device);
     if(!pStorageDev)
         return;
 
     std::string devNumStr = std::to_string(pStorageDev->getDeviceNum());
-    std::string alertIdUnsupportedFs = ALERT_ID_USB_STORAGE_DEV_UNSUPPORTED_FS + devNumStr;
 
-    closeAlert(alertIdUnsupportedFs);
+    pbnjson::JValue parameters = pbnjson::Object();
+    parameters.put("deviceNum", devNumStr);
+    PdmNotificationManager::sendAlertInfo(REMOVE_UNSUPPORTED_FS_EVENT, parameters);
 }
