@@ -194,3 +194,16 @@ std::pair<std::string, std::string> PdmUtils::splitStringInTwo(std::string strin
     }
     return make_pair(trimString(stringToSplit), trimString(splitString));
 }
+
+unsigned int PdmUtils::getPIDbyName(char *processName)
+{
+    unsigned int pidValue = 0;
+
+    if (processName != NULL) {
+        std::string sysCommand("pidof -s ");
+        sysCommand.append(processName);
+        std::string result = PdmUtils::execShellCmd(sysCommand);
+        pidValue = strtoul(result.c_str(), NULL, 10);
+    }
+    return pidValue;
+}
