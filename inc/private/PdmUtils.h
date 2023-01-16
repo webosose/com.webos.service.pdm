@@ -1,4 +1,4 @@
-// Copyright (c) 2019-2021 LG Electronics, Inc.
+// Copyright (c) 2019-2023 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ namespace PdmUtils
     bool createDir(const std::string &dirName);
     bool removeDirRecursive(const std::string &dirPath);
     bool removeFile(const std::string &dirPath);
-    unsigned int getPIDbyName(char *processName);
+    unsigned int getPIDbyName(const char *processName);
     std::string& ltrimString(std::string &str);
     std::string& rtrimString(std::string &str);
     std::string& trimString(std::string &str);
