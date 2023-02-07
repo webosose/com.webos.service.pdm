@@ -1,4 +1,4 @@
-// Copyright (c) 2019-2021 LG Electronics, Inc.
+// Copyright (c) 2019-2023 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -73,4 +73,10 @@
           SCHEMA_V2_PROP(chunkSize, integer) \
     )
 
+#define JSON_SCHEMA_MOUNT_AND_FULL_FSCK_VALIDATE_MOUNT_NAME \
+     SCHEMA_V2_2( \
+         ",\"required\":[\"mountName\"]" , \
+          SCHEMA_V2_PROP(mountName, string), \
+          SCHEMA_V2_PROP(needFsck, boolean) \
+    )
 #endif //_SCHEMAVALIDATIONAPI_H

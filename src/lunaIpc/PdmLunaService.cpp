@@ -1,4 +1,4 @@
-// Copyright (c) 2019-2022 LG Electronics, Inc.
+// Copyright (c) 2019-2023 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -1307,6 +1307,7 @@ bool PdmLunaService::subscriptionAdd(LSHandle *a_sh, const char *a_key, LSMessag
 bool PdmLunaService::cbmountandFullFsck(LSHandle *sh, LSMessage *message)
 {
     PDM_LOG_DEBUG("PdmLunaService:%s line: %d payload:%s", __FUNCTION__, __LINE__, LSMessageGetPayload(message));
+    VALIDATE_SCHEMA_AND_RETURN(sh, message, JSON_SCHEMA_MOUNT_AND_FULL_FSCK_VALIDATE_MOUNT_NAME);
     const char* payload = LSMessageGetPayload(message);
 
     if (payload) {
