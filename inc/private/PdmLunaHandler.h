@@ -21,7 +21,7 @@
 #include <unordered_map>
 #include <string>
 #include <list>
-#include <lunaservice.h>
+#include <luna-service2/lunaservice.h>
 
 #include "pbnjson.hpp"
 

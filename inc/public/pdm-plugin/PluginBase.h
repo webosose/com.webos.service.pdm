@@ -18,7 +18,7 @@
 #define PLUGINBASE_H_
 
 #include "Api.h"
-#include <lunaservice.h>
+#include <luna-service2/lunaservice.h>
 
 #include "IDevice.h"
 

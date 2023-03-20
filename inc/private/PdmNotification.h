@@ -17,7 +17,7 @@
 #ifndef _NOTIFICATION_MGR_H_
 #define _NOTIFICATION_MGR_H_
 
-#include <lunaservice.h>
+#include <luna-service2/lunaservice.h>
 #include <string>
 #include <unordered_map>
 #include "PdmNotificationInterface.h"

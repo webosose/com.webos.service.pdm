@@ -20,7 +20,6 @@
 #include <map>
 #include <string>
 #include <glib.h>
-#include <lunaservice.h>
 #include <luna-service2++/handle.hpp>
 #include <luna-service2/lunaservice.hpp>
 

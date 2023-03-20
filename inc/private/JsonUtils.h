@@ -17,7 +17,7 @@
 #ifndef JSONUTILS_H
 #define JSONUTILS_H
 
-#include <lunaservice.h>
+#include <luna-service2/lunaservice.h>
 #include <pbnjson.hpp>
 
 #define SCHEMA_V2_PROP(name, type, ...)                  "\"" #name "\":{\"type\":\"" #type "\"" __VA_ARGS__ "}"

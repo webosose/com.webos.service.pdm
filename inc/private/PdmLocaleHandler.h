@@ -17,7 +17,7 @@
 #ifndef _PDMLOCALEHANDLER_H
 #define _PDMLOCALEHANDLER_H
 
-#include <lunaservice.h>
+#include <luna-service2/lunaservice.h>
 #include <webosi18n.h>
 
 class PdmLocaleHandler
