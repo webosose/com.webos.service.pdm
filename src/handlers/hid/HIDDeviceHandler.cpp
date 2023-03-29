@@ -1,4 +1,4 @@
-// Copyright (c) 2019-2022 LG Electronics, Inc.
+// Copyright (c) 2019-2023 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -75,14 +75,14 @@ void HIDDeviceHandler::ProcessHIDDevice(DeviceClass* devClass){
             {
                 case DeviceActions::USB_DEV_ADD:
                     hidDevice = getDeviceWithPath< HIDDevice >(sList, devClass->getDevPath());
-                    
+
                     if(!hidDevice)
                     {
                         hidDevice = new (std::nothrow) HIDDevice(m_pConfObj, m_pluginAdapter);
                         if(!hidDevice)
                             break;
-                        hidDevice->setDeviceInfo(devClass);
                         hidDevice->registerCallback(std::bind(&HIDDeviceHandler::commandNotification, this, _1, _2));
+                        hidDevice->setDeviceInfo(devClass);
                         sList.push_back(hidDevice);
                     }else {
                         hidDevice->setDeviceInfo(devClass);

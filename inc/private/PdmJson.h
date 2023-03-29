@@ -1,4 +1,4 @@
-// Copyright (c) 2019-2022 LG Electronics, Inc.
+// Copyright (c) 2019-2023 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -381,7 +381,8 @@ template < class T > bool getAttachedVideoDeviceList(std::list<T*>& sList, pbnjs
         videoDeviceObj.put("vendorName", device->getVendorName());
         videoDeviceObj.put("productName", device->getProductName());
         videoDeviceObj.put("devSpeed", device->getDevSpeed());
-        payload.append(videoDeviceObj);
+        if (!device->getDevSpeed().empty())
+            payload.append(videoDeviceObj);
     }
    return true;
 }

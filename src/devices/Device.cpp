@@ -1,4 +1,4 @@
-// Copyright (c) 2019-2022 LG Electronics, Inc.
+// Copyright (c) 2019-2023 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -67,7 +67,8 @@ void Device::getBasicUsbInfo(std::string devPath)
 void Device::setDeviceInfo(DeviceClass* deviceClassEve)
 {
     m_serialNumber = deviceClassEve->getIdSerilShort();
-    PDM_LOG_DEBUG("Device:%s line:%d m_serialNumber:%s", __FUNCTION__, __LINE__, m_serialNumber.c_str());
+    m_devicePath = deviceClassEve->getDevPath();
+    PDM_LOG_DEBUG("Device:%s line:%d m_serialNumber:%s m_devicePath:%s", __FUNCTION__, __LINE__, m_serialNumber.c_str(), m_devicePath.c_str());
     m_deviceSubType = deviceClassEve->getUsbDriver();
     m_productName = deviceClassEve->getIdModel();
 
@@ -80,7 +81,6 @@ void Device::setDeviceInfo(DeviceClass* deviceClassEve)
       m_isPowerOnConnect = true;
 
     if(deviceClassEve->getDevType() == USB_DEVICE){
-      m_devicePath = deviceClassEve->getDevPath();
 #ifdef WEBOS_SESSION
       std::string delimeter = "/";
       std::string usbInfoString = m_devicePath.substr(m_devicePath.rfind(delimeter) + delimeter.size());
