@@ -1,4 +1,4 @@
-// Copyright (c) 2019-2022 LG Electronics, Inc.
+// Copyright (c) 2019-2023 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -43,7 +43,8 @@ bool GamepadDeviceHandler::HandlerEvent(DeviceClass* devClass)
           return true;
       }
     }
-    if(gamepadSubsystem->getGamepadId() == "1"){
+
+    if(gamepadSubsystem->getGamepadId() == "1") {
         ProcessGamepadDevice(devClass);
         return true;
     }
@@ -67,11 +68,14 @@ void GamepadDeviceHandler::ProcessGamepadDevice(DeviceClass* devClass){
             {
                 case DeviceActions::USB_DEV_ADD:
                     PDM_LOG_DEBUG("GamepadDeviceHandler:%s line: %d action : %s", __FUNCTION__, __LINE__, devClass->getAction().c_str());
-                    gamepadDevice = new (std::nothrow) GamepadDevice(m_pConfObj, m_pluginAdapter);
-                    if(gamepadDevice) {
-                        gamepadDevice->setDeviceInfo(devClass);
-                        sList.push_back(gamepadDevice);
-                        Notify(GAMEPAD_DEVICE,ADD);
+                    gamepadDevice = getDeviceWithPath< GamepadDevice >(sList, devClass->getDevPath());
+                    if (!gamepadDevice) {
+                        gamepadDevice = new (std::nothrow) GamepadDevice(m_pConfObj, m_pluginAdapter);
+                        if(gamepadDevice) {
+                            gamepadDevice->setDeviceInfo(devClass);
+                            sList.push_back(gamepadDevice);
+                            Notify(GAMEPAD_DEVICE,ADD);
+                        }
                     }
                     break;
                 case DeviceActions::USB_DEV_REMOVE:

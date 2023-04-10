@@ -1,4 +1,4 @@
-// Copyright (c) 2022 LG Electronics, Inc.
+// Copyright (c) 2022-2023 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -70,7 +70,7 @@ void DeviceClassFactory::parseDevProps(struct udev_device* device, bool isPowerO
 DeviceClass* DeviceClassFactory::create(struct udev_device* device, bool isPowerOnConnect)
 {
     PDM_LOG_DEBUG("DeviceClassFactory:%s line: %d mDevMap Siz: %d", __FUNCTION__, __LINE__, mDevMap.size());
-	parseDevProps(device, isPowerOnConnect);
+    parseDevProps(device, isPowerOnConnect);
     PDM_LOG_DEBUG("DeviceClassFactory:%s line: %d mDevMap Siz: %d", __FUNCTION__, __LINE__, mDevMap.size());
     DeviceClass* subDevClasPtr;
 
@@ -83,8 +83,6 @@ DeviceClass* DeviceClassFactory::create(struct udev_device* device, bool isPower
         }
     }
 
-	// std::string devType = mDevProMap[PdmDevAttributes::DEVTYPE];
-    // if (mDevMap.count(devType) != 0) {
     if (mDevMap.size() > 0) {
         subDevClasPtr = mDevMap["default"](mDevProMap);
         PDM_LOG_DEBUG("DeviceClassFactory:%s line: %d mDevMap Siz: %d", __FUNCTION__, __LINE__, mDevMap.size());
