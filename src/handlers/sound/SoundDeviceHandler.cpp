@@ -1,4 +1,4 @@
-// Copyright (c) 2019-2022 LG Electronics, Inc.
+// Copyright (c) 2019-2023 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -48,19 +48,10 @@ SoundDeviceHandler::~SoundDeviceHandler() {
 
 bool SoundDeviceHandler::HandlerEvent(DeviceClass* deviceClass)
 {
-    PDM_LOG_DEBUG("SoundDeviceHandler:%s line: %d ", __FUNCTION__, __LINE__);
-    if (deviceClass->getAction() == "remove")
-    {
-        m_deviceRemoved = false;
-        ProcessSoundDevice(deviceClass);
-        if(m_deviceRemoved) {
-            PDM_LOG_DEBUG("SoundDeviceHandler:%s line: %d  DEVTYPE=usb_device removed", __FUNCTION__, __LINE__);
-            return true;
-        }
-    }
-
-    if(!isSoundDevice(deviceClass))
+    PDM_LOG_DEBUG("SoundDeviceHandleri check:%s line: %d ", __FUNCTION__, __LINE__);
+    if ((deviceClass->getAction() != "remove") && !isSoundDevice(deviceClass)) {
         return false;
+    }
 
     if(deviceClass->getDevType() ==  USB_DEVICE) {
         ProcessSoundDevice(deviceClass);

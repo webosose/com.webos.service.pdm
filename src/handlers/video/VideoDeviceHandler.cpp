@@ -1,4 +1,4 @@
-// Copyright (c) 2019-2022 LG Electronics, Inc.
+// Copyright (c) 2019-2023 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -42,17 +42,8 @@ bool VideoDeviceHandler::HandlerEvent(DeviceClass* devClass)
     VideoSubsystem *videoSubsystem = (VideoSubsystem *)devClass;
 
     PDM_LOG_DEBUG("VideoDeviceHandler::HandlerEvent");
-    if (devClass->getAction() == "remove")
-    {
-        mdeviceRemoved = false;
-        ProcessVideoDevice(devClass);
-        if(mdeviceRemoved) {
-            PDM_LOG_DEBUG("VideoDeviceHandler:%s line: %d  DEVTYPE=usb_device removed", __FUNCTION__, __LINE__);
-            return true;
-        }
-    }
     std::string interfaceClass = devClass->getInterfaceClass();
-    if((interfaceClass.find(iClass) == std::string::npos) && (videoSubsystem->getSubsystemName() !=  "video4linux"))
+    if((interfaceClass.find(iClass) == std::string::npos) && (devClass->getAction() != "remove"))
         return false;
     if(devClass->getDevType() ==  USB_DEVICE) {
         ProcessVideoDevice(devClass);
