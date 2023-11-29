@@ -1,0 +1,10 @@
+{
+    "com.webos.service.pdm":[
+        "account.query",
+        "applicationmanager.launcher",
+        "settings.query",
+        "notification.operation",
+        "notification.management",
+        "database.operation"
+    ]
+}

@@ -1,0 +1,15 @@
+{
+    "exeName": "/usr/sbin/physical-device-manager",
+    "trustLevel" : "oem",
+    "type": "regular",
+    "allowedNames": ["com.webos.service.pdm"],
+    "permissions": [
+            {
+                "service":"com.webos.service.pdm",
+                "outbound":["com.palm.db",
+                            "com.webos.service.db",
+                            "*"]
+            }
+      ]
+}
+

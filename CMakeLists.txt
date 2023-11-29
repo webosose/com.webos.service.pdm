@@ -90,7 +90,12 @@ set(LIB_LIST
 
 target_link_libraries (${BIN_NAME} ${LIB_LIST})
 
-webos_build_system_bus_files()
+if(WEBOS_TARGET_DISTRO STREQUAL "webos-auto")
+  webos_build_system_bus_files(files/sysbus_auto)
+else()
+  webos_build_system_bus_files()
+endif()
+
 webos_include_install_paths()
 webos_build_db8_files()
 if(WEBOS_TARGET_DISTRO STREQUAL "webos-auto")

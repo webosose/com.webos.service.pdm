@@ -1,0 +1,5 @@
+{
+    "allowedNames" : ["com.webos.service.pdm"],
+    "physicaldevice.query" : ["dev"],
+    "physicaldevice.management" : ["oem"]
+}
