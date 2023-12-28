@@ -1,4 +1,4 @@
-# Copyright (c) 2019-2022 LG Electronics, Inc.
+# Copyright (c) 2019-2024 LG Electronics, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -58,10 +58,13 @@ pkg_check_modules(LIBUSB REQUIRED libusb-1.0)
 include_directories(${LIBUSB_INCLUDE_DIRS})
 webos_add_compiler_flags(ALL ${LIBUSB_CFLAGS_OTHER})
 
-if(WEBOS_TARGET_DISTRO STREQUAL "webos-auto")
-    if(WEBOS_TARGET_MACHINE STREQUAL "sa8155" OR WEBOS_TARGET_MACHINE STREQUAL "qemux86-64")
-        add_definitions(-DWEBOS_SESSION)
-    endif()
+if(EXTENSION_WEBOS_AUTO)
+    add_definitions(-DWEBOS_SESSION)
+    webos_build_system_bus_files(files/sysbus_auto)
+    webos_build_configured_file(files/systemd/auto/physical-device-manager.service SYSCONFDIR systemd/system)
+else()
+    webos_build_system_bus_files()
+    webos_build_configured_file(files/systemd/physical-device-manager.service SYSCONFDIR systemd/system)
 endif()
 
 pkg_check_modules(UDEV REQUIRED libudev)
@@ -90,25 +93,8 @@ set(LIB_LIST
 
 target_link_libraries (${BIN_NAME} ${LIB_LIST})
 
-if(WEBOS_TARGET_DISTRO STREQUAL "webos-auto")
-  webos_build_system_bus_files(files/sysbus_auto)
-else()
-  webos_build_system_bus_files()
-endif()
-
 webos_include_install_paths()
 webos_build_db8_files()
-if(WEBOS_TARGET_DISTRO STREQUAL "webos-auto")
-    if(WEBOS_TARGET_MACHINE STREQUAL "sa8155" OR WEBOS_TARGET_MACHINE STREQUAL "qemux86-64" )
-        webos_build_configured_file(files/systemd/auto/physical-device-manager.service SYSCONFDIR systemd/system)
-    endif()
-endif()
-
-if(WEBOS_TARGET_DISTRO STREQUAL "webos")
-    if(WEBOS_TARGET_MACHINE STREQUAL "raspberrypi4" OR WEBOS_TARGET_MACHINE STREQUAL "raspberrypi4-64" OR WEBOS_TARGET_MACHINE STREQUAL "qemux86-64" OR  WEBOS_TARGET_MACHINE STREQUAL "qemux86")
-        webos_build_configured_file(files/systemd/physical-device-manager.service SYSCONFDIR systemd/system)
-    endif()
-endif()
 
 install(TARGETS ${BIN_NAME} DESTINATION sbin)
 install(FILES @CMAKE_SOURCE_DIR@/files/rules/39-usb-auto-port.rules DESTINATION @WEBOS_INSTALL_SYSCONFDIR@/udev/rules.d/)
