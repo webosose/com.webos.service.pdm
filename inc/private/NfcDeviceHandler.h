@@ -58,4 +58,4 @@ public:
     void commandNotification(EventType event, NfcDevice* device);
 };
 
-#endif // AUTOANDROIDDEVICEHANDLER_H_
+#endif // NFCDEVICEHANDLER_H_
