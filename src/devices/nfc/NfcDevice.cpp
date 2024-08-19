@@ -1,7 +1,7 @@
 
 // @@@LICENSE
 //
-// Copyright (c) 2020-2022 LG Electronics, Inc.
+// Copyright (c) 2020-2024 LG Electronics, Inc.
 //
 // Confidential computer software. Valid license from LG required for
 // possession, use or copying. Consistent with FAR 12.211 and 12.212,
@@ -29,6 +29,6 @@ void NfcDevice::setDeviceInfo(DeviceClass* devClass)
 }
 
 void NfcDevice::registerCallback(handlerCb nfcDeviceHandlerCb) {
-    mnfcDeviceHandlerCb = nfcDeviceHandlerCb;
+    mnfcDeviceHandlerCb = std::move(nfcDeviceHandlerCb);
 }
 

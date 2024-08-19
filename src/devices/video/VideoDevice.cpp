@@ -1,4 +1,4 @@
-// Copyright (c) 2019-2022 LG Electronics, Inc.
+// Copyright (c) 2019-2024 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@ VideoDevice::VideoDevice(PdmConfig* const pConfObj, PluginAdapter* const pluginA
 void VideoSubDevice::updateInfo(std::string devName, std::string capabilities, std::string productName, std::string version) {
     m_devPath = "/dev/" + devName;
     m_capabilities = capabilities;
-    m_productName = productName;
+    m_productName = std::move(productName);
     m_version = version;
 }
 

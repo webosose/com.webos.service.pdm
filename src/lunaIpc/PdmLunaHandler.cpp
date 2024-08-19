@@ -1,4 +1,4 @@
-// Copyright (c) 2019-2022 LG Electronics, Inc.
+// Copyright (c) 2019-2024 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -140,7 +140,7 @@ bool PdmLunaHandler::getAttachedVideoSubDeviceList(pbnjson::JValue &payload,LSMe
 {
     pbnjson::JValue videoDeviceList = pbnjson::Array();
 
-    for(auto deviceVideoList : mLunafptr[GET_VIDEOSUBDEVICELIST])
+    for(const auto& deviceVideoList : mLunafptr[GET_VIDEOSUBDEVICELIST])
     {
         deviceVideoList(videoDeviceList, message);
     }

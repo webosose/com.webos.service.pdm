@@ -1,7 +1,7 @@
 
 // @@@LICENSE
 //
-// Copyright (c) 2020-2022 LG Electronics, Inc.
+// Copyright (c) 2020-2024 LG Electronics, Inc.
 //
 // Confidential computer software. Valid license from LG required for
 // possession, use or copying. Consistent with FAR 12.211 and 12.212,
@@ -31,6 +31,6 @@ void AutoAndroidDevice::setDeviceInfo(DeviceClass* devClass)
 }
 
 void AutoAndroidDevice::registerCallback(handlerCb AutoAndroidDeviceHandlerCb) {
-    mAutoAndroidDeviceHandlerCb = AutoAndroidDeviceHandlerCb;
+    mAutoAndroidDeviceHandlerCb = std::move(AutoAndroidDeviceHandlerCb);
 }
 

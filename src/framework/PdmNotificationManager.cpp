@@ -1,4 +1,4 @@
-// Copyright (c) 2019-2022 LG Electronics, Inc.
+// Copyright (c) 2019-2024 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -162,7 +162,7 @@ void PdmNotificationManager::showConnectingToast(int eventDeviceType)
 
     pbnjson::JValue parameters = pbnjson::Object();
     parameters.put("deviceType", eventDeviceType);
-    PdmNotificationManager::sendAlertInfo(CONNECTING_EVENT, parameters);
+    PdmNotificationManager::sendAlertInfo(CONNECTING_EVENT, std::move(parameters));
 }
 
 void PdmNotificationManager::showToast(const std::string& message,const std::string &iconUrl)
@@ -178,7 +178,7 @@ void PdmNotificationManager::createAlertForMaxUsbStorageDevices()
     PDM_LOG_DEBUG("PdmNotificationManager:%s line: %d ", __FUNCTION__, __LINE__);
 
     pbnjson::JValue parameters = pbnjson::Object();
-    PdmNotificationManager::sendAlertInfo(MAX_COUNT_REACHED_EVENT, parameters);
+    PdmNotificationManager::sendAlertInfo(MAX_COUNT_REACHED_EVENT, std::move(parameters));
 }
 
 void PdmNotificationManager::unMountMtpDeviceAlert(IDevice* device)
@@ -197,7 +197,7 @@ void PdmNotificationManager::unMountMtpDeviceAlert(IDevice* device)
     PDM_LOG_DEBUG("PdmNotificationManager:%s line: %d driveName: %s", __FUNCTION__, __LINE__, driveName.c_str());
     pbnjson::JValue parameters = pbnjson::Object();
     parameters.put("driveName", driveName);
-    PdmNotificationManager::sendAlertInfo(REMOVE_BEFORE_MOUNT_MTP_EVENT, parameters);
+    PdmNotificationManager::sendAlertInfo(REMOVE_BEFORE_MOUNT_MTP_EVENT, std::move(parameters));
 }
 
 void PdmNotificationManager::createAlertForUnmountedDeviceRemoval(IDevice* device)
@@ -215,7 +215,7 @@ void PdmNotificationManager::createAlertForUnmountedDeviceRemoval(IDevice* devic
 
     pbnjson::JValue parameters = pbnjson::Object();
     parameters.put("deviceNum", devNumStr);
-    PdmNotificationManager::sendAlertInfo(REMOVE_BEFORE_MOUNT_EVENT, parameters);
+    PdmNotificationManager::sendAlertInfo(REMOVE_BEFORE_MOUNT_EVENT, std::move(parameters));
 }
 
 void PdmNotificationManager::createAlertForUnsupportedFileSystem(IDevice* device)
@@ -233,7 +233,7 @@ void PdmNotificationManager::createAlertForUnsupportedFileSystem(IDevice* device
 
     pbnjson::JValue parameters = pbnjson::Object();
     parameters.put("deviceNum", devNumStr);
-    PdmNotificationManager::sendAlertInfo(UNSUPPORTED_FS_FORMAT_NEEDED_EVENT, parameters);
+    PdmNotificationManager::sendAlertInfo(UNSUPPORTED_FS_FORMAT_NEEDED_EVENT, std::move(parameters));
 }
 
 void PdmNotificationManager::createAlertForFsckTimeout(IDevice* device)
@@ -255,7 +255,7 @@ void PdmNotificationManager::createAlertForFsckTimeout(IDevice* device)
     pbnjson::JValue parameters = pbnjson::Object();
     parameters.put("deviceNum", devNumStr);
     parameters.put("mountName", mountName);
-    PdmNotificationManager::sendAlertInfo(FSCK_TIMED_OUT_EVENT, parameters);
+    PdmNotificationManager::sendAlertInfo(FSCK_TIMED_OUT_EVENT, std::move(parameters));
 }
 
 void PdmNotificationManager::showFormatStartedToast(IDevice* device)
@@ -274,7 +274,7 @@ void PdmNotificationManager::showFormatStartedToast(IDevice* device)
 
     pbnjson::JValue parameters = pbnjson::Object();
     parameters.put("driveInfo", driveInfo);
-    PdmNotificationManager::sendAlertInfo(FORMAT_STARTED_EVENT, parameters);
+    PdmNotificationManager::sendAlertInfo(FORMAT_STARTED_EVENT, std::move(parameters));
 }
 
 void PdmNotificationManager::showFormatSuccessToast(IDevice* device)
@@ -293,7 +293,7 @@ void PdmNotificationManager::showFormatSuccessToast(IDevice* device)
 
     pbnjson::JValue parameters = pbnjson::Object();
     parameters.put("driveInfo", driveInfo);
-    PdmNotificationManager::sendAlertInfo(FORMAT_SUCCESS_EVENT, parameters);
+    PdmNotificationManager::sendAlertInfo(FORMAT_SUCCESS_EVENT, std::move(parameters));
 }
 
 void PdmNotificationManager::showFormatFailToast(IDevice* device)
@@ -312,7 +312,7 @@ void PdmNotificationManager::showFormatFailToast(IDevice* device)
 
     pbnjson::JValue parameters = pbnjson::Object();
     parameters.put("driveInfo", driveInfo);
-    PdmNotificationManager::sendAlertInfo(FORMAT_FAIL_EVENT, parameters);
+    PdmNotificationManager::sendAlertInfo(FORMAT_FAIL_EVENT, std::move(parameters));
 }
 
 void PdmNotificationManager::closeUnsupportedFsAlert(IDevice* device)
@@ -328,5 +328,5 @@ void PdmNotificationManager::closeUnsupportedFsAlert(IDevice* device)
 
     pbnjson::JValue parameters = pbnjson::Object();
     parameters.put("deviceNum", devNumStr);
-    PdmNotificationManager::sendAlertInfo(REMOVE_UNSUPPORTED_FS_EVENT, parameters);
+    PdmNotificationManager::sendAlertInfo(REMOVE_UNSUPPORTED_FS_EVENT, std::move(parameters));
 }

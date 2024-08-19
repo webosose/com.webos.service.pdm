@@ -1,4 +1,4 @@
-// Copyright (c) 2022-2023 LG Electronics, Inc.
+// Copyright (c) 2022-2024 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ DeviceClassFactory& DeviceClassFactory::getInstance() {
 
 void DeviceClassFactory::Register(std::string devType, devCreateFptr fPtr)
 {
-	mDevMap[devType] = fPtr;
+	mDevMap[devType] = std::move(fPtr);
 }
 
 void DeviceClassFactory::Deregister(std::string devType)
@@ -56,7 +56,7 @@ void DeviceClassFactory::parseDevProps(struct udev_device* device, bool isPowerO
               value.erase(0,dev.length());
         }
         PDM_LOG_DEBUG("DeviceClassFactory::parseDevProps - Name: %s Value: %s", name.c_str(), value.c_str());
-        mDevProMap[name] = value;
+        mDevProMap[name] = std::move(value);
     }
 
     if(isPowerOnConnect){

@@ -1,4 +1,4 @@
-// Copyright (c) 2019-2022 LG Electronics, Inc.
+// Copyright (c) 2019-2024 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -106,7 +106,7 @@ void BluetoothDeviceHandler::ProcessBluetoothDevice(DeviceClass* devClass){
         }
       break;
         case DeviceActions::USB_DEV_REMOVE:
-             bluetoothDevice = getDeviceWithPath< BluetoothDevice >(sList,devicePath);
+             bluetoothDevice = getDeviceWithPath< BluetoothDevice >(sList,std::move(devicePath));
           if(bluetoothDevice)
             removeDevice(bluetoothDevice);
              break;
