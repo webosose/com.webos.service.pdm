@@ -1,4 +1,4 @@
-// Copyright (c) 2019-2023 LG Electronics, Inc.
+// Copyright (c) 2019-2024 LG Electronics, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -93,6 +93,10 @@ void SoundDeviceHandler::ProcessSoundDevice(DeviceClass* deviceClass){
                     }
                 } else {
                     soundDevice->updateDeviceInfo(deviceClass);
+                    if (soundDevice->getBuiltIn()) {
+                        PDM_LOG_DEBUG("SoundDeviceHandler:%s line: %d notify for builtin devices", __FUNCTION__, __LINE__);
+                        Notify(SOUND_DEVICE, ADD);
+                    }
                 }
                 break;
                 case DeviceActions::USB_DEV_REMOVE:
